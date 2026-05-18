@@ -2,7 +2,7 @@ import { TouchableOpacity, Text, StyleSheet, TouchableOpacityProps } from 'react
 import { Colors, Radius, Spacing, Typography } from '../../theme';
 
 interface ButtonProps extends TouchableOpacityProps {
-  variant?: 'primary' | 'secondary' | 'ghost';
+  variant?: 'primary' | 'secondary' | 'ghost' | 'destructive';
   size?: 'sm' | 'md' | 'lg';
   children: string;
 }
@@ -22,6 +22,7 @@ export function Button({
         styles[variant],
         style,
       ]}
+      activeOpacity={0.8}
       {...props}
     >
       <Text style={[styles.text, styles[`${variant}Text`]]}>
@@ -35,7 +36,7 @@ const styles = StyleSheet.create({
   button: {
     alignItems: 'center',
     justifyContent: 'center',
-    borderRadius: Radius.full,
+    borderRadius: Radius.md,
   },
   sm: {
     paddingVertical: Spacing.sm,
@@ -50,25 +51,33 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.xxl,
   },
   primary: {
-    backgroundColor: Colors.primary,
+    backgroundColor: Colors.accentCyan,
   },
   secondary: {
-    backgroundColor: Colors.gray200,
+    backgroundColor: Colors.bgSurface,
+    borderWidth: 1,
+    borderColor: Colors.border,
   },
   ghost: {
     backgroundColor: 'transparent',
+  },
+  destructive: {
+    backgroundColor: Colors.accentRed + '15',
   },
   text: {
     fontWeight: Typography.weights.semibold,
     fontSize: Typography.sizes.base,
   },
   primaryText: {
-    color: Colors.white,
+    color: Colors.bgPrimary,
   },
   secondaryText: {
-    color: Colors.black,
+    color: Colors.textSecondary,
   },
   ghostText: {
-    color: Colors.primary,
+    color: Colors.accentCyan,
+  },
+  destructiveText: {
+    color: Colors.accentRed,
   },
 });

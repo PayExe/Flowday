@@ -26,13 +26,13 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   background: {
-    height: 6,
-    backgroundColor: Colors.gray200,
-    borderRadius: Radius.full,
+    height: 4,
+    backgroundColor: Colors.bgInput,
+    borderRadius: 2,
     overflow: 'hidden',
   },
   fill: {
     height: '100%',
-    borderRadius: Radius.full,
+    borderRadius: 2,
   },
 });

@@ -3,9 +3,9 @@ import { Colors, Spacing, Radius, Typography } from '../../theme';
 import { Priority } from '../../types/task';
 
 const PRIORITY_CONFIG = {
-  high: { color: Colors.priorityHigh, bg: Colors.dangerLight, label: 'Haute' },
-  medium: { color: Colors.priorityMedium, bg: Colors.warningLight, label: 'Moyenne' },
-  low: { color: Colors.priorityLow, bg: Colors.successLight, label: 'Basse' },
+  high: { color: Colors.priorityHigh, label: 'Haute' },
+  medium: { color: Colors.priorityMedium, label: 'Moyenne' },
+  low: { color: Colors.priorityLow, label: 'Basse' },
 };
 
 interface PriorityBadgeProps {
@@ -15,7 +15,7 @@ interface PriorityBadgeProps {
 export function PriorityBadge({ priority }: PriorityBadgeProps) {
   const config = PRIORITY_CONFIG[priority];
   return (
-    <View style={[styles.badge, { backgroundColor: config.bg }]}>
+    <View style={[styles.badge, { backgroundColor: config.color + '18' }]}>
       <View style={[styles.dot, { backgroundColor: config.color }]} />
       <Text style={[styles.text, { color: config.color }]}>
         {config.label}
@@ -28,9 +28,9 @@ const styles = StyleSheet.create({
   badge: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: Spacing.sm,
-    paddingVertical: Spacing.xs,
-    borderRadius: Radius.md,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: Radius.sm,
     gap: Spacing.xs,
   },
   dot: {

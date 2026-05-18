@@ -13,14 +13,14 @@ import { Colors, Spacing, Radius, Typography } from '../../theme';
 import { Priority } from '../../types/task';
 
 const PROJECT_COLORS = [
-  '#1D9BF0', '#00BA7C', '#FFAD1F', '#F4212E',
-  '#7856FF', '#FF6B00', '#E91E8C', '#17BF63',
+  '#22D3EE', '#3FB950', '#D29922', '#F85149',
+  '#A371F7', '#FF6B00', '#E91E8C', '#58A6FF',
 ];
 
 const PRIORITY_CONFIG = {
-  high: { color: Colors.priorityHigh, bg: Colors.dangerLight, label: 'Haute' },
-  medium: { color: Colors.priorityMedium, bg: Colors.warningLight, label: 'Moyenne' },
-  low: { color: Colors.priorityLow, bg: Colors.successLight, label: 'Basse' },
+  high: { color: Colors.priorityHigh, label: 'Haute' },
+  medium: { color: Colors.priorityMedium, label: 'Moyenne' },
+  low: { color: Colors.priorityLow, label: 'Basse' },
 };
 
 interface CreateProjectModalProps {
@@ -54,15 +54,15 @@ export function CreateProjectModal({ visible, onClose, onCreate }: CreateProject
         <View style={styles.content}>
           <View style={styles.header}>
             <Text style={styles.title}>Nouveau projet</Text>
-            <TouchableOpacity onPress={onClose}>
-              <Ionicons name="close" size={24} color={Colors.gray500} />
+            <TouchableOpacity onPress={onClose} activeOpacity={0.7}>
+              <Ionicons name="close" size={24} color={Colors.textSecondary} />
             </TouchableOpacity>
           </View>
 
           <TextInput
             style={styles.input}
             placeholder="Nom du projet"
-            placeholderTextColor={Colors.gray500}
+            placeholderTextColor={Colors.textTertiary}
             value={name}
             onChangeText={setName}
             autoFocus
@@ -79,9 +79,10 @@ export function CreateProjectModal({ visible, onClose, onCreate }: CreateProject
                   color === c && styles.colorOptionSelected,
                 ]}
                 onPress={() => setColor(c)}
+                activeOpacity={0.8}
               >
                 {color === c && (
-                  <Ionicons name="checkmark" size={16} color={Colors.white} />
+                  <Ionicons name="checkmark" size={16} color={Colors.bgPrimary} />
                 )}
               </TouchableOpacity>
             ))}
@@ -95,11 +96,12 @@ export function CreateProjectModal({ visible, onClose, onCreate }: CreateProject
                 style={[
                   styles.priorityOption,
                   priority === p && {
-                    backgroundColor: PRIORITY_CONFIG[p].bg,
+                    backgroundColor: PRIORITY_CONFIG[p].color + '18',
                     borderColor: PRIORITY_CONFIG[p].color,
                   },
                 ]}
                 onPress={() => setPriority(p)}
+                activeOpacity={0.7}
               >
                 <View
                   style={[
@@ -126,6 +128,7 @@ export function CreateProjectModal({ visible, onClose, onCreate }: CreateProject
             style={[styles.createButton, !name.trim() && styles.createButtonDisabled]}
             onPress={handleCreate}
             disabled={!name.trim()}
+            activeOpacity={0.8}
           >
             <Text style={styles.createButtonText}>Créer le projet</Text>
           </TouchableOpacity>
@@ -139,15 +142,18 @@ const styles = StyleSheet.create({
   overlay: {
     flex: 1,
     justifyContent: 'flex-end',
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    backgroundColor: 'rgba(0, 0, 0, 0.6)',
   },
   content: {
-    backgroundColor: Colors.white,
-    borderTopLeftRadius: Radius.xxl,
-    borderTopRightRadius: Radius.xxl,
-    paddingHorizontal: Spacing.xl,
-    paddingTop: Spacing.xl,
+    backgroundColor: Colors.bgSurface,
+    borderTopLeftRadius: Radius.xl,
+    borderTopRightRadius: Radius.xl,
+    paddingHorizontal: Spacing.lg,
+    paddingTop: Spacing.lg,
     paddingBottom: Spacing.xxxl,
+    borderWidth: 1,
+    borderBottomWidth: 0,
+    borderColor: Colors.border,
   },
   header: {
     flexDirection: 'row',
@@ -158,20 +164,20 @@ const styles = StyleSheet.create({
   title: {
     fontSize: Typography.sizes.xxl,
     fontWeight: Typography.weights.bold,
-    color: Colors.black,
+    color: Colors.textPrimary,
   },
   input: {
     fontSize: Typography.sizes.base,
-    color: Colors.black,
+    color: Colors.textPrimary,
     paddingVertical: Spacing.md,
     borderBottomWidth: 1,
-    borderBottomColor: Colors.gray200,
+    borderBottomColor: Colors.border,
     marginBottom: Spacing.lg,
   },
   label: {
     fontSize: Typography.sizes.sm,
     fontWeight: Typography.weights.semibold,
-    color: Colors.gray500,
+    color: Colors.textSecondary,
     marginBottom: Spacing.md,
     marginTop: Spacing.md,
   },
@@ -184,18 +190,13 @@ const styles = StyleSheet.create({
   colorOption: {
     width: 40,
     height: 40,
-    borderRadius: Radius.full,
+    borderRadius: 8,
     alignItems: 'center',
     justifyContent: 'center',
   },
   colorOptionSelected: {
-    borderWidth: 3,
-    borderColor: Colors.white,
-    shadowColor: Colors.black,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 4,
-    elevation: 4,
+    borderWidth: 2,
+    borderColor: Colors.textPrimary,
   },
   priorityPicker: {
     flexDirection: 'row',
@@ -208,31 +209,31 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     paddingVertical: Spacing.md,
-    borderRadius: Radius.lg,
+    borderRadius: Radius.md,
     borderWidth: 1,
-    borderColor: Colors.gray200,
+    borderColor: Colors.border,
     gap: Spacing.xs,
   },
   priorityOptionDot: {
     width: 8,
     height: 8,
-    borderRadius: Radius.full,
+    borderRadius: 4,
   },
   priorityOptionText: {
     fontSize: Typography.sizes.sm,
-    color: Colors.gray500,
+    color: Colors.textSecondary,
   },
   createButton: {
-    backgroundColor: Colors.primary,
+    backgroundColor: Colors.accentCyan,
     paddingVertical: Spacing.lg,
-    borderRadius: Radius.full,
+    borderRadius: Radius.md,
     alignItems: 'center',
   },
   createButtonDisabled: {
-    backgroundColor: Colors.gray300,
+    backgroundColor: Colors.bgInput,
   },
   createButtonText: {
-    color: Colors.white,
+    color: Colors.bgPrimary,
     fontSize: Typography.sizes.base,
     fontWeight: Typography.weights.semibold,
   },

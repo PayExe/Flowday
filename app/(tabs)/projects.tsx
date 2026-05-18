@@ -73,13 +73,14 @@ export default function ProjectsScreen() {
           <TouchableOpacity
             style={styles.addButton}
             onPress={() => setModalVisible(true)}
+            activeOpacity={0.8}
           >
-            <Ionicons name="add" size={22} color={Colors.white} />
+            <Ionicons name="add" size={22} color={Colors.bgPrimary} />
           </TouchableOpacity>
         </View>
       </View>
 
-      <Divider />
+      <Divider indent={Spacing.lg} />
 
       {/* Projects List */}
       <FlatList
@@ -110,11 +111,11 @@ export default function ProjectsScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: Colors.gray100,
+    backgroundColor: Colors.bgPrimary,
   },
   header: {
-    paddingHorizontal: Spacing.xl,
-    paddingTop: Spacing.xl,
+    paddingHorizontal: Spacing.lg,
+    paddingTop: Spacing.lg,
     paddingBottom: Spacing.md,
   },
   headerContent: {
@@ -125,23 +126,24 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: Typography.sizes.xxxl,
     fontWeight: Typography.weights.bold,
-    color: Colors.black,
+    color: Colors.textPrimary,
+    letterSpacing: -0.5,
   },
   headerSubtitle: {
     fontSize: Typography.sizes.base,
-    color: Colors.gray500,
+    color: Colors.textSecondary,
     marginTop: Spacing.xs,
   },
   addButton: {
     width: 44,
     height: 44,
-    borderRadius: 999,
-    backgroundColor: Colors.primary,
+    borderRadius: 10,
+    backgroundColor: Colors.accentCyan,
     alignItems: 'center',
     justifyContent: 'center',
   },
   listContent: {
-    paddingHorizontal: Spacing.xl,
+    paddingHorizontal: Spacing.lg,
     paddingTop: Spacing.md,
     paddingBottom: Spacing.xxl,
   },

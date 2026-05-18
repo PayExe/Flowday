@@ -36,7 +36,7 @@ export function ProjectCard({ project, completed, total, onDelete }: ProjectCard
           onPress={() => onDelete(project.id)}
           hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
         >
-          <Ionicons name="trash-outline" size={18} color={Colors.danger} />
+          <Ionicons name="trash-outline" size={18} color={Colors.accentRed} />
         </TouchableOpacity>
       </View>
 
@@ -54,12 +54,12 @@ export function ProjectCard({ project, completed, total, onDelete }: ProjectCard
 
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: Colors.white,
-    borderRadius: Radius.xl,
+    backgroundColor: Colors.bgSurface,
+    borderRadius: Radius.lg,
     padding: Spacing.lg,
     marginBottom: Spacing.md,
     borderWidth: 1,
-    borderColor: Colors.gray200,
+    borderColor: Colors.border,
   },
   header: {
     flexDirection: 'row',
@@ -72,10 +72,10 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   colorDot: {
-    width: 16,
-    height: 16,
-    borderRadius: Radius.full,
-    marginTop: Spacing.xs,
+    width: 14,
+    height: 14,
+    borderRadius: Radius.sm,
+    marginTop: 2,
     marginRight: Spacing.md,
   },
   info: {
@@ -84,7 +84,7 @@ const styles = StyleSheet.create({
   name: {
     fontSize: Typography.sizes.lg,
     fontWeight: Typography.weights.semibold,
-    color: Colors.black,
+    color: Colors.textPrimary,
   },
   meta: {
     flexDirection: 'row',
@@ -94,7 +94,7 @@ const styles = StyleSheet.create({
   },
   taskCount: {
     fontSize: Typography.sizes.sm,
-    color: Colors.gray500,
+    color: Colors.textSecondary,
   },
   deleteButton: {
     padding: Spacing.sm,
@@ -103,13 +103,13 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     marginTop: Spacing.md,
+    gap: Spacing.md,
   },
   progressText: {
     fontSize: Typography.sizes.sm,
     fontWeight: Typography.weights.semibold,
-    color: Colors.gray500,
-    marginLeft: Spacing.md,
-    minWidth: 40,
+    color: Colors.textSecondary,
+    minWidth: 36,
     textAlign: 'right',
   },
 });

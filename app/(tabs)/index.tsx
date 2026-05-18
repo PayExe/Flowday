@@ -71,7 +71,7 @@ export default function TodayScreen() {
           </Text>
         </View>
 
-        <Divider />
+        <Divider indent={Spacing.lg} />
 
         {/* Input */}
         <View style={styles.inputContainer}>
@@ -79,7 +79,7 @@ export default function TodayScreen() {
             <TextInput
               style={styles.input}
               placeholder="Qu'avez-vous à faire ?"
-              placeholderTextColor={Colors.gray500}
+              placeholderTextColor={Colors.textTertiary}
               value={newTaskTitle}
               onChangeText={setNewTaskTitle}
               onSubmitEditing={handleAddTask}
@@ -99,8 +99,9 @@ export default function TodayScreen() {
             ]}
             onPress={handleAddTask}
             disabled={!newTaskTitle.trim()}
+            activeOpacity={0.8}
           >
-            <Ionicons name="add" size={22} color={Colors.white} />
+            <Ionicons name="add" size={22} color={Colors.bgPrimary} />
           </TouchableOpacity>
         </View>
 
@@ -115,6 +116,7 @@ export default function TodayScreen() {
                   !selectedProjectId && styles.projectChipSelected,
                 ]}
                 onPress={() => setSelectedProjectId(undefined)}
+                activeOpacity={0.7}
               >
                 <Text
                   style={[
@@ -140,6 +142,7 @@ export default function TodayScreen() {
                       selectedProjectId === project.id ? undefined : project.id
                     )
                   }
+                  activeOpacity={0.7}
                 >
                   <View
                     style={[
@@ -170,7 +173,7 @@ export default function TodayScreen() {
           showsVerticalScrollIndicator={false}
           ListEmptyComponent={
             <EmptyState
-              icon="sunny-outline"
+              icon="code-slash-outline"
               title="Pas de tâches pour aujourd'hui"
               subtitle="Ajoutez votre première tâche ci-dessus"
             />
@@ -184,66 +187,66 @@ export default function TodayScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: Colors.gray100,
+    backgroundColor: Colors.bgPrimary,
   },
   flex: {
     flex: 1,
   },
   header: {
-    paddingHorizontal: Spacing.xl,
-    paddingTop: Spacing.xl,
+    paddingHorizontal: Spacing.lg,
+    paddingTop: Spacing.lg,
     paddingBottom: Spacing.md,
   },
   headerTitle: {
     fontSize: Typography.sizes.xxxl,
     fontWeight: Typography.weights.bold,
-    color: Colors.black,
+    color: Colors.textPrimary,
+    letterSpacing: -0.5,
   },
   headerSubtitle: {
     fontSize: Typography.sizes.base,
-    color: Colors.gray500,
+    color: Colors.textSecondary,
     marginTop: Spacing.xs,
   },
   inputContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: Spacing.xl,
+    paddingHorizontal: Spacing.lg,
     paddingVertical: Spacing.md,
-    backgroundColor: Colors.white,
-    marginHorizontal: Spacing.xl,
-    marginVertical: Spacing.md,
-    borderRadius: 16,
-    borderWidth: 1,
-    borderColor: Colors.gray200,
+    gap: Spacing.sm,
   },
   inputWrapper: {
     flex: 1,
   },
   input: {
     fontSize: Typography.sizes.base,
-    color: Colors.black,
-    paddingVertical: Spacing.sm,
+    color: Colors.textPrimary,
+    backgroundColor: Colors.bgInput,
+    borderRadius: 10,
+    paddingHorizontal: Spacing.lg,
+    paddingVertical: Spacing.md,
   },
   addButton: {
     width: 40,
     height: 40,
-    borderRadius: 999,
-    backgroundColor: Colors.primary,
+    borderRadius: 10,
+    backgroundColor: Colors.accentCyan,
     alignItems: 'center',
     justifyContent: 'center',
-    marginLeft: Spacing.md,
   },
   addButtonDisabled: {
-    backgroundColor: Colors.gray300,
+    backgroundColor: Colors.bgInput,
   },
   projectSelector: {
-    paddingHorizontal: Spacing.xl,
+    paddingHorizontal: Spacing.lg,
     marginBottom: Spacing.md,
   },
   projectSelectorLabel: {
-    fontSize: Typography.sizes.sm,
+    fontSize: Typography.sizes.xs,
     fontWeight: Typography.weights.semibold,
-    color: Colors.gray500,
+    color: Colors.textSecondary,
+    textTransform: 'uppercase',
+    letterSpacing: 1.5,
     marginBottom: Spacing.sm,
   },
   projectList: {
@@ -256,31 +259,30 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: Spacing.md,
     paddingVertical: Spacing.sm,
-    borderRadius: 999,
+    borderRadius: 8,
     borderWidth: 1,
-    borderColor: Colors.gray200,
-    backgroundColor: Colors.white,
+    borderColor: Colors.border,
+    backgroundColor: Colors.bgSurface,
     gap: Spacing.xs,
   },
   projectChipSelected: {
-    backgroundColor: Colors.gray200,
-    borderColor: Colors.gray400,
+    backgroundColor: Colors.bgInput,
+    borderColor: Colors.border,
   },
   projectChipText: {
     fontSize: Typography.sizes.sm,
-    color: Colors.gray500,
+    color: Colors.textSecondary,
   },
   projectChipTextSelected: {
-    color: Colors.black,
+    color: Colors.textPrimary,
     fontWeight: Typography.weights.medium,
   },
   projectChipDot: {
     width: 8,
     height: 8,
-    borderRadius: 999,
+    borderRadius: 4,
   },
   listContent: {
-    paddingHorizontal: Spacing.xl,
     paddingBottom: Spacing.xxl,
   },
 });

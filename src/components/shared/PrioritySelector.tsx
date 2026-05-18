@@ -1,5 +1,5 @@
-import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
-import { Colors, Spacing, Radius, Typography } from '../../theme';
+import { View, TouchableOpacity, StyleSheet } from 'react-native';
+import { Colors, Spacing, Radius } from '../../theme';
 import { Priority } from '../../types/task';
 
 const PRIORITY_CONFIG = {
@@ -27,6 +27,7 @@ export function PrioritySelector({ selected, onSelect }: PrioritySelectorProps) 
             },
           ]}
           onPress={() => onSelect(priority)}
+          activeOpacity={0.7}
         >
           <View
             style={[
@@ -48,15 +49,15 @@ const styles = StyleSheet.create({
   button: {
     width: 32,
     height: 32,
-    borderRadius: Radius.full,
+    borderRadius: 8,
     borderWidth: 1.5,
-    borderColor: Colors.gray300,
+    borderColor: Colors.border,
     alignItems: 'center',
     justifyContent: 'center',
   },
   dot: {
     width: 12,
     height: 12,
-    borderRadius: Radius.full,
+    borderRadius: 4,
   },
 });

@@ -1,4 +1,4 @@
-import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import { View, Text, TouchableOpacity, Pressable, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors, Spacing, Radius, Typography } from '../../theme';
 import { Task } from '../../types/task';
@@ -18,78 +18,103 @@ export function TaskCard({ task, onToggle, onDelete }: TaskCardProps) {
     : null;
 
   return (
-    <View style={styles.card}>
-      <TouchableOpacity
-        style={styles.checkbox}
+    <View>
+      <Pressable
+        style={({ pressed }) => [
+          styles.row,
+          pressed && styles.rowPressed,
+        ]}
         onPress={() => onToggle(task.id)}
-        hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
       >
-        <Ionicons
-          name={task.completed ? 'checkmark-circle' : 'ellipse-outline'}
-          size={24}
-          color={task.completed ? Colors.success : Colors.gray400}
-        />
-      </TouchableOpacity>
-
-      <View style={styles.content}>
-        <Text
-          style={[
-            styles.title,
-            task.completed && styles.titleCompleted,
-          ]}
+        <TouchableOpacity
+          style={styles.checkbox}
+          onPress={() => onToggle(task.id)}
+          hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
         >
-          {task.title}
-        </Text>
-        <View style={styles.meta}>
-          <PriorityBadge priority={task.priority} />
-          {project && (
-            <View style={[styles.projectBadge, { backgroundColor: project.color + '20' }]}>
-              <View style={[styles.projectDot, { backgroundColor: project.color }]} />
-              <Text style={[styles.projectText, { color: project.color }]}>
-                {project.name}
-              </Text>
-            </View>
-          )}
-        </View>
-      </View>
+          <View
+            style={[
+              styles.checkboxBox,
+              task.completed && {
+                backgroundColor: Colors.accentCyan,
+                borderColor: Colors.accentCyan,
+              },
+            ]}
+          >
+            {task.completed && (
+              <Ionicons name="checkmark" size={14} color={Colors.bgPrimary} />
+            )}
+          </View>
+        </TouchableOpacity>
 
-      <TouchableOpacity
-        style={styles.deleteButton}
-        onPress={() => onDelete(task.id)}
-        hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-      >
-        <Ionicons name="trash-outline" size={20} color={Colors.danger} />
-      </TouchableOpacity>
+        <View style={styles.content}>
+          <Text
+            style={[
+              styles.title,
+              task.completed && styles.titleCompleted,
+            ]}
+          >
+            {task.title}
+          </Text>
+          <View style={styles.meta}>
+            <PriorityBadge priority={task.priority} />
+            {project && (
+              <View style={[styles.projectBadge, { backgroundColor: project.color + '18' }]}>
+                <View style={[styles.projectDot, { backgroundColor: project.color }]} />
+                <Text style={[styles.projectText, { color: project.color }]}>
+                  {project.name}
+                </Text>
+              </View>
+            )}
+          </View>
+        </View>
+
+        <TouchableOpacity
+          style={styles.deleteButton}
+          onPress={() => onDelete(task.id)}
+          hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+        >
+          <Ionicons name="trash-outline" size={20} color={Colors.accentRed} />
+        </TouchableOpacity>
+      </Pressable>
+      <View style={styles.separator} />
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  card: {
+  row: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: Colors.white,
-    padding: Spacing.lg,
-    borderRadius: Radius.xl,
-    marginBottom: Spacing.md,
-    borderWidth: 1,
-    borderColor: Colors.gray200,
+    paddingHorizontal: Spacing.lg,
+    paddingVertical: 14,
+  },
+  rowPressed: {
+    backgroundColor: Colors.bgHover,
   },
   checkbox: {
     marginRight: Spacing.md,
+  },
+  checkboxBox: {
+    width: 22,
+    height: 22,
+    borderRadius: 6,
+    borderWidth: 2,
+    borderColor: Colors.textTertiary,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   content: {
     flex: 1,
   },
   title: {
     fontSize: Typography.sizes.base,
-    color: Colors.black,
+    color: Colors.textPrimary,
     fontWeight: Typography.weights.medium,
-    lineHeight: 24,
+    lineHeight: 22,
   },
   titleCompleted: {
     textDecorationLine: 'line-through',
-    color: Colors.gray500,
+    color: Colors.textSecondary,
   },
   meta: {
     flexDirection: 'row',
@@ -99,9 +124,9 @@ const styles = StyleSheet.create({
   projectBadge: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: Spacing.sm,
-    paddingVertical: Spacing.xs,
-    borderRadius: Radius.md,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: Radius.sm,
     gap: Spacing.xs,
   },
   projectDot: {
@@ -116,5 +141,10 @@ const styles = StyleSheet.create({
   deleteButton: {
     padding: Spacing.sm,
     marginLeft: Spacing.sm,
+  },
+  separator: {
+    height: 1,
+    backgroundColor: Colors.border,
+    marginLeft: 52,
   },
 });

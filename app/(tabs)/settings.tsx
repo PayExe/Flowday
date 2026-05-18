@@ -10,7 +10,7 @@ export default function SettingsScreen() {
         <Text style={styles.headerTitle}>Réglages</Text>
         <Text style={styles.headerSubtitle}>Personnalisez votre expérience</Text>
       </View>
-      <Divider />
+      <Divider indent={Spacing.lg} />
       <View style={styles.content}>
         <Text style={styles.placeholder}>À venir dans la prochaine version...</Text>
       </View>
@@ -21,32 +21,33 @@ export default function SettingsScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: Colors.gray100,
+    backgroundColor: Colors.bgPrimary,
   },
   header: {
-    paddingHorizontal: Spacing.xl,
-    paddingTop: Spacing.xl,
+    paddingHorizontal: Spacing.lg,
+    paddingTop: Spacing.lg,
     paddingBottom: Spacing.md,
   },
   headerTitle: {
     fontSize: Typography.sizes.xxxl,
     fontWeight: Typography.weights.bold,
-    color: Colors.black,
+    color: Colors.textPrimary,
+    letterSpacing: -0.5,
   },
   headerSubtitle: {
     fontSize: Typography.sizes.base,
-    color: Colors.gray500,
+    color: Colors.textSecondary,
     marginTop: Spacing.xs,
   },
   content: {
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    paddingHorizontal: Spacing.xl,
+    paddingHorizontal: Spacing.lg,
   },
   placeholder: {
     fontSize: Typography.sizes.base,
-    color: Colors.gray500,
+    color: Colors.textSecondary,
     textAlign: 'center',
   },
 });

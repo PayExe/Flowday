@@ -1,39 +1,55 @@
 // ============================================================
-// THEME / DESIGN SYSTEM
+// THEME / DESIGN SYSTEM — Obsidian & Cyan
 // ============================================================
-// Tout le design de l'app est centralisé ici.
-// Tu veux changer une couleur ? Un espacement ? Viens ici.
+// Nouvelle DA : Developer Dark
 // ============================================================
 
 export const Colors = {
-  // Primary
-  primary: '#1D9BF0',
-  primaryDark: '#1A8CD8',
-  primaryLight: '#E8F5FE',
+  // Backgrounds
+  bgPrimary: '#0D1117',
+  bgSurface: '#161B22',
+  bgInput: '#21262D',
+  bgHover: '#1C2128',
 
-  // Neutrals
-  black: '#0F1419',
-  white: '#FFFFFF',
+  // Borders
+  border: '#30363D',
 
-  // Grays
-  gray100: '#F7F9FA',
-  gray200: '#EFF3F4',
-  gray300: '#E7E9EA',
-  gray400: '#CFD9DE',
-  gray500: '#536471',
+  // Text
+  textPrimary: '#E6EDF3',
+  textSecondary: '#8B949E',
+  textTertiary: '#484F58',
+
+  // Accents
+  accentCyan: '#22D3EE',
+  accentViolet: '#A371F7',
+  accentGreen: '#3FB950',
+  accentRed: '#F85149',
+  accentYellow: '#D29922',
+
+  // Legacy aliases
+  primary: '#22D3EE',
+  white: '#E6EDF3',
+  black: '#0D1117',
+
+  // Priority
+  priorityHigh: '#F85149',
+  priorityMedium: '#D29922',
+  priorityLow: '#3FB950',
 
   // Semantic
-  success: '#00BA7C',
-  successLight: '#E5F9F1',
-  warning: '#FFAD1F',
-  warningLight: '#FFF5E1',
-  danger: '#F4212E',
-  dangerLight: '#FEE8EA',
+  success: '#3FB950',
+  danger: '#F85149',
+  warning: '#D29922',
 
-  // Priority colors
-  priorityHigh: '#F4212E',
-  priorityMedium: '#FFAD1F',
-  priorityLow: '#00BA7C',
+  // Legacy mapping for smooth migration
+  gray100: '#0D1117',
+  gray200: '#21262D',
+  gray300: '#30363D',
+  gray400: '#484F58',
+  gray500: '#8B949E',
+  successLight: '#3FB95018',
+  dangerLight: '#F8514918',
+  warningLight: '#D2992218',
 };
 
 export const Spacing = {
@@ -47,20 +63,20 @@ export const Spacing = {
 };
 
 export const Radius = {
-  sm: 4,
-  md: 8,
-  lg: 12,
-  xl: 16,
+  sm: 6,
+  md: 10,
+  lg: 14,
+  xl: 20,
   xxl: 24,
   full: 9999,
 };
 
 export const Typography = {
   sizes: {
-    xs: 12,
-    sm: 14,
-    base: 16,
-    lg: 18,
+    xs: 11,
+    sm: 13,
+    base: 15,
+    lg: 17,
     xl: 20,
     xxl: 24,
     xxxl: 32,
