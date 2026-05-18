@@ -8,15 +8,15 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
-import { useProjectStore } from '../../../src/features/projects/store';
-import { useTaskStore } from '../../../src/features/tasks/store';
-import { Project } from '../../../src/types/project';
-import { Priority } from '../../../src/types/task';
-import { Colors, Spacing, Typography } from '../../../src/theme';
-import { ProjectCard } from '../../../src/components/projects/ProjectCard';
-import { CreateProjectModal } from '../../../src/components/projects/CreateProjectModal';
-import { EmptyState } from '../../../src/components/shared/EmptyState';
-import { Divider } from '../../../src/components/ui/Divider';
+import { useProjectStore } from '../../src/features/projects/store';
+import { useTaskStore } from '../../src/features/tasks/store';
+import { Project } from '../../src/types/project';
+import { Priority } from '../../src/types/task';
+import { Colors, Spacing, Typography } from '../../src/theme';
+import { ProjectCard } from '../../src/components/projects/ProjectCard';
+import { CreateProjectModal } from '../../src/components/projects/CreateProjectModal';
+import { EmptyState } from '../../src/components/shared/EmptyState';
+import { Divider } from '../../src/components/ui/Divider';
 
 export default function ProjectsScreen() {
   const [modalVisible, setModalVisible] = useState(false);

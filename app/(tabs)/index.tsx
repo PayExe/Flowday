@@ -11,14 +11,14 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
-import { useTaskStore } from '../../../src/features/tasks/store';
-import { useProjectStore } from '../../../src/features/projects/store';
-import { Task, Priority } from '../../../src/types/task';
-import { Colors, Spacing, Typography } from '../../../src/theme';
-import { TaskCard } from '../../../src/components/tasks/TaskCard';
-import { EmptyState } from '../../../src/components/shared/EmptyState';
-import { PrioritySelector } from '../../../src/components/shared/PrioritySelector';
-import { Divider } from '../../../src/components/ui/Divider';
+import { useTaskStore } from '../../src/features/tasks/store';
+import { useProjectStore } from '../../src/features/projects/store';
+import { Task, Priority } from '../../src/types/task';
+import { Colors, Spacing, Typography } from '../../src/theme';
+import { TaskCard } from '../../src/components/tasks/TaskCard';
+import { EmptyState } from '../../src/components/shared/EmptyState';
+import { PrioritySelector } from '../../src/components/shared/PrioritySelector';
+import { Divider } from '../../src/components/ui/Divider';
 
 export default function TodayScreen() {
   const [newTaskTitle, setNewTaskTitle] = useState('');
