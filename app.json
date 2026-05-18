@@ -3,6 +3,8 @@
     "name": "flowday",
     "slug": "flowday",
     "version": "1.0.0",
+    "scheme": "flowday",
+    "main": "expo-router/entry",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
