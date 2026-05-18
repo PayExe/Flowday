@@ -1,5 +1,9 @@
-// Design System - Flowday v1
-// Inspiration: Twitter/X clean aesthetic
+// ============================================================
+// THEME / DESIGN SYSTEM
+// ============================================================
+// Tout le design de l'app est centralisé ici.
+// Tu veux changer une couleur ? Un espacement ? Viens ici.
+// ============================================================
 
 export const Colors = {
   // Primary
@@ -17,7 +21,6 @@ export const Colors = {
   gray300: '#E7E9EA',
   gray400: '#CFD9DE',
   gray500: '#536471',
-  gray600: '#536471',
 
   // Semantic
   success: '#00BA7C',
@@ -27,7 +30,7 @@ export const Colors = {
   danger: '#F4212E',
   dangerLight: '#FEE8EA',
 
-  // Priority
+  // Priority colors
   priorityHigh: '#F4212E',
   priorityMedium: '#FFAD1F',
   priorityLow: '#00BA7C',
@@ -62,9 +65,9 @@ export const Typography = {
     xxxl: 32,
   },
   weights: {
-    normal: '400',
-    medium: '500',
-    semibold: '600',
-    bold: '700',
-  } as const,
+    normal: '400' as const,
+    medium: '500' as const,
+    semibold: '600' as const,
+    bold: '700' as const,
+  },
 };

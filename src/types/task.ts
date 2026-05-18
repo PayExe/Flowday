@@ -7,6 +7,6 @@ export interface Task {
   completed: boolean;
   priority: Priority;
   projectId?: string;
-  createdAt: string; // ISO date string
-  dueDate?: string; // ISO date string
+  createdAt: string;
+  dueDate?: string;
 }

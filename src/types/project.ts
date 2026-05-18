@@ -3,7 +3,7 @@ import { Priority } from './task';
 export interface Project {
   id: string;
   name: string;
-  color: string; // hex color code
+  color: string;
   priority: Priority;
-  createdAt: string; // ISO date string
+  createdAt: string;
 }

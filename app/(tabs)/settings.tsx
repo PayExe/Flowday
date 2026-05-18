@@ -1,6 +1,7 @@
 import { View, Text, StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Colors, Spacing, Typography } from '../../constants/design';
+import { Colors, Spacing, Typography } from '../../src/theme';
+import { Divider } from '../../src/components/ui/Divider';
 
 export default function SettingsScreen() {
   return (
@@ -9,7 +10,7 @@ export default function SettingsScreen() {
         <Text style={styles.headerTitle}>Réglages</Text>
         <Text style={styles.headerSubtitle}>Personnalisez votre expérience</Text>
       </View>
-      <View style={styles.divider} />
+      <Divider />
       <View style={styles.content}>
         <Text style={styles.placeholder}>À venir dans la prochaine version...</Text>
       </View>
@@ -36,11 +37,6 @@ const styles = StyleSheet.create({
     fontSize: Typography.sizes.base,
     color: Colors.gray500,
     marginTop: Spacing.xs,
-  },
-  divider: {
-    height: 1,
-    backgroundColor: Colors.gray200,
-    marginHorizontal: Spacing.xl,
   },
   content: {
     flex: 1,

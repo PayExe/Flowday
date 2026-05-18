@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { Project } from '../types/project';
+import { Project } from '../../types/project';
 
 interface ProjectState {
   projects: Project[];
@@ -12,7 +12,7 @@ interface ProjectState {
 
 export const useProjectStore = create<ProjectState>()(
   persist(
-    (set, get) => ({
+    (set) => ({
       projects: [],
 
       addProject: (projectData) =>
@@ -33,7 +33,7 @@ export const useProjectStore = create<ProjectState>()(
         })),
 
       updateProject: (id, updates) =>
-        set((state) => ({  
+        set((state) => ({
           projects: state.projects.map((project) =>
             project.id === id ? { ...project, ...updates } : project
           ),

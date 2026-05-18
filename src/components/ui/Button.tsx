@@ -1,5 +1,5 @@
 import { TouchableOpacity, Text, StyleSheet, TouchableOpacityProps } from 'react-native';
-import { Colors, Radius, Spacing, Typography } from '../constants/design';
+import { Colors, Radius, Spacing, Typography } from '../../theme';
 
 interface ButtonProps extends TouchableOpacityProps {
   variant?: 'primary' | 'secondary' | 'ghost';
@@ -14,22 +14,19 @@ export function Button({
   style,
   ...props
 }: ButtonProps) {
-  const buttonStyles = [
-    styles.button,
-    styles[size],
-    styles[variant],
-    style,
-  ];
-
-  const textStyles = [
-    styles.text,
-    styles[`${variant}Text`],
-    size === 'sm' && { fontSize: Typography.sizes.sm },
-  ];
-
   return (
-    <TouchableOpacity style={buttonStyles} {...props}>
-      <Text style={textStyles}>{children}</Text>
+    <TouchableOpacity
+      style={[
+        styles.button,
+        styles[size],
+        styles[variant],
+        style,
+      ]}
+      {...props}
+    >
+      <Text style={[styles.text, styles[`${variant}Text`]]}>
+        {children}
+      </Text>
     </TouchableOpacity>
   );
 }
