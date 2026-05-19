@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { v4 as uuidv4 } from 'uuid';
+import { generateId } from '../../utils/id';
 import { FocusSession, FocusState } from '../../types/focus';
 
 const POMODORO_MINUTES = 25;
@@ -49,7 +49,7 @@ export const useFocusStore = create<FocusStoreState>()(
           sessions: [
             ...state.sessions,
             {
-              id: uuidv4(),
+              id: generateId(),
               taskId,
               taskTitle,
               startedAt: new Date().toISOString(),

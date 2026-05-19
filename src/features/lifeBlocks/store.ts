@@ -1,12 +1,12 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { v4 as uuidv4 } from 'uuid';
+import { generateId } from '../../utils/id';
 import { LifeBlock, LifeBlockColor } from '../../types/lifeBlock';
 
 interface LifeBlocksState {
   blocks: LifeBlock[];
-  addBlock: (data: Omit<LifeBlock, 'id' | 'createdAt' | 'updatedAt'>) => void;
+  addBlock: (data: Omit<LifeBlock, 'id' | 'createdAt' | 'updatedAt' | 'order'>) => void;
   updateBlock: (id: string, updates: Partial<Omit<LifeBlock, 'id' | 'createdAt'>>) => void;
   archiveBlock: (id: string) => void;
   unarchiveBlock: (id: string) => void;
@@ -28,7 +28,7 @@ export const useLifeBlocksStore = create<LifeBlocksState>()(
               ...state.blocks,
               {
                 ...data,
-                id: uuidv4(),
+                id: generateId(),
                 order: maxOrder + 1,
                 createdAt: new Date().toISOString(),
                 updatedAt: new Date().toISOString(),

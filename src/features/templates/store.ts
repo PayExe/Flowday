@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { v4 as uuidv4 } from 'uuid';
+import { generateId } from '../../utils/id';
 import { WeeklyTemplate, TemplateBlock } from '../../types/template';
 
 interface TemplateState {
@@ -25,7 +25,7 @@ export const useTemplateStore = create<TemplateState>()(
 
       addTemplate: (name) => {
         const newTemplate: WeeklyTemplate = {
-          id: uuidv4(),
+          id: generateId(),
           name,
           isActive: true,
           blocks: [],
@@ -56,7 +56,7 @@ export const useTemplateStore = create<TemplateState>()(
                   ...t,
                   blocks: [
                     ...t.blocks,
-                    { ...block, id: uuidv4() },
+                    { ...block, id: generateId() },
                   ],
                   updatedAt: new Date().toISOString(),
                 }
