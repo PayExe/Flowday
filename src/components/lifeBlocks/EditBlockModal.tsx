@@ -13,6 +13,7 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { Colors, Spacing, Radius, Typography } from '../../theme';
 import { LifeBlock, LifeBlockColors, LifeBlockColor } from '../../types/lifeBlock';
+import { hapticSuccess } from '../../utils/haptics';
 
 interface EditBlockModalProps {
   visible: boolean;
@@ -90,6 +91,7 @@ export function EditBlockModal({
 
   const handleSave = () => {
     if (!name.trim()) return;
+    hapticSuccess();
     const weeklyGoalMinutes = parseGoalInput(goalInput) || 0;
     onSave({
       name: name.trim(),

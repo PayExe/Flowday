@@ -2,6 +2,7 @@ import { View, Text, TouchableOpacity, StyleSheet, Alert } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors, Spacing, Radius, Typography } from '../../theme';
 import { LifeBlock } from '../../types/lifeBlock';
+import { hapticWarning } from '../../utils/haptics';
 
 interface LifeBlockCardProps {
   block: LifeBlock;
@@ -37,6 +38,7 @@ export function LifeBlockCard({
   const progress = Math.min(progressPercent, 100);
 
   const handleArchive = () => {
+    hapticWarning();
     Alert.alert(
       'Archiver ce bloc ?',
       `${block.emoji} ${block.name} sera masqué mais l'historique sera conservé.`,

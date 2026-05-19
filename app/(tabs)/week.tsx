@@ -1,4 +1,4 @@
-import { useState, useCallback, useMemo } from 'react';
+import { useState, useCallback, useMemo, useEffect, useRef } from 'react';
 import {
   View,
   Text,
@@ -41,16 +41,21 @@ export default function WeekScreen() {
 
   const activeTemplate = templates.find((t) => t.id === activeTemplateId);
 
-  // Créer un template par défaut si aucun
-  const ensureTemplate = useCallback(() => {
-    if (!activeTemplate && templates.length === 0) {
-      const newTemplate = addTemplate('Semaine normale');
-      return newTemplate;
+  // Create default template if none exists (but NOT during render)
+  const didInit = useRef(false);
+  useEffect(() => {
+    if (didInit.current) return;
+    if (activeTemplate) {
+      didInit.current = true;
+      return;
     }
-    return activeTemplate;
-  }, [activeTemplate, templates, addTemplate]);
+    if (templates.length === 0 && lifeBlocks.length > 0) {
+      didInit.current = true;
+      addTemplate('Semaine normale');
+    }
+  }, [activeTemplate, templates.length, lifeBlocks.length, addTemplate]);
 
-  const template = ensureTemplate();
+  const template = activeTemplate;
 
   const handleCreate = useCallback((dayOfWeek: number) => {
     setEditingBlock(null);

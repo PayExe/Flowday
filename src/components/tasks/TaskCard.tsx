@@ -3,6 +3,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { Colors, Spacing, Radius, Typography } from '../../theme';
 import { Task } from '../../types/task';
 import { PriorityBadge } from '../shared/PriorityBadge';
+import { hapticLight, hapticWarning } from '../../utils/haptics';
 
 interface TaskCardProps {
   task: Task;
@@ -13,16 +14,10 @@ interface TaskCardProps {
 export function TaskCard({ task, onToggle, onDelete }: TaskCardProps) {
   return (
     <View>
-      <Pressable
-        style={({ pressed }) => [
-          styles.row,
-          pressed && styles.rowPressed,
-        ]}
-        onPress={() => onToggle(task.id)}
-      >
+      <View style={styles.row}>
         <TouchableOpacity
-          style={styles.checkbox}
-          onPress={() => onToggle(task.id)}
+          style={styles.checkboxArea}
+          onPress={() => { hapticLight(); onToggle(task.id); }}
           hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
         >
           <View
@@ -40,7 +35,11 @@ export function TaskCard({ task, onToggle, onDelete }: TaskCardProps) {
           </View>
         </TouchableOpacity>
 
-        <View style={styles.content}>
+        <TouchableOpacity
+          style={styles.contentArea}
+          onPress={() => { hapticLight(); onToggle(task.id); }}
+          activeOpacity={0.8}
+        >
           <Text
             style={[
               styles.title,
@@ -52,16 +51,16 @@ export function TaskCard({ task, onToggle, onDelete }: TaskCardProps) {
           <View style={styles.meta}>
             <PriorityBadge priority={task.priority} />
           </View>
-        </View>
+        </TouchableOpacity>
 
         <TouchableOpacity
           style={styles.deleteButton}
-          onPress={() => onDelete(task.id)}
+          onPress={() => { hapticWarning(); onDelete(task.id); }}
           hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
         >
           <Ionicons name="trash-outline" size={20} color={Colors.accentRed} />
         </TouchableOpacity>
-      </Pressable>
+      </View>
       <View style={styles.separator} />
     </View>
   );
@@ -74,11 +73,13 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.lg,
     paddingVertical: 14,
   },
-  rowPressed: {
-    backgroundColor: Colors.bgHover,
+  checkboxArea: {
+    padding: Spacing.xs,
+    marginRight: Spacing.sm,
   },
-  checkbox: {
-    marginRight: Spacing.md,
+  contentArea: {
+    flex: 1,
+    paddingVertical: Spacing.xs,
   },
   checkboxBox: {
     width: 22,

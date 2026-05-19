@@ -2,9 +2,9 @@ import { useEffect, useMemo, useRef, useState, useCallback } from 'react';
 import {
   View,
   Text,
+  TextInput,
   ScrollView,
   StyleSheet,
-  Dimensions,
   TouchableOpacity,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -22,18 +22,22 @@ import { CurrentTimeLine } from '../../src/components/timeline/CurrentTimeLine';
 import { FreeSlot } from '../../src/components/timeline/FreeSlot';
 import { HourMarker, HOUR_HEIGHT, START_HOUR, END_HOUR } from '../../src/components/timeline/HourMarker';
 import { EmptyState } from '../../src/components/shared/EmptyState';
-import { format } from 'date-fns';
-import { fr } from 'date-fns/locale';
 
 // ─── Helpers ─────────────────────────────────────────────────
+
+function todayISO(): string {
+  return new Date().toISOString().split('T')[0];
+}
+
+function formatDateFr(date: Date): string {
+  const days = ['dimanche', 'lundi', 'mardi', 'mercredi', 'jeudi', 'vendredi', 'samedi'];
+  const months = ['janvier', 'février', 'mars', 'avril', 'mai', 'juin', 'juillet', 'août', 'septembre', 'octobre', 'novembre', 'décembre'];
+  return `${days[date.getDay()]} ${date.getDate()} ${months[date.getMonth()]}`;
+}
 
 function timeToMinutes(time: string): number {
   const [h, m] = time.split(':').map(Number);
   return h * 60 + m;
-}
-
-function minutesSinceStart(time: string): number {
-  return timeToMinutes(time) - START_HOUR * 60;
 }
 
 function currentMinutesSinceStart(): number {
@@ -61,10 +65,11 @@ export default function TodayScreen() {
   const router = useRouter();
   const scrollRef = useRef<ScrollView>(null);
   const [nowY, setNowY] = useState(currentMinutesSinceStart() * (HOUR_HEIGHT / 60));
-
-  const startFocus = useFocusStore((state) => state.startFocus);
+  const [newTaskTitle, setNewTaskTitle] = useState('');
+  const [selectedBlockId, setSelectedBlockId] = useState<string | undefined>(undefined);
 
   const tasks = useTaskStore((state) => state.tasks);
+  const addTask = useTaskStore((state) => state.addTask);
   const toggleTask = useTaskStore((state) => state.toggleTask);
   const getTodayTasks = useTaskStore((state) => state.getTodayTasks);
   const getTodayTasksByLifeBlock = useTaskStore((state) => state.getTodayTasksByLifeBlock);
@@ -75,27 +80,47 @@ export default function TodayScreen() {
   const getBlockById = useLifeBlocksStore((state) => state.getBlockById);
   const getActiveBlocks = useLifeBlocksStore((state) => state.getActiveBlocks);
 
+  const scores = useDayScoreStore((state) => state.scores);
+  const updateBlockValidation = useDayScoreStore((state) => state.updateBlockValidation);
+  const updateTasksPercent = useDayScoreStore((state) => state.updateTasksPercent);
+
+  const startFocus = useFocusStore((state) => state.startFocus);
+
+  // ─── Données dérivées ──────────────────────────────────────
+  const activeBlocks = useMemo(() => getActiveBlocks(), [getActiveBlocks]);
   const todayTasks = useMemo(() => getTodayTasks(), [tasks, getTodayTasks]);
   const templateBlocks = useMemo(() => getTodayBlocks(), [getTodayBlocks]);
 
-  // ─── Calcul Day Score (basique) ────────────────────────────
+  const hasTemplate = getActiveTemplate() !== undefined;
+
+  // ─── Auto-recalcul du Day Score quand tasks change ──────────
+  useEffect(() => {
+    const today = todayISO();
+    const completed = todayTasks.filter((t) => t.completed).length;
+    const total = todayTasks.length;
+    updateTasksPercent(today, completed, total);
+
+    const blocksWithCompletedTasks = activeBlocks.filter((block) =>
+      todayTasks.some((t) => t.lifeBlockId === block.id && t.completed)
+    );
+    updateBlockValidation(today, blocksWithCompletedTasks.length, activeBlocks.length);
+  }, [tasks, activeBlocks, todayTasks, updateTasksPercent, updateBlockValidation]);
+
+  // ─── Calcul Day Score complet ──────────────────────────────
   const dayScore = useMemo(() => {
-    const todayTasksList = getTodayTasks();
-    const total = todayTasksList.length;
-    const completed = todayTasksList.filter((t) => t.completed).length;
-    const tasksPercent = total > 0 ? Math.min((completed / total) * 100, 100) : 0;
-    // Pour l'instant seul les tâches comptent (30% du score total)
-    // Le reste sera ajouté avec rituals, pomodoros, blocs validés
-    return Math.round(tasksPercent * 0.3);
-  }, [tasks, getTodayTasks]);
+    const todayScore = scores.find((s) => s.date === todayISO());
+    return todayScore?.total || 0;
+  }, [scores]);
 
   // ─── Scroll auto à l'ouverture ─────────────────────────────
   useEffect(() => {
+    if (!hasTemplate || activeBlocks.length === 0) return;
     const y = currentMinutesSinceStart() * (HOUR_HEIGHT / 60) - 120;
-    setTimeout(() => {
+    const timer = setTimeout(() => {
       scrollRef.current?.scrollTo({ y: Math.max(0, y), animated: true });
     }, 300);
-  }, []);
+    return () => clearTimeout(timer);
+  }, [hasTemplate, activeBlocks.length]);
 
   // ─── Mise à jour ligne "MAINTENANT" toutes les 60s ─────────
   useEffect(() => {
@@ -104,6 +129,20 @@ export default function TodayScreen() {
     }, 60000);
     return () => clearInterval(interval);
   }, []);
+
+  // ─── Ajout de tâche ────────────────────────────────────────
+  const handleAddTask = useCallback(() => {
+    if (!newTaskTitle.trim()) return;
+    addTask({
+      title: newTaskTitle.trim(),
+      completed: false,
+      priority: 'medium',
+      lifeBlockId: selectedBlockId,
+      scheduledDate: todayISO(),
+    });
+    setNewTaskTitle('');
+    setSelectedBlockId(undefined);
+  }, [newTaskTitle, selectedBlockId, addTask]);
 
   // ─── Génération des items de la timeline ───────────────────
   const timelineItems = useMemo(() => {
@@ -155,16 +194,24 @@ export default function TodayScreen() {
     }, 0);
   }, [templateBlocks]);
 
-  // ─── Render ────────────────────────────────────────────────
-  const hasTemplate = getActiveTemplate() !== undefined;
-  const activeBlocks = getActiveBlocks();
+  // ─── Toggle tâche ───────────────────────────────────────────
+  const handleToggleTask = useCallback((taskId: string) => {
+    toggleTask(taskId);
+  }, [toggleTask]);
 
+  // ─── Focus tâche ────────────────────────────────────────────
+  const handleFocusTask = useCallback((taskId: string, taskTitle: string) => {
+    startFocus(taskId, taskTitle);
+    router.push('/focus');
+  }, [startFocus, router]);
+
+  // ─── Render ────────────────────────────────────────────────
   if (!hasTemplate) {
     return (
       <SafeAreaView style={styles.container} edges={['top']}>
         <View style={styles.header}>
           <Text style={styles.headerTitle}>Aujourd'hui</Text>
-          <Text style={styles.dateLabel}>{format(new Date(), 'EEEE d MMMM', { locale: fr })}</Text>
+          <Text style={styles.dateLabel}>{formatDateFr(new Date())}</Text>
         </View>
         <EmptyState
           icon="calendar-outline"
@@ -180,7 +227,7 @@ export default function TodayScreen() {
       <SafeAreaView style={styles.container} edges={['top']}>
         <View style={styles.header}>
           <Text style={styles.headerTitle}>Aujourd'hui</Text>
-          <Text style={styles.dateLabel}>{format(new Date(), 'EEEE d MMMM', { locale: fr })}</Text>
+          <Text style={styles.dateLabel}>{formatDateFr(new Date())}</Text>
         </View>
         <EmptyState
           icon="cube-outline"
@@ -198,7 +245,7 @@ export default function TodayScreen() {
         <View style={styles.headerTop}>
           <View>
             <Text style={styles.headerTitle}>Aujourd'hui</Text>
-            <Text style={styles.dateLabel}>{format(new Date(), 'EEEE d MMMM', { locale: fr })}</Text>
+            <Text style={styles.dateLabel}>{formatDateFr(new Date())}</Text>
           </View>
           <TouchableOpacity
             style={styles.wrapButton}
@@ -213,6 +260,72 @@ export default function TodayScreen() {
           <Text style={styles.chargeIndicator}>
             Journée chargée · {formatDuration(plannedMinutes)} planifiées
           </Text>
+        )}
+
+        {/* Ajout rapide de tâche */}
+        <View style={styles.addTaskRow}>
+          <TextInput
+            style={styles.addTaskInput}
+            placeholder="Ajouter une tâche..."
+            placeholderTextColor={Colors.textTertiary}
+            value={newTaskTitle}
+            onChangeText={setNewTaskTitle}
+            onSubmitEditing={handleAddTask}
+            returnKeyType="done"
+          />
+          <TouchableOpacity
+            style={[styles.addTaskBtn, !newTaskTitle.trim() && styles.addTaskBtnDisabled]}
+            onPress={handleAddTask}
+            disabled={!newTaskTitle.trim()}
+          >
+            <Ionicons name="add" size={20} color={Colors.bgPrimary} />
+          </TouchableOpacity>
+        </View>
+
+        {/* Sélection du bloc pour la tâche */}
+        {activeBlocks.length > 0 && (
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            style={styles.blockSelector}
+          >
+            <TouchableOpacity
+              style={[
+                styles.blockChip,
+                !selectedBlockId && styles.blockChipSelected,
+              ]}
+              onPress={() => setSelectedBlockId(undefined)}
+            >
+              <Text style={[styles.blockChipText, !selectedBlockId && styles.blockChipTextSelected]}>
+                Sans bloc
+              </Text>
+            </TouchableOpacity>
+            {activeBlocks.map((block) => (
+              <TouchableOpacity
+                key={block.id}
+                style={[
+                  styles.blockChip,
+                  selectedBlockId === block.id && {
+                    backgroundColor: block.color + '20',
+                    borderColor: block.color,
+                  },
+                ]}
+                onPress={() =>
+                  setSelectedBlockId(selectedBlockId === block.id ? undefined : block.id)
+                }
+              >
+                <Text style={styles.blockChipEmoji}>{block.emoji}</Text>
+                <Text
+                  style={[
+                    styles.blockChipText,
+                    selectedBlockId === block.id && { color: block.color },
+                  ]}
+                >
+                  {block.name}
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </ScrollView>
         )}
       </View>
 
@@ -274,11 +387,8 @@ export default function TodayScreen() {
                   height={height}
                   tasks={blockTasks}
                   isActive={isActive}
-                  onToggleTask={toggleTask}
-                  onFocusTask={(taskId, taskTitle) => {
-                    startFocus(taskId, taskTitle);
-                    router.push('/focus');
-                  }}
+                  onToggleTask={handleToggleTask}
+                  onFocusTask={handleFocusTask}
                 />
               </View>
             );
@@ -347,6 +457,62 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginTop: Spacing.sm,
     marginBottom: Spacing.xs,
+  },
+  addTaskRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.sm,
+    marginTop: Spacing.md,
+  },
+  addTaskInput: {
+    flex: 1,
+    backgroundColor: Colors.bgInput,
+    borderRadius: Radius.md,
+    paddingHorizontal: Spacing.lg,
+    paddingVertical: Spacing.md,
+    fontSize: Typography.sizes.base,
+    color: Colors.textPrimary,
+  },
+  addTaskBtn: {
+    width: 44,
+    height: 44,
+    borderRadius: Radius.md,
+    backgroundColor: Colors.accentCyan,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  addTaskBtnDisabled: {
+    backgroundColor: Colors.bgInput,
+  },
+  blockSelector: {
+    marginTop: Spacing.sm,
+    flexGrow: 0,
+  },
+  blockChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: Spacing.md,
+    paddingVertical: Spacing.sm,
+    borderRadius: Radius.md,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    backgroundColor: Colors.bgSurface,
+    marginRight: Spacing.sm,
+    gap: Spacing.xs,
+  },
+  blockChipSelected: {
+    backgroundColor: Colors.bgInput,
+  },
+  blockChipEmoji: {
+    fontSize: 14,
+  },
+  blockChipText: {
+    fontSize: Typography.sizes.sm,
+    color: Colors.textSecondary,
+    fontWeight: Typography.weights.medium,
+  },
+  blockChipTextSelected: {
+    color: Colors.textPrimary,
   },
   scroll: {
     flex: 1,

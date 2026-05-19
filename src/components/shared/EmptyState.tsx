@@ -23,7 +23,6 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 12,
     paddingBottom: 80,
     paddingHorizontal: Spacing.xl,
   },
@@ -31,12 +30,13 @@ const styles = StyleSheet.create({
     fontSize: Typography.sizes.lg,
     fontWeight: Typography.weights.semibold,
     color: Colors.textPrimary,
-    marginTop: Spacing.md,
+    marginTop: Spacing.lg,
   },
   subtitle: {
     fontSize: Typography.sizes.sm,
     color: Colors.textSecondary,
     textAlign: 'center',
     paddingHorizontal: Spacing.xl,
+    marginTop: Spacing.sm,
   },
 });

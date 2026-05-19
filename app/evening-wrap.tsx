@@ -75,7 +75,7 @@ export default function EveningWrapScreen() {
   const getTodayTasks = useTaskStore((state) => state.getTodayTasks);
 
   const scores = useDayScoreStore((state) => state.scores);
-  const calculateDayScore = useDayScoreStore((state) => state.calculateDayScore);
+  const recalculateScore = useDayScoreStore((state) => state.recalculateScore);
   const setEveningWrapDone = useDayScoreStore((state) => state.setEveningWrapDone);
 
   const logEveningWrap = useRitualStore((state) => state.logEveningWrap);
@@ -89,9 +89,8 @@ export default function EveningWrapScreen() {
   // ─── Calcul Day Score final ────────────────────────────────
   const dayScore = useMemo(() => {
     const score = scores.find((s) => s.date === today);
-    if (!score) return 0;
-    return calculateDayScore(today);
-  }, [scores, today, calculateDayScore]);
+    return score?.total || 0;
+  }, [scores, today]);
 
   const scoreDetail = useMemo(() => {
     const score = scores.find((s) => s.date === today);

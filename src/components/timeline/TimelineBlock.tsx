@@ -2,6 +2,7 @@ import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors, Spacing, Radius, Typography } from '../../theme';
 import { Task } from '../../types/task';
+import { hapticLight } from '../../utils/haptics';
 
 interface TimelineBlockProps {
   emoji: string;
@@ -60,7 +61,7 @@ export function TimelineBlock({
             <View key={task.id} style={styles.taskRow}>
               <TouchableOpacity
                 style={styles.taskCheckboxBtn}
-                onPress={() => onToggleTask(task.id)}
+                onPress={() => { hapticLight(); onToggleTask(task.id); }}
                 activeOpacity={0.7}
               >
                 <View
@@ -92,7 +93,7 @@ export function TimelineBlock({
               {!task.completed && onFocusTask && (
                 <TouchableOpacity
                   style={styles.focusBtn}
-                  onPress={() => onFocusTask(task.id, task.title)}
+                  onPress={() => { hapticLight(); onFocusTask(task.id, task.title); }}
                   activeOpacity={0.7}
                 >
                   <Ionicons name="flash-outline" size={14} color={Colors.accentCyan} />
