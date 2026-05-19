@@ -5,13 +5,17 @@ import {
   ScrollView,
   StyleSheet,
   Dimensions,
+  TouchableOpacity,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useRouter } from 'expo-router';
+import { Ionicons } from '@expo/vector-icons';
 import { useTaskStore } from '../../src/features/tasks/store';
 import { useTemplateStore } from '../../src/features/templates/store';
 import { useLifeBlocksStore } from '../../src/features/lifeBlocks/store';
 import { useDayScoreStore } from '../../src/features/dayScore/store';
-import { Colors, Spacing, Typography } from '../../src/theme';
+import { useFocusStore } from '../../src/features/focus/store';
+import { Colors, Spacing, Radius, Typography } from '../../src/theme';
 import { DayScoreHeader } from '../../src/components/dayScore/DayScoreHeader';
 import { TimelineBlock } from '../../src/components/timeline/TimelineBlock';
 import { CurrentTimeLine } from '../../src/components/timeline/CurrentTimeLine';
@@ -54,8 +58,11 @@ interface TimelineItem {
 // ─── Screen ──────────────────────────────────────────────────
 
 export default function TodayScreen() {
+  const router = useRouter();
   const scrollRef = useRef<ScrollView>(null);
   const [nowY, setNowY] = useState(currentMinutesSinceStart() * (HOUR_HEIGHT / 60));
+
+  const startFocus = useFocusStore((state) => state.startFocus);
 
   const tasks = useTaskStore((state) => state.tasks);
   const toggleTask = useTaskStore((state) => state.toggleTask);
@@ -188,8 +195,19 @@ export default function TodayScreen() {
     <SafeAreaView style={styles.container} edges={['top']}>
       {/* Header */}
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>Aujourd'hui</Text>
-        <Text style={styles.dateLabel}>{format(new Date(), 'EEEE d MMMM', { locale: fr })}</Text>
+        <View style={styles.headerTop}>
+          <View>
+            <Text style={styles.headerTitle}>Aujourd'hui</Text>
+            <Text style={styles.dateLabel}>{format(new Date(), 'EEEE d MMMM', { locale: fr })}</Text>
+          </View>
+          <TouchableOpacity
+            style={styles.wrapButton}
+            onPress={() => router.push('/evening-wrap')}
+          >
+            <Ionicons name="moon-outline" size={18} color={Colors.accentCyan} />
+            <Text style={styles.wrapButtonText}>Bilan</Text>
+          </TouchableOpacity>
+        </View>
         <DayScoreHeader score={dayScore} />
         {plannedMinutes > 0 && (
           <Text style={styles.chargeIndicator}>
@@ -257,6 +275,10 @@ export default function TodayScreen() {
                   tasks={blockTasks}
                   isActive={isActive}
                   onToggleTask={toggleTask}
+                  onFocusTask={(taskId, taskTitle) => {
+                    startFocus(taskId, taskTitle);
+                    router.push('/focus');
+                  }}
                 />
               </View>
             );
@@ -286,6 +308,26 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.lg,
     paddingTop: Spacing.md,
     paddingBottom: Spacing.sm,
+  },
+  headerTop: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+    marginBottom: Spacing.sm,
+  },
+  wrapButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.xs,
+    backgroundColor: Colors.bgInput,
+    paddingHorizontal: Spacing.md,
+    paddingVertical: Spacing.sm,
+    borderRadius: Radius.md,
+  },
+  wrapButtonText: {
+    fontSize: Typography.sizes.sm,
+    color: Colors.accentCyan,
+    fontWeight: Typography.weights.medium,
   },
   headerTitle: {
     fontSize: Typography.sizes.xxl,

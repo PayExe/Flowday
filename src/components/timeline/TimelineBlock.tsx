@@ -14,6 +14,7 @@ interface TimelineBlockProps {
   tasks: Task[];
   isActive: boolean;
   onToggleTask: (taskId: string) => void;
+  onFocusTask?: (taskId: string, taskTitle: string) => void;
 }
 
 export function TimelineBlock({
@@ -27,6 +28,7 @@ export function TimelineBlock({
   tasks,
   isActive,
   onToggleTask,
+  onFocusTask,
 }: TimelineBlockProps) {
   const displayTitle = title || name;
   const duration = `${startTime}–${endTime}`;
@@ -55,32 +57,48 @@ export function TimelineBlock({
       {tasks.length > 0 && (
         <View style={styles.tasks}>
           {tasks.map((task) => (
-            <TouchableOpacity
-              key={task.id}
-              style={styles.taskRow}
-              onPress={() => onToggleTask(task.id)}
-              activeOpacity={0.7}
-            >
-              <View
-                style={[
-                  styles.taskCheckbox,
-                  task.completed && { backgroundColor: color, borderColor: color },
-                ]}
+            <View key={task.id} style={styles.taskRow}>
+              <TouchableOpacity
+                style={styles.taskCheckboxBtn}
+                onPress={() => onToggleTask(task.id)}
+                activeOpacity={0.7}
               >
-                {task.completed && (
-                  <Ionicons name="checkmark" size={10} color={Colors.bgPrimary} />
-                )}
-              </View>
-              <Text
-                style={[
-                  styles.taskTitle,
-                  task.completed && styles.taskCompleted,
-                ]}
-                numberOfLines={1}
+                <View
+                  style={[
+                    styles.taskCheckbox,
+                    task.completed && { backgroundColor: color, borderColor: color },
+                  ]}
+                >
+                  {task.completed && (
+                    <Ionicons name="checkmark" size={10} color={Colors.bgPrimary} />
+                  )}
+                </View>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.taskTitleBtn}
+                onPress={() => onToggleTask(task.id)}
+                activeOpacity={0.7}
               >
-                {task.title}
-              </Text>
-            </TouchableOpacity>
+                <Text
+                  style={[
+                    styles.taskTitle,
+                    task.completed && styles.taskCompleted,
+                  ]}
+                  numberOfLines={1}
+                >
+                  {task.title}
+                </Text>
+              </TouchableOpacity>
+              {!task.completed && onFocusTask && (
+                <TouchableOpacity
+                  style={styles.focusBtn}
+                  onPress={() => onFocusTask(task.id, task.title)}
+                  activeOpacity={0.7}
+                >
+                  <Ionicons name="flash-outline" size={14} color={Colors.accentCyan} />
+                </TouchableOpacity>
+              )}
+            </View>
           ))}
         </View>
       )}
@@ -127,6 +145,17 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: Spacing.xs,
+  },
+  taskCheckboxBtn: {
+    padding: 2,
+  },
+  taskTitleBtn: {
+    flex: 1,
+  },
+  focusBtn: {
+    padding: Spacing.xs,
+    backgroundColor: Colors.accentCyan + '15',
+    borderRadius: Radius.sm,
   },
   taskCheckbox: {
     width: 16,
