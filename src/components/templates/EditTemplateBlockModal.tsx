@@ -3,16 +3,16 @@ import {
   View,
   Text,
   TextInput,
-  TouchableOpacity,
+  Pressable,
   Modal,
   ScrollView,
   StyleSheet,
   KeyboardAvoidingView,
   Platform,
   Alert,
+  Switch,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { Colors, Spacing, Radius, Typography } from '../../theme';
 import { TemplateBlock } from '../../types/template';
 import { LifeBlock } from '../../types/lifeBlock';
 
@@ -20,7 +20,7 @@ interface EditTemplateBlockModalProps {
   visible: boolean;
   block: TemplateBlock | null;
   lifeBlocks: LifeBlock[];
-  existingBlocks: TemplateBlock[]; // pour vérifier chevauchement
+  existingBlocks: TemplateBlock[];
   dayOfWeek: number;
   onClose: () => void;
   onSave: (data: Omit<TemplateBlock, 'id'>) => void;
@@ -39,7 +39,6 @@ function minutesToTime(min: number): string {
 }
 
 function formatTimeInput(input: string): string {
-  // Accepte "9", "9:30", "09:30", "930"
   const cleaned = input.replace(/[^0-9]/g, '');
   if (cleaned.length <= 2) {
     const h = parseInt(cleaned, 10);
@@ -98,7 +97,6 @@ export function EditTemplateBlockModal({
     if (end <= start) return "L'heure de fin doit être après l'heure de début";
     if (end - start < 15) return 'Minimum 15 minutes';
 
-    // Vérifier chevauchement avec les autres blocs du même jour
     const otherBlocks = isEditing
       ? existingBlocks.filter((b) => b.id !== block!.id && b.dayOfWeek === dayOfWeek)
       : existingBlocks.filter((b) => b.dayOfWeek === dayOfWeek);
@@ -160,9 +158,9 @@ export function EditTemplateBlockModal({
             <Text style={styles.title}>
               {isEditing ? 'Modifier le créneau' : 'Nouveau créneau'}
             </Text>
-            <TouchableOpacity onPress={onClose} style={styles.closeBtn}>
-              <Ionicons name="close" size={24} color={Colors.textSecondary} />
-            </TouchableOpacity>
+            <Pressable onPress={onClose} style={styles.closeBtn}>
+              <Ionicons name="close" size={24} color="#EBEBF599" />
+            </Pressable>
           </View>
 
           <ScrollView showsVerticalScrollIndicator={false}>
@@ -178,7 +176,7 @@ export function EditTemplateBlockModal({
               <ScrollView horizontal showsHorizontalScrollIndicator={false}>
                 <View style={styles.lifeBlockRow}>
                   {lifeBlocks.map((lb) => (
-                    <TouchableOpacity
+                    <Pressable
                       key={lb.id}
                       style={[
                         styles.lifeBlockChip,
@@ -198,7 +196,7 @@ export function EditTemplateBlockModal({
                       >
                         {lb.name}
                       </Text>
-                    </TouchableOpacity>
+                    </Pressable>
                   ))}
                 </View>
               </ScrollView>
@@ -215,7 +213,7 @@ export function EditTemplateBlockModal({
                     value={startTime}
                     onChangeText={(text) => setStartTime(formatTimeInput(text))}
                     placeholder="09:00"
-                    placeholderTextColor={Colors.textTertiary}
+                    placeholderTextColor="#3C3C4399"
                     keyboardType="numbers-and-punctuation"
                   />
                 </View>
@@ -227,7 +225,7 @@ export function EditTemplateBlockModal({
                     value={endTime}
                     onChangeText={(text) => setEndTime(formatTimeInput(text))}
                     placeholder="10:00"
-                    placeholderTextColor={Colors.textTertiary}
+                    placeholderTextColor="#3C3C4399"
                     keyboardType="numbers-and-punctuation"
                   />
                 </View>
@@ -243,7 +241,7 @@ export function EditTemplateBlockModal({
               <TextInput
                 style={styles.input}
                 placeholder="Ex: Deep Work, Chest day..."
-                placeholderTextColor={Colors.textTertiary}
+                placeholderTextColor="#3C3C4399"
                 value={title}
                 onChangeText={setTitle}
               />
@@ -251,22 +249,21 @@ export function EditTemplateBlockModal({
 
             {/* Flexible */}
             <View style={styles.section}>
-              <TouchableOpacity
+              <Pressable
                 style={styles.toggleRow}
                 onPress={() => setIsFlexible(!isFlexible)}
               >
-                <View
-                  style={[
-                    styles.toggleBox,
-                    isFlexible && { backgroundColor: Colors.accentCyan, borderColor: Colors.accentCyan },
-                  ]}
-                >
-                  {isFlexible && (
-                    <Ionicons name="checkmark" size={14} color={Colors.bgPrimary} />
-                  )}
-                </View>
-                <Text style={styles.toggleLabel}>Créneau flexible</Text>
-              </TouchableOpacity>
+                <Switch
+                  value={isFlexible}
+                  onValueChange={setIsFlexible}
+                  trackColor={{ false: '#38383A', true: '#30D158' }}
+                  thumbColor="#FFFFFF"
+                  ios_backgroundColor="#38383A"
+                />
+                <Text style={{ fontSize: 17, color: '#FFFFFF', letterSpacing: -0.41, marginLeft: 10 }}>
+                  Créneau flexible
+                </Text>
+              </Pressable>
             </View>
 
             {/* Notes */}
@@ -275,7 +272,7 @@ export function EditTemplateBlockModal({
               <TextInput
                 style={[styles.input, { height: 80, textAlignVertical: 'top' }]}
                 placeholder="Ajouter des notes..."
-                placeholderTextColor={Colors.textTertiary}
+                placeholderTextColor="#3C3C4399"
                 value={notes}
                 onChangeText={setNotes}
                 multiline
@@ -284,21 +281,24 @@ export function EditTemplateBlockModal({
 
             {/* Actions */}
             <View style={styles.actions}>
-              <TouchableOpacity
-                style={[styles.saveBtn, validationError && styles.saveBtnDisabled]}
+              <Pressable
+                style={[
+                  styles.saveBtn,
+                  validationError && { backgroundColor: '#2C2C2E' },
+                ]}
                 onPress={handleSave}
                 disabled={!!validationError}
               >
                 <Text style={styles.saveBtnText}>
                   {isEditing ? 'Enregistrer' : 'Créer'}
                 </Text>
-              </TouchableOpacity>
+              </Pressable>
 
               {isEditing && onDelete && (
-                <TouchableOpacity style={styles.deleteBtn} onPress={handleDelete}>
-                  <Ionicons name="trash-outline" size={18} color={Colors.accentRed} />
+                <Pressable style={styles.deleteBtn} onPress={handleDelete}>
+                  <Ionicons name="trash-outline" size={18} color="#FF453A" />
                   <Text style={styles.deleteBtnText}>Supprimer</Text>
-                </TouchableOpacity>
+                </Pressable>
               )}
             </View>
           </ScrollView>
@@ -311,156 +311,142 @@ export function EditTemplateBlockModal({
 const styles = StyleSheet.create({
   overlay: {
     flex: 1,
-    backgroundColor: Colors.bgPrimary + 'CC',
+    backgroundColor: '#000000CC',
     justifyContent: 'flex-end',
   },
   modal: {
-    backgroundColor: Colors.bgSurface,
-    borderTopLeftRadius: Radius.xxl,
-    borderTopRightRadius: Radius.xxl,
-    paddingHorizontal: Spacing.lg,
-    paddingBottom: Spacing.xxl + 20,
+    backgroundColor: '#1C1C1E',
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    paddingHorizontal: 16,
+    paddingBottom: 44,
     maxHeight: '90%',
   },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingVertical: Spacing.lg,
+    paddingVertical: 16,
   },
   title: {
-    fontSize: Typography.sizes.xl,
-    fontWeight: Typography.weights.bold,
-    color: Colors.textPrimary,
+    fontSize: 20,
+    fontWeight: '700',
+    color: '#FFFFFF',
   },
   closeBtn: {
-    padding: Spacing.sm,
+    padding: 8,
   },
   section: {
-    marginBottom: Spacing.lg,
+    marginBottom: 20,
   },
   label: {
-    fontSize: Typography.sizes.sm,
-    fontWeight: Typography.weights.semibold,
-    color: Colors.textSecondary,
+    fontSize: 13,
+    fontWeight: '400',
+    color: '#EBEBF599',
     textTransform: 'uppercase',
-    letterSpacing: 1,
-    marginBottom: Spacing.sm,
+    letterSpacing: -0.08,
+    marginBottom: 8,
   },
   dayText: {
-    fontSize: Typography.sizes.lg,
-    fontWeight: Typography.weights.semibold,
-    color: Colors.textPrimary,
+    fontSize: 17,
+    fontWeight: '600',
+    color: '#FFFFFF',
+    letterSpacing: -0.41,
   },
   lifeBlockRow: {
     flexDirection: 'row',
-    gap: Spacing.sm,
+    gap: 8,
   },
   lifeBlockChip: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: Spacing.md,
-    paddingVertical: Spacing.sm,
-    borderRadius: Radius.md,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 10,
     borderWidth: 1,
-    borderColor: Colors.border,
-    backgroundColor: Colors.bgInput,
-    gap: Spacing.xs,
+    borderColor: '#38383A',
+    backgroundColor: '#2C2C2E',
+    gap: 6,
   },
   lifeBlockEmoji: {
     fontSize: 16,
   },
   lifeBlockName: {
-    fontSize: Typography.sizes.sm,
-    color: Colors.textSecondary,
-    fontWeight: Typography.weights.medium,
+    fontSize: 13,
+    color: '#EBEBF599',
+    fontWeight: '500',
   },
   timeRow: {
     flexDirection: 'row',
     alignItems: 'flex-end',
-    gap: Spacing.md,
+    gap: 12,
   },
   timeInputWrapper: {
     flex: 1,
   },
   timeLabel: {
-    fontSize: Typography.sizes.xs,
-    color: Colors.textTertiary,
-    marginBottom: Spacing.xs,
+    fontSize: 12,
+    color: '#EBEBF54D',
+    marginBottom: 4,
   },
   timeInput: {
-    backgroundColor: Colors.bgInput,
-    borderRadius: Radius.md,
-    paddingHorizontal: Spacing.lg,
-    paddingVertical: Spacing.md,
-    fontSize: Typography.sizes.base,
-    color: Colors.textPrimary,
+    backgroundColor: '#2C2C2E',
+    borderRadius: 10,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    fontSize: 17,
+    color: '#FFFFFF',
     textAlign: 'center',
+    letterSpacing: -0.41,
   },
   timeSeparator: {
-    fontSize: Typography.sizes.xl,
-    color: Colors.textSecondary,
-    paddingBottom: Spacing.md,
+    fontSize: 20,
+    color: '#EBEBF599',
+    paddingBottom: 12,
   },
   input: {
-    backgroundColor: Colors.bgInput,
-    borderRadius: Radius.md,
-    paddingHorizontal: Spacing.lg,
-    paddingVertical: Spacing.md,
-    fontSize: Typography.sizes.base,
-    color: Colors.textPrimary,
+    backgroundColor: '#2C2C2E',
+    borderRadius: 10,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    fontSize: 17,
+    color: '#FFFFFF',
+    letterSpacing: -0.41,
   },
   errorText: {
-    fontSize: Typography.sizes.sm,
-    color: Colors.accentRed,
-    marginTop: Spacing.sm,
+    fontSize: 13,
+    color: '#FF453A',
+    marginTop: 8,
   },
   toggleRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: Spacing.sm,
-  },
-  toggleBox: {
-    width: 22,
-    height: 22,
-    borderRadius: 6,
-    borderWidth: 2,
-    borderColor: Colors.textTertiary,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  toggleLabel: {
-    fontSize: Typography.sizes.base,
-    color: Colors.textPrimary,
   },
   actions: {
-    marginTop: Spacing.md,
-    gap: Spacing.md,
+    marginTop: 8,
+    gap: 12,
   },
   saveBtn: {
-    backgroundColor: Colors.accentCyan,
-    borderRadius: Radius.md,
-    paddingVertical: Spacing.md,
+    backgroundColor: '#0A84FF',
+    borderRadius: 13,
+    paddingVertical: 14,
     alignItems: 'center',
   },
-  saveBtnDisabled: {
-    backgroundColor: Colors.bgInput,
-  },
   saveBtnText: {
-    fontSize: Typography.sizes.base,
-    fontWeight: Typography.weights.semibold,
-    color: Colors.bgPrimary,
+    fontSize: 17,
+    fontWeight: '600',
+    color: '#FFFFFF',
   },
   deleteBtn: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    gap: Spacing.sm,
-    paddingVertical: Spacing.md,
+    gap: 8,
+    paddingVertical: 12,
   },
   deleteBtnText: {
-    fontSize: Typography.sizes.base,
-    color: Colors.accentRed,
-    fontWeight: Typography.weights.medium,
+    fontSize: 17,
+    fontWeight: '400',
+    color: '#FF453A',
   },
 });

@@ -7,9 +7,9 @@ export const LifeBlockColors = [
   '#FF9F0A',
   '#FF375F',
   '#5E5CE6',
-  '#32ADE6',
+  '#40CBE0',
   '#AC8E68',
-  '#6C6C70',
+  '#8E8E93',
   '#FFFFFF',
 ] as const;
 

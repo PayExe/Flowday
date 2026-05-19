@@ -1,6 +1,5 @@
-import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import { View, Text, Pressable, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { Colors, Spacing, Radius, Typography } from '../../theme';
 import { Task } from '../../types/task';
 import { hapticLight } from '../../utils/haptics';
 
@@ -18,6 +17,17 @@ interface TimelineBlockProps {
   onFocusTask?: (taskId: string, taskTitle: string) => void;
 }
 
+function formatDuration(start: string, end: string): string {
+  const [sh, sm] = start.split(':').map(Number);
+  const [eh, em] = end.split(':').map(Number);
+  const min = (eh * 60 + em) - (sh * 60 + sm);
+  const h = Math.floor(min / 60);
+  const m = min % 60;
+  if (h > 0 && m > 0) return `${h}h${m}`;
+  if (h > 0) return `${h}h`;
+  return `${m}min`;
+}
+
 export function TimelineBlock({
   emoji,
   name,
@@ -32,148 +42,83 @@ export function TimelineBlock({
   onFocusTask,
 }: TimelineBlockProps) {
   const displayTitle = title || name;
-  const duration = `${startTime}–${endTime}`;
+  const duration = formatDuration(startTime, endTime);
 
   return (
-    <View
-      style={[
-        styles.container,
-        {
-          height,
-          backgroundColor: color + '22',
-          borderLeftColor: color,
-          borderLeftWidth: 3,
-        },
-        isActive && styles.active,
-      ]}
-    >
-      <View style={styles.header}>
-        <Text style={styles.emoji}>{emoji}</Text>
-        <View style={styles.headerText}>
-          <Text style={[styles.name, { color }]}>{displayTitle}</Text>
-          <Text style={styles.duration}>{duration}</Text>
-        </View>
+    <View style={{ flexDirection: 'row', marginBottom: 2 }}>
+      {/* Colonne heure */}
+      <View style={{ width: 52, alignItems: 'flex-end', paddingRight: 10, paddingTop: 10 }}>
+        <Text style={{ fontSize: 12, color: '#EBEBF54D' }}>{startTime}</Text>
       </View>
 
-      {tasks.length > 0 && (
-        <View style={styles.tasks}>
-          {tasks.map((task) => (
-            <View key={task.id} style={styles.taskRow}>
-              <TouchableOpacity
-                style={styles.taskCheckboxBtn}
+      {/* Bloc */}
+      <View
+        style={[
+          styles.block,
+          {
+            borderLeftColor: color,
+            backgroundColor: isActive ? '#2C2C2E' : '#1C1C1E',
+          },
+        ]}
+      >
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+          <Text style={{ fontSize: 14 }}>{emoji}</Text>
+          <Text style={{ fontSize: 15, fontWeight: '500', color: '#FFFFFF', flex: 1 }}>
+            {displayTitle}
+          </Text>
+          <Text style={{ fontSize: 12, color: '#EBEBF54D' }}>{duration}</Text>
+        </View>
+
+        {/* Tâches du bloc */}
+        {tasks.length > 0 && (
+          <View style={{ marginTop: 8, gap: 4 }}>
+            {tasks.slice(0, 3).map((task) => (
+              <Pressable
+                key={task.id}
+                style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}
                 onPress={() => { hapticLight(); onToggleTask(task.id); }}
-                activeOpacity={0.7}
               >
                 <View
-                  style={[
-                    styles.taskCheckbox,
-                    task.completed && { backgroundColor: color, borderColor: color },
-                  ]}
-                >
-                  {task.completed && (
-                    <Ionicons name="checkmark" size={10} color={Colors.bgPrimary} />
-                  )}
-                </View>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={styles.taskTitleBtn}
-                onPress={() => onToggleTask(task.id)}
-                activeOpacity={0.7}
-              >
+                  style={{
+                    width: 5,
+                    height: 5,
+                    borderRadius: 3,
+                    backgroundColor: task.completed ? '#30D158' : '#48484A',
+                  }}
+                />
                 <Text
-                  style={[
-                    styles.taskTitle,
-                    task.completed && styles.taskCompleted,
-                  ]}
+                  style={{
+                    fontSize: 13,
+                    color: task.completed ? '#EBEBF54D' : '#EBEBF599',
+                    textDecorationLine: task.completed ? 'line-through' : 'none',
+                    flex: 1,
+                  }}
                   numberOfLines={1}
                 >
                   {task.title}
                 </Text>
-              </TouchableOpacity>
-              {!task.completed && onFocusTask && (
-                <TouchableOpacity
-                  style={styles.focusBtn}
-                  onPress={() => { hapticLight(); onFocusTask(task.id, task.title); }}
-                  activeOpacity={0.7}
-                >
-                  <Ionicons name="flash-outline" size={14} color={Colors.accentCyan} />
-                </TouchableOpacity>
-              )}
-            </View>
-          ))}
-        </View>
-      )}
+              </Pressable>
+            ))}
+            {tasks.length > 3 && (
+              <Text style={{ fontSize: 12, color: '#EBEBF54D' }}>
+                +{tasks.length - 3} autres
+              </Text>
+            )}
+          </View>
+        )}
+      </View>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    marginLeft: 56,
+  block: {
+    flex: 1,
+    backgroundColor: '#1C1C1E',
+    borderRadius: 10,
+    borderLeftWidth: 3,
+    padding: 10,
     marginRight: 16,
-    borderRadius: Radius.md,
-    padding: Spacing.md,
-    justifyContent: 'flex-start',
-  },
-  active: {
-    backgroundColor: Colors.bgBlockActive + '88',
-  },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: Spacing.sm,
-  },
-  emoji: {
-    fontSize: 16,
-  },
-  headerText: {
-    flex: 1,
-  },
-  name: {
-    fontSize: Typography.sizes.base,
-    fontWeight: Typography.weights.semibold,
-  },
-  duration: {
-    fontSize: Typography.sizes.xs,
-    color: Colors.textSecondary,
-    marginTop: 2,
-  },
-  tasks: {
-    marginTop: Spacing.sm,
-    gap: Spacing.xs,
-  },
-  taskRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: Spacing.xs,
-  },
-  taskCheckboxBtn: {
-    padding: 2,
-  },
-  taskTitleBtn: {
-    flex: 1,
-  },
-  focusBtn: {
-    padding: Spacing.xs,
-    backgroundColor: Colors.accentCyan + '15',
-    borderRadius: Radius.sm,
-  },
-  taskCheckbox: {
-    width: 16,
-    height: 16,
-    borderRadius: 4,
-    borderWidth: 1.5,
-    borderColor: Colors.textTertiary,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  taskTitle: {
-    fontSize: Typography.sizes.sm,
-    color: Colors.textSecondary,
-    flex: 1,
-  },
-  taskCompleted: {
-    textDecorationLine: 'line-through',
-    color: Colors.textTertiary,
+    minHeight: 52,
   },
 });

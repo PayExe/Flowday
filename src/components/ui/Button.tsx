@@ -51,7 +51,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.xxl,
   },
   primary: {
-    backgroundColor: Colors.accentCyan,
+    backgroundColor: Colors.accentPrimary,
   },
   secondary: {
     backgroundColor: Colors.bgSurface,
@@ -62,7 +62,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'transparent',
   },
   destructive: {
-    backgroundColor: Colors.accentRed + '15',
+    backgroundColor: Colors.danger + '15',
   },
   text: {
     fontWeight: Typography.weights.semibold,
@@ -75,9 +75,9 @@ const styles = StyleSheet.create({
     color: Colors.textSecondary,
   },
   ghostText: {
-    color: Colors.accentCyan,
+    color: Colors.accentPrimary,
   },
   destructiveText: {
-    color: Colors.accentRed,
+    color: Colors.danger,
   },
 });

@@ -3,9 +3,9 @@ import { Colors, Spacing, Radius } from '../../theme';
 import { Priority } from '../../types/task';
 
 const PRIORITY_CONFIG = {
-  high: { color: Colors.priorityHigh },
-  medium: { color: Colors.priorityMedium },
-  low: { color: Colors.priorityLow },
+  high: { color: Colors.danger },
+  medium: { color: Colors.warning },
+  low: { color: Colors.success },
 };
 
 interface PrioritySelectorProps {

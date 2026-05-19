@@ -1,5 +1,5 @@
-import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
-import { Colors, Spacing, Radius, Typography } from '../../theme';
+import { View, Text, Pressable, StyleSheet } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { TemplateBlock } from '../../types/template';
 import { LifeBlock } from '../../types/lifeBlock';
 
@@ -25,72 +25,45 @@ function formatDuration(start: string, end: string): string {
 
 export function TemplateBlockCard({ block, lifeBlock, onPress }: TemplateBlockCardProps) {
   return (
-    <TouchableOpacity
-      style={[
-        styles.container,
-        { borderLeftColor: lifeBlock?.color || Colors.textTertiary },
-      ]}
+    <Pressable
       onPress={onPress}
-      activeOpacity={0.8}
+      style={({ pressed }) => ({
+        flexDirection: 'row',
+        alignItems: 'center',
+        paddingHorizontal: 16,
+        paddingVertical: 11,
+        backgroundColor: pressed ? '#2C2C2E' : 'transparent',
+        minHeight: 44,
+      })}
     >
-      <View style={styles.header}>
-        <Text style={styles.emoji}>{lifeBlock?.emoji || '⬜'}</Text>
-        <View style={styles.info}>
-          <Text style={styles.name}>
-            {block.title || lifeBlock?.name || 'Bloc'}
-          </Text>
-          <Text style={styles.time}>
-            {block.startTime} – {block.endTime} · {formatDuration(block.startTime, block.endTime)}
-          </Text>
-        </View>
-        {block.isFlexible && (
-          <View style={styles.flexibleBadge}>
-            <Text style={styles.flexibleText}>Flex</Text>
-          </View>
-        )}
+      {/* Icône avec fond coloré */}
+      <View
+        style={{
+          width: 29,
+          height: 29,
+          borderRadius: 7,
+          backgroundColor: lifeBlock?.color || '#8E8E93',
+          alignItems: 'center',
+          justifyContent: 'center',
+          marginRight: 12,
+        }}
+      >
+        <Text style={{ fontSize: 14 }}>{lifeBlock?.emoji || '⬜'}</Text>
       </View>
-    </TouchableOpacity>
+
+      <View style={{ flex: 1 }}>
+        <Text style={{ fontSize: 17, color: '#FFFFFF', letterSpacing: -0.41 }}>
+          {block.title || lifeBlock?.name || 'Bloc'}
+        </Text>
+        <Text style={{ fontSize: 13, color: '#EBEBF599', marginTop: 1 }}>
+          {block.startTime} – {block.endTime} · {formatDuration(block.startTime, block.endTime)}
+        </Text>
+      </View>
+
+      {block.isFlexible && (
+        <Text style={{ fontSize: 12, color: '#EBEBF54D', marginRight: 4 }}>Flex</Text>
+      )}
+      <Ionicons name="chevron-forward" size={14} color="#EBEBF54D" />
+    </Pressable>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    backgroundColor: Colors.bgSurface,
-    borderRadius: Radius.md,
-    borderLeftWidth: 3,
-    padding: Spacing.md,
-    marginBottom: Spacing.sm,
-  },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: Spacing.sm,
-  },
-  emoji: {
-    fontSize: 20,
-  },
-  info: {
-    flex: 1,
-  },
-  name: {
-    fontSize: Typography.sizes.base,
-    fontWeight: Typography.weights.semibold,
-    color: Colors.textPrimary,
-  },
-  time: {
-    fontSize: Typography.sizes.sm,
-    color: Colors.textSecondary,
-    marginTop: 2,
-  },
-  flexibleBadge: {
-    backgroundColor: Colors.accentYellow + '20',
-    paddingHorizontal: Spacing.sm,
-    paddingVertical: 2,
-    borderRadius: Radius.sm,
-  },
-  flexibleText: {
-    fontSize: Typography.sizes.xs,
-    color: Colors.accentYellow,
-    fontWeight: Typography.weights.semibold,
-  },
-});

@@ -2,7 +2,7 @@ import { useState, useCallback, useMemo, useEffect, useRef } from 'react';
 import {
   View,
   Text,
-  TouchableOpacity,
+  Pressable,
   ScrollView,
   StyleSheet,
 } from 'react-native';
@@ -11,7 +11,6 @@ import { Ionicons } from '@expo/vector-icons';
 import { useTemplateStore } from '../../src/features/templates/store';
 import { useLifeBlocksStore } from '../../src/features/lifeBlocks/store';
 import { TemplateBlock } from '../../src/types/template';
-import { Colors, Spacing, Radius, Typography } from '../../src/theme';
 import { TemplateBlockCard } from '../../src/components/templates/TemplateBlockCard';
 import { EditTemplateBlockModal } from '../../src/components/templates/EditTemplateBlockModal';
 import { EmptyState } from '../../src/components/shared/EmptyState';
@@ -122,7 +121,7 @@ export default function WeekScreen() {
     <SafeAreaView style={styles.container} edges={['top']}>
       {/* Header */}
       <View style={styles.header}>
-        <View style={styles.headerContent}>
+        <View style={styles.headerTop}>
           <View>
             <Text style={styles.headerTitle}>Semaine</Text>
             <Text style={styles.headerSubtitle}>
@@ -147,38 +146,53 @@ export default function WeekScreen() {
             : [];
 
           return (
-            <View key={dayIndex} style={styles.daySection}>
+            <View key={dayIndex} style={{ marginBottom: 24 }}>
               <View style={styles.dayHeader}>
                 <Text style={styles.dayTitle}>{dayLabel}</Text>
-                <TouchableOpacity
-                  style={styles.addBtn}
+                <Pressable
+                  style={({ pressed }) => ({
+                    width: 28,
+                    height: 28,
+                    borderRadius: 8,
+                    backgroundColor: pressed ? '#2C2C2E' : '#1C1C1E',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    borderWidth: 1,
+                    borderColor: '#38383A',
+                  })}
                   onPress={() => handleCreate(dayIndex)}
                 >
-                  <Ionicons name="add" size={18} color={Colors.accentCyan} />
-                </TouchableOpacity>
+                  <Ionicons name="add" size={16} color="#0A84FF" />
+                </Pressable>
               </View>
 
-              {dayBlocks.length === 0 ? (
-                <TouchableOpacity
-                  style={styles.emptyDay}
-                  onPress={() => handleCreate(dayIndex)}
+              {dayBlocks.length === 0 ? null : (
+                <View
+                  style={{
+                    backgroundColor: '#1C1C1E',
+                    borderRadius: 13,
+                    marginHorizontal: 16,
+                    overflow: 'hidden',
+                  }}
                 >
-                  <Text style={styles.emptyDayText}>Ajouter un créneau</Text>
-                </TouchableOpacity>
-              ) : (
-                dayBlocks.map((block) => {
-                  const lifeBlock = lifeBlocks.find(
-                    (lb) => lb.id === block.lifeBlockId
-                  );
-                  return (
-                    <TemplateBlockCard
-                      key={block.id}
-                      block={block}
-                      lifeBlock={lifeBlock}
-                      onPress={() => handleEdit(block)}
-                    />
-                  );
-                })
+                  {dayBlocks.map((block, index) => {
+                    const lifeBlock = lifeBlocks.find(
+                      (lb) => lb.id === block.lifeBlockId
+                    );
+                    return (
+                      <View key={block.id}>
+                        <TemplateBlockCard
+                          block={block}
+                          lifeBlock={lifeBlock}
+                          onPress={() => handleEdit(block)}
+                        />
+                        {index < dayBlocks.length - 1 && (
+                          <View style={{ height: 0.5, backgroundColor: '#54545899', marginLeft: 57 }} />
+                        )}
+                      </View>
+                    );
+                  })}
+                </View>
               )}
             </View>
           );
@@ -206,71 +220,48 @@ export default function WeekScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: Colors.bgPrimary,
+    backgroundColor: '#000000',
   },
   header: {
-    paddingHorizontal: Spacing.lg,
-    paddingTop: Spacing.lg,
-    paddingBottom: Spacing.md,
+    paddingHorizontal: 16,
+    paddingTop: 16,
+    paddingBottom: 8,
   },
-  headerContent: {
+  headerTop: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'center',
+    alignItems: 'flex-end',
   },
   headerTitle: {
-    fontSize: Typography.sizes.xxxl,
-    fontWeight: Typography.weights.bold,
-    color: Colors.textPrimary,
-    letterSpacing: -0.5,
+    fontSize: 34,
+    fontWeight: '700',
+    color: '#FFFFFF',
+    letterSpacing: 0.37,
   },
   headerSubtitle: {
-    fontSize: Typography.sizes.base,
-    color: Colors.textSecondary,
-    marginTop: Spacing.xs,
+    fontSize: 15,
+    color: '#EBEBF599',
+    marginTop: 2,
   },
   totalTime: {
-    fontSize: Typography.sizes.sm,
-    color: Colors.textTertiary,
-    marginTop: Spacing.sm,
+    fontSize: 13,
+    color: '#EBEBF54D',
+    marginTop: 8,
   },
   scroll: {
     flex: 1,
-  },
-  daySection: {
-    marginHorizontal: Spacing.lg,
-    marginBottom: Spacing.lg,
   },
   dayHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: Spacing.sm,
+    marginHorizontal: 16,
+    marginBottom: 8,
   },
   dayTitle: {
-    fontSize: Typography.sizes.lg,
-    fontWeight: Typography.weights.bold,
-    color: Colors.textPrimary,
-  },
-  addBtn: {
-    width: 28,
-    height: 28,
-    borderRadius: Radius.sm,
-    backgroundColor: Colors.bgInput,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  emptyDay: {
-    backgroundColor: Colors.bgSurface,
-    borderRadius: Radius.md,
-    borderStyle: 'dashed',
-    borderWidth: 1,
-    borderColor: Colors.border,
-    paddingVertical: Spacing.lg,
-    alignItems: 'center',
-  },
-  emptyDayText: {
-    fontSize: Typography.sizes.sm,
-    color: Colors.textTertiary,
+    fontSize: 20,
+    fontWeight: '600',
+    color: '#FFFFFF',
+    letterSpacing: 0.38,
   },
 });

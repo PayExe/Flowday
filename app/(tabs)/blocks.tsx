@@ -1,18 +1,11 @@
 import { useState, useCallback } from 'react';
-import {
-  View,
-  Text,
-  TouchableOpacity,
-  FlatList,
-  StyleSheet,
-} from 'react-native';
+import { View, Text, Pressable, FlatList, StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useLifeBlocksStore } from '../../src/features/lifeBlocks/store';
 import { useTaskStore } from '../../src/features/tasks/store';
 import { useTemplateStore } from '../../src/features/templates/store';
 import { LifeBlock, LifeBlockColor } from '../../src/types/lifeBlock';
-import { Colors, Spacing, Radius, Typography } from '../../src/theme';
 import { LifeBlockCard } from '../../src/components/lifeBlocks/LifeBlockCard';
 import { EditBlockModal } from '../../src/components/lifeBlocks/EditBlockModal';
 import { EmptyState } from '../../src/components/shared/EmptyState';
@@ -28,8 +21,6 @@ function getBlockTimeSpent(
   block: LifeBlock,
   templateBlocks: ReturnType<typeof useTemplateStore.getState>['getTodayBlocks']
 ): number {
-  // Pour l'instant, on calcule le temps planifié dans le template d'aujourd'hui
-  // comme proxy du "temps passé" (vraie tracking viendra plus tard)
   const todayBlocks = templateBlocks();
   const blockInstances = todayBlocks.filter((b) => b.lifeBlockId === block.id);
   return blockInstances.reduce((sum, b) => {
@@ -42,7 +33,6 @@ function getBlockTimeSpent(
 export default function BlocksScreen() {
   const [modalVisible, setModalVisible] = useState(false);
   const [editingBlock, setEditingBlock] = useState<LifeBlock | null>(null);
-  const [showArchived, setShowArchived] = useState(false);
 
   const blocks = useLifeBlocksStore((state) => state.blocks);
   const addBlock = useLifeBlocksStore((state) => state.addBlock);
@@ -82,6 +72,7 @@ export default function BlocksScreen() {
           isArchived: false,
         });
       }
+      setModalVisible(false);
     },
     [editingBlock, addBlock, updateBlock]
   );
@@ -125,47 +116,33 @@ export default function BlocksScreen() {
     [activeBlocks.length, getTodayBlocks, handleEdit, archiveBlock, reorderBlock]
   );
 
-  const renderArchivedBlock = useCallback(
-    ({ item }: { item: LifeBlock }) => (
-      <TouchableOpacity
-        style={styles.archivedItem}
-        onPress={() => handleEdit(item)}
-      >
-        <View style={[styles.archivedDot, { backgroundColor: item.color }]} />
-        <Text style={styles.archivedEmoji}>{item.emoji}</Text>
-        <Text style={styles.archivedName}>{item.name}</Text>
-        <View style={styles.spacer} />
-        <TouchableOpacity
-          style={styles.restoreBtn}
-          onPress={() => unarchiveBlock(item.id)}
-        >
-          <Ionicons name="refresh-outline" size={16} color={Colors.accentGreen} />
-          <Text style={styles.restoreText}>Restaurer</Text>
-        </TouchableOpacity>
-      </TouchableOpacity>
-    ),
-    [handleEdit, unarchiveBlock]
-  );
-
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
       {/* Header */}
       <View style={styles.header}>
-        <View style={styles.headerContent}>
+        <View style={styles.headerTop}>
           <View>
-            <Text style={styles.headerTitle}>Life Blocks</Text>
+            <Text style={styles.headerTitle}>Blocs</Text>
             <Text style={styles.headerSubtitle}>
               {activeBlocks.length} bloc{activeBlocks.length !== 1 ? 's' : ''} actif
               {activeBlocks.length !== 1 ? 's' : ''}
             </Text>
           </View>
-          <TouchableOpacity
-            style={styles.addButton}
+          <Pressable
+            style={({ pressed }) => ({
+              width: 32,
+              height: 32,
+              borderRadius: 8,
+              backgroundColor: pressed ? '#2C2C2E' : '#1C1C1E',
+              alignItems: 'center',
+              justifyContent: 'center',
+              borderWidth: 1,
+              borderColor: '#38383A',
+            })}
             onPress={handleCreate}
-            activeOpacity={0.8}
           >
-            <Ionicons name="add" size={22} color={Colors.bgPrimary} />
-          </TouchableOpacity>
+            <Ionicons name="add" size={20} color="#0A84FF" />
+          </Pressable>
         </View>
       </View>
 
@@ -185,29 +162,61 @@ export default function BlocksScreen() {
         }
         ListFooterComponent={
           archivedBlocks.length > 0 ? (
-            <View style={styles.archivedSection}>
-              <TouchableOpacity
-                style={styles.archivedHeader}
-                onPress={() => setShowArchived(!showArchived)}
+            <View style={{ marginTop: 24 }}>
+              <Text style={styles.sectionHeader}>
+                Archivés
+              </Text>
+              <View
+                style={{
+                  backgroundColor: '#1C1C1E',
+                  borderRadius: 13,
+                  marginHorizontal: 16,
+                  overflow: 'hidden',
+                }}
               >
-                <Text style={styles.archivedTitle}>
-                  Archivés ({archivedBlocks.length})
-                </Text>
-                <Ionicons
-                  name={showArchived ? 'chevron-up' : 'chevron-down'}
-                  size={18}
-                  color={Colors.textSecondary}
-                />
-              </TouchableOpacity>
-
-              {showArchived && (
-                <FlatList
-                  data={archivedBlocks}
-                  keyExtractor={(item) => item.id}
-                  renderItem={renderArchivedBlock}
-                  scrollEnabled={false}
-                />
-              )}
+                {archivedBlocks.map((block, index) => (
+                  <View key={block.id}>
+                    <Pressable
+                      style={({ pressed }) => ({
+                        flexDirection: 'row',
+                        alignItems: 'center',
+                        paddingHorizontal: 16,
+                        paddingVertical: 11,
+                        backgroundColor: pressed ? '#2C2C2E' : 'transparent',
+                        minHeight: 44,
+                        opacity: 0.5,
+                      })}
+                      onPress={() => handleEdit(block)}
+                    >
+                      <View
+                        style={{
+                          width: 29,
+                          height: 29,
+                          borderRadius: 7,
+                          backgroundColor: block.color,
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          marginRight: 12,
+                        }}
+                      >
+                        <Text style={{ fontSize: 16 }}>{block.emoji}</Text>
+                      </View>
+                      <Text style={{ flex: 1, fontSize: 17, color: '#FFFFFF', letterSpacing: -0.41 }}>
+                        {block.name}
+                      </Text>
+                      <Pressable
+                        onPress={() => unarchiveBlock(block.id)}
+                        hitSlop={8}
+                      >
+                        <Text style={{ fontSize: 15, color: '#0A84FF' }}>Restaurer</Text>
+                      </Pressable>
+                    </Pressable>
+                    {index < archivedBlocks.length - 1 && (
+                      <View style={{ height: 0.5, backgroundColor: '#54545899', marginLeft: 57 }} />
+                    )}
+                  </View>
+                ))}
+              </View>
             </View>
           ) : null
         }
@@ -229,95 +238,40 @@ export default function BlocksScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: Colors.bgPrimary,
+    backgroundColor: '#000000',
   },
   header: {
-    paddingHorizontal: Spacing.lg,
-    paddingTop: Spacing.lg,
-    paddingBottom: Spacing.md,
+    paddingHorizontal: 16,
+    paddingTop: 16,
+    paddingBottom: 8,
   },
-  headerContent: {
+  headerTop: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'center',
+    alignItems: 'flex-end',
   },
   headerTitle: {
-    fontSize: Typography.sizes.xxxl,
-    fontWeight: Typography.weights.bold,
-    color: Colors.textPrimary,
-    letterSpacing: -0.5,
+    fontSize: 34,
+    fontWeight: '700',
+    color: '#FFFFFF',
+    letterSpacing: 0.37,
   },
   headerSubtitle: {
-    fontSize: Typography.sizes.base,
-    color: Colors.textSecondary,
-    marginTop: Spacing.xs,
-  },
-  addButton: {
-    width: 44,
-    height: 44,
-    borderRadius: 10,
-    backgroundColor: Colors.accentCyan,
-    alignItems: 'center',
-    justifyContent: 'center',
+    fontSize: 15,
+    color: '#EBEBF599',
+    marginTop: 2,
   },
   listContent: {
-    paddingTop: Spacing.md,
-    paddingBottom: Spacing.xxl,
+    paddingTop: 8,
+    paddingBottom: 32,
   },
-  archivedSection: {
-    marginTop: Spacing.xl,
-    marginHorizontal: Spacing.lg,
-  },
-  archivedHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingVertical: Spacing.md,
-    borderTopWidth: 1,
-    borderTopColor: Colors.border,
-  },
-  archivedTitle: {
-    fontSize: Typography.sizes.sm,
-    fontWeight: Typography.weights.semibold,
-    color: Colors.textSecondary,
+  sectionHeader: {
+    fontSize: 13,
+    color: '#EBEBF599',
+    paddingHorizontal: 32,
+    paddingTop: 28,
+    paddingBottom: 8,
     textTransform: 'uppercase',
-    letterSpacing: 1,
-  },
-  archivedItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: Spacing.md,
-    paddingHorizontal: Spacing.md,
-    backgroundColor: Colors.bgSurface,
-    borderRadius: Radius.md,
-    marginBottom: Spacing.sm,
-    opacity: 0.7,
-  },
-  archivedDot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    marginRight: Spacing.sm,
-  },
-  archivedEmoji: {
-    fontSize: 16,
-    marginRight: Spacing.sm,
-  },
-  archivedName: {
-    fontSize: Typography.sizes.base,
-    color: Colors.textSecondary,
-  },
-  spacer: {
-    flex: 1,
-  },
-  restoreBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: Spacing.xs,
-  },
-  restoreText: {
-    fontSize: Typography.sizes.sm,
-    color: Colors.accentGreen,
-    fontWeight: Typography.weights.medium,
+    letterSpacing: -0.08,
   },
 });

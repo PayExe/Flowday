@@ -1,9 +1,7 @@
-import { View, Text, TouchableOpacity, Pressable, StyleSheet } from 'react-native';
+import { View, Text, Pressable, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { Colors, Spacing, Radius, Typography } from '../../theme';
 import { Task } from '../../types/task';
-import { PriorityBadge } from '../shared/PriorityBadge';
-import { hapticLight, hapticWarning } from '../../utils/haptics';
+import { hapticLight } from '../../utils/haptics';
 
 interface TaskCardProps {
   task: Task;
@@ -11,110 +9,69 @@ interface TaskCardProps {
   onDelete: (id: string) => void;
 }
 
-export function TaskCard({ task, onToggle, onDelete }: TaskCardProps) {
-  return (
-    <View>
-      <View style={styles.row}>
-        <TouchableOpacity
-          style={styles.checkboxArea}
-          onPress={() => { hapticLight(); onToggle(task.id); }}
-          hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-        >
-          <View
-            style={[
-              styles.checkboxBox,
-              task.completed && {
-                backgroundColor: Colors.accentCyan,
-                borderColor: Colors.accentCyan,
-              },
-            ]}
-          >
-            {task.completed && (
-              <Ionicons name="checkmark" size={14} color={Colors.bgPrimary} />
-            )}
-          </View>
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          style={styles.contentArea}
-          onPress={() => { hapticLight(); onToggle(task.id); }}
-          activeOpacity={0.8}
-        >
-          <Text
-            style={[
-              styles.title,
-              task.completed && styles.titleCompleted,
-            ]}
-          >
-            {task.title}
-          </Text>
-          <View style={styles.meta}>
-            <PriorityBadge priority={task.priority} />
-          </View>
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          style={styles.deleteButton}
-          onPress={() => { hapticWarning(); onDelete(task.id); }}
-          hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-        >
-          <Ionicons name="trash-outline" size={20} color={Colors.accentRed} />
-        </TouchableOpacity>
-      </View>
-      <View style={styles.separator} />
-    </View>
-  );
+function priorityColor(priority: string): string {
+  switch (priority) {
+    case 'high': return '#FF453A';
+    case 'medium': return '#FFD60A';
+    case 'low': return '#8E8E93';
+    default: return '#8E8E93';
+  }
 }
 
-const styles = StyleSheet.create({
-  row: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: Spacing.lg,
-    paddingVertical: 14,
-  },
-  checkboxArea: {
-    padding: Spacing.xs,
-    marginRight: Spacing.sm,
-  },
-  contentArea: {
-    flex: 1,
-    paddingVertical: Spacing.xs,
-  },
-  checkboxBox: {
-    width: 22,
-    height: 22,
-    borderRadius: 6,
-    borderWidth: 2,
-    borderColor: Colors.textTertiary,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  content: {
-    flex: 1,
-  },
-  title: {
-    fontSize: Typography.sizes.base,
-    color: Colors.textPrimary,
-    fontWeight: Typography.weights.medium,
-    lineHeight: 22,
-  },
-  titleCompleted: {
-    textDecorationLine: 'line-through',
-    color: Colors.textSecondary,
-  },
-  meta: {
-    flexDirection: 'row',
-    marginTop: Spacing.xs,
-    gap: Spacing.sm,
-  },
-  deleteButton: {
-    padding: Spacing.sm,
-    marginLeft: Spacing.sm,
-  },
-  separator: {
-    height: 1,
-    backgroundColor: Colors.border,
-    marginLeft: 52,
-  },
-});
+export function TaskCard({ task, onToggle, onDelete }: TaskCardProps) {
+  const done = task.completed;
+  const pColor = priorityColor(task.priority);
+
+  return (
+    <Pressable
+      style={({ pressed }) => ({
+        flexDirection: 'row',
+        alignItems: 'flex-start',
+        paddingHorizontal: 16,
+        paddingVertical: 10,
+        backgroundColor: pressed ? '#2C2C2E' : 'transparent',
+        gap: 12,
+      })}
+    >
+      {/* Cercle checkbox — Things 3 */}
+      <Pressable
+        onPress={() => { hapticLight(); onToggle(task.id); }}
+        hitSlop={8}
+        style={{
+          width: 22,
+          height: 22,
+          borderRadius: 11,
+          borderWidth: done ? 0 : 2,
+          borderColor: done ? 'transparent' : pColor,
+          backgroundColor: done ? pColor : 'transparent',
+          alignItems: 'center',
+          justifyContent: 'center',
+          marginTop: 1,
+        }}
+      >
+        {done && (
+          <Ionicons name="checkmark" size={13} color="#FFFFFF" />
+        )}
+      </Pressable>
+
+      {/* Contenu */}
+      <View style={{ flex: 1 }}>
+        <Text
+          style={{
+            fontSize: 17,
+            color: done ? '#EBEBF54D' : '#FFFFFF',
+            letterSpacing: -0.41,
+            textDecorationLine: done ? 'line-through' : 'none',
+          }}
+        >
+          {task.title}
+        </Text>
+      </View>
+
+      {/* Badge priorité (discret) */}
+      {task.priority === 'high' && !done && (
+        <Ionicons name="flag-outline" size={14} color="#FF453A" style={{ marginTop: 3 }} />
+      )}
+    </Pressable>
+  );
+}

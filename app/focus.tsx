@@ -2,7 +2,7 @@ import { useEffect, useRef } from 'react';
 import {
   View,
   Text,
-  TouchableOpacity,
+  Pressable,
   StyleSheet,
   StatusBar,
 } from 'react-native';
@@ -11,7 +11,6 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useFocusStore } from '../src/features/focus/store';
 import { useDayScoreStore } from '../src/features/dayScore/store';
-import { Colors, Spacing, Radius, Typography } from '../src/theme';
 
 function formatTime(seconds: number): string {
   const m = Math.floor(seconds / 60);
@@ -60,19 +59,10 @@ export default function FocusScreen() {
   // ─── Détection fin de pomodoro ────────────────────────────
   useEffect(() => {
     if (focusState.isActive && focusState.timeRemaining === 0 && !focusState.isBreak) {
-      // Pomodoro terminé !
       completePomodoro();
       incrementPomodoro(todayISO());
     }
   }, [focusState.timeRemaining, focusState.isActive, focusState.isBreak, completePomodoro, incrementPomodoro]);
-
-  // ─── Détection fin de pause ───────────────────────────────
-  useEffect(() => {
-    if (focusState.isActive && focusState.timeRemaining === 0 && focusState.isBreak) {
-      // Break terminé, retour au travail
-      // Le tick() dans le store gère déjà le switch
-    }
-  }, [focusState.timeRemaining, focusState.isActive, focusState.isBreak]);
 
   const handleAbandon = () => {
     abandonPomodoro();
@@ -95,9 +85,9 @@ export default function FocusScreen() {
       <SafeAreaView style={styles.container} edges={['top']}>
         <View style={styles.center}>
           <Text style={styles.noTask}>Aucune tâche en cours</Text>
-          <TouchableOpacity style={styles.backBtn} onPress={() => router.back()}>
+          <Pressable style={styles.backBtn} onPress={() => router.back()}>
             <Text style={styles.backBtnText}>← Retour</Text>
-          </TouchableOpacity>
+          </Pressable>
         </View>
       </SafeAreaView>
     );
@@ -109,18 +99,23 @@ export default function FocusScreen() {
 
       {/* Header minimal */}
       <View style={styles.header}>
-        <TouchableOpacity onPress={handleStop}>
-          <Ionicons name="close" size={28} color={Colors.textSecondary} />
-        </TouchableOpacity>
+        <Pressable
+          onPress={handleStop}
+          style={({ pressed }) => ({
+            width: 36,
+            height: 36,
+            borderRadius: 10,
+            backgroundColor: pressed ? '#3A3A3C' : '#1C1C1E',
+            alignItems: 'center',
+            justifyContent: 'center',
+          })}
+        >
+          <Ionicons name="close" size={20} color="#FFFFFF" />
+        </Pressable>
       </View>
 
       {/* Content */}
       <View style={styles.content}>
-        {/* Label Work/Break */}
-        <Text style={styles.modeLabel}>
-          {focusState.isBreak ? 'Pause' : 'Focus'}
-        </Text>
-
         {/* Tâche en cours */}
         <Text style={styles.taskTitle} numberOfLines={2}>
           {focusState.currentTaskTitle}
@@ -129,6 +124,11 @@ export default function FocusScreen() {
         {/* Timer */}
         <Text style={styles.timer}>{formatTime(focusState.timeRemaining)}</Text>
 
+        {/* Mode actuel */}
+        <Text style={styles.modeLabel}>
+          {focusState.isBreak ? 'Pause · 5 min' : 'Focus · 25 min'}
+        </Text>
+
         {/* Points de session */}
         <View style={styles.dotsRow}>
           {dots.map((filled, i) => (
@@ -136,7 +136,7 @@ export default function FocusScreen() {
               key={i}
               style={[
                 styles.dot,
-                filled && { backgroundColor: Colors.accentCyan },
+                filled && { backgroundColor: '#0A84FF' },
               ]}
             />
           ))}
@@ -150,29 +150,26 @@ export default function FocusScreen() {
 
       {/* Controls */}
       <View style={styles.footer}>
-        <TouchableOpacity
-          style={styles.controlBtn}
+        <Pressable
+          style={({ pressed }) => ({
+            backgroundColor: pressed ? '#3A3A3C' : '#1C1C1E',
+            borderRadius: 13,
+            paddingVertical: 14,
+            paddingHorizontal: 32,
+            alignItems: 'center',
+            borderWidth: 1,
+            borderColor: '#38383A',
+          })}
           onPress={focusState.isActive ? pauseFocus : resumeFocus}
         >
-          <Ionicons
-            name={focusState.isActive ? 'pause' : 'play'}
-            size={24}
-            color={Colors.textPrimary}
-          />
-          <Text style={styles.controlText}>
+          <Text style={{ fontSize: 17, fontWeight: '600', color: '#FFFFFF' }}>
             {focusState.isActive ? 'Pause' : 'Reprendre'}
           </Text>
-        </TouchableOpacity>
+        </Pressable>
 
-        <TouchableOpacity
-          style={[styles.controlBtn, styles.abandonBtn]}
-          onPress={handleAbandon}
-        >
-          <Ionicons name="stop-outline" size={24} color={Colors.accentRed} />
-          <Text style={[styles.controlText, { color: Colors.accentRed }]}>
-            Abandonner
-          </Text>
-        </TouchableOpacity>
+        <Pressable onPress={handleAbandon} style={{ padding: 12 }}>
+          <Text style={{ fontSize: 15, color: '#FF453A' }}>Abandonner</Text>
+        </Pressable>
       </View>
     </SafeAreaView>
   );
@@ -184,87 +181,73 @@ const styles = StyleSheet.create({
     backgroundColor: '#000000',
   },
   header: {
-    paddingHorizontal: Spacing.lg,
-    paddingTop: Spacing.md,
+    paddingHorizontal: 16,
+    paddingTop: 12,
     alignItems: 'flex-start',
   },
   content: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    paddingHorizontal: Spacing.xl,
-  },
-  modeLabel: {
-    fontSize: Typography.sizes.sm,
-    color: Colors.textTertiary,
-    textTransform: 'uppercase',
-    letterSpacing: 2,
-    marginBottom: Spacing.xl,
+    paddingHorizontal: 20,
   },
   taskTitle: {
     fontSize: 20,
-    color: Colors.textPrimary,
+    fontWeight: '500',
+    color: '#FFFFFF',
     textAlign: 'center',
     lineHeight: 28,
-    marginBottom: Spacing.xxl,
+    marginBottom: 32,
+    letterSpacing: -0.4,
   },
   timer: {
-    fontSize: Typography.sizes.timer,
-    color: Colors.textPrimary,
-    fontWeight: Typography.weights.bold,
-    letterSpacing: -1,
+    fontSize: 56,
+    fontWeight: '300',
+    color: '#FFFFFF',
+    letterSpacing: -2,
     fontVariant: ['tabular-nums'],
+  },
+  modeLabel: {
+    fontSize: 13,
+    color: '#EBEBF599',
+    marginTop: 12,
   },
   dotsRow: {
     flexDirection: 'row',
-    gap: Spacing.sm,
-    marginTop: Spacing.xl,
+    gap: 8,
+    marginTop: 24,
   },
   dot: {
-    width: 10,
-    height: 10,
-    borderRadius: 5,
-    backgroundColor: Colors.textTertiary,
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: '#38383A',
   },
   dailyGoal: {
-    fontSize: Typography.sizes.sm,
-    color: Colors.textSecondary,
-    marginTop: Spacing.lg,
+    fontSize: 13,
+    color: '#EBEBF599',
+    marginTop: 16,
   },
   footer: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    gap: Spacing.xxl,
-    paddingVertical: Spacing.xxl,
-  },
-  controlBtn: {
     alignItems: 'center',
-    gap: Spacing.sm,
-    padding: Spacing.md,
-  },
-  controlText: {
-    fontSize: Typography.sizes.sm,
-    color: Colors.textPrimary,
-    fontWeight: Typography.weights.medium,
-  },
-  abandonBtn: {
-    opacity: 0.8,
+    gap: 8,
+    paddingVertical: 32,
   },
   center: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    gap: Spacing.lg,
+    gap: 16,
   },
   noTask: {
-    fontSize: Typography.sizes.lg,
-    color: Colors.textSecondary,
+    fontSize: 17,
+    color: '#EBEBF599',
   },
   backBtn: {
-    padding: Spacing.md,
+    padding: 12,
   },
   backBtnText: {
-    fontSize: Typography.sizes.base,
-    color: Colors.accentCyan,
+    fontSize: 17,
+    color: '#0A84FF',
   },
 });

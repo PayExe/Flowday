@@ -5,7 +5,7 @@ import {
   TextInput,
   ScrollView,
   StyleSheet,
-  TouchableOpacity,
+  Pressable,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
@@ -15,12 +15,13 @@ import { useTemplateStore } from '../../src/features/templates/store';
 import { useLifeBlocksStore } from '../../src/features/lifeBlocks/store';
 import { useDayScoreStore } from '../../src/features/dayScore/store';
 import { useFocusStore } from '../../src/features/focus/store';
-import { Colors, Spacing, Radius, Typography } from '../../src/theme';
+import { useRitualStore } from '../../src/features/rituals/store';
 import { DayScoreHeader } from '../../src/components/dayScore/DayScoreHeader';
 import { TimelineBlock } from '../../src/components/timeline/TimelineBlock';
 import { CurrentTimeLine } from '../../src/components/timeline/CurrentTimeLine';
 import { FreeSlot } from '../../src/components/timeline/FreeSlot';
 import { HourMarker, HOUR_HEIGHT, START_HOUR, END_HOUR } from '../../src/components/timeline/HourMarker';
+import { TaskCard } from '../../src/components/tasks/TaskCard';
 import { EmptyState } from '../../src/components/shared/EmptyState';
 
 // ─── Helpers ─────────────────────────────────────────────────
@@ -86,12 +87,15 @@ export default function TodayScreen() {
 
   const startFocus = useFocusStore((state) => state.startFocus);
 
+  const hasDoneMorningToday = useRitualStore((state) => state.hasDoneMorningToday);
+
   // ─── Données dérivées ──────────────────────────────────────
   const activeBlocks = useMemo(() => getActiveBlocks(), [getActiveBlocks]);
   const todayTasks = useMemo(() => getTodayTasks(), [tasks, getTodayTasks]);
   const templateBlocks = useMemo(() => getTodayBlocks(), [getTodayBlocks]);
 
   const hasTemplate = getActiveTemplate() !== undefined;
+  const morningDone = hasDoneMorningToday();
 
   // ─── Auto-recalcul du Day Score quand tasks change ──────────
   useEffect(() => {
@@ -107,10 +111,11 @@ export default function TodayScreen() {
   }, [tasks, activeBlocks, todayTasks, updateTasksPercent, updateBlockValidation]);
 
   // ─── Calcul Day Score complet ──────────────────────────────
-  const dayScore = useMemo(() => {
-    const todayScore = scores.find((s) => s.date === todayISO());
-    return todayScore?.total || 0;
+  const todayScore = useMemo(() => {
+    return scores.find((s) => s.date === todayISO());
   }, [scores]);
+
+  const dayScore = todayScore?.total || 0;
 
   // ─── Scroll auto à l'ouverture ─────────────────────────────
   useEffect(() => {
@@ -247,87 +252,18 @@ export default function TodayScreen() {
             <Text style={styles.headerTitle}>Aujourd'hui</Text>
             <Text style={styles.dateLabel}>{formatDateFr(new Date())}</Text>
           </View>
-          <TouchableOpacity
-            style={styles.wrapButton}
-            onPress={() => router.push('/evening-wrap')}
-          >
-            <Ionicons name="moon-outline" size={18} color={Colors.accentCyan} />
-            <Text style={styles.wrapButtonText}>Bilan</Text>
-          </TouchableOpacity>
         </View>
-        <DayScoreHeader score={dayScore} />
-        {plannedMinutes > 0 && (
-          <Text style={styles.chargeIndicator}>
-            Journée chargée · {formatDuration(plannedMinutes)} planifiées
-          </Text>
-        )}
-
-        {/* Ajout rapide de tâche */}
-        <View style={styles.addTaskRow}>
-          <TextInput
-            style={styles.addTaskInput}
-            placeholder="Ajouter une tâche..."
-            placeholderTextColor={Colors.textTertiary}
-            value={newTaskTitle}
-            onChangeText={setNewTaskTitle}
-            onSubmitEditing={handleAddTask}
-            returnKeyType="done"
-          />
-          <TouchableOpacity
-            style={[styles.addTaskBtn, !newTaskTitle.trim() && styles.addTaskBtnDisabled]}
-            onPress={handleAddTask}
-            disabled={!newTaskTitle.trim()}
-          >
-            <Ionicons name="add" size={20} color={Colors.bgPrimary} />
-          </TouchableOpacity>
-        </View>
-
-        {/* Sélection du bloc pour la tâche */}
-        {activeBlocks.length > 0 && (
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            style={styles.blockSelector}
-          >
-            <TouchableOpacity
-              style={[
-                styles.blockChip,
-                !selectedBlockId && styles.blockChipSelected,
-              ]}
-              onPress={() => setSelectedBlockId(undefined)}
-            >
-              <Text style={[styles.blockChipText, !selectedBlockId && styles.blockChipTextSelected]}>
-                Sans bloc
-              </Text>
-            </TouchableOpacity>
-            {activeBlocks.map((block) => (
-              <TouchableOpacity
-                key={block.id}
-                style={[
-                  styles.blockChip,
-                  selectedBlockId === block.id && {
-                    backgroundColor: block.color + '20',
-                    borderColor: block.color,
-                  },
-                ]}
-                onPress={() =>
-                  setSelectedBlockId(selectedBlockId === block.id ? undefined : block.id)
-                }
-              >
-                <Text style={styles.blockChipEmoji}>{block.emoji}</Text>
-                <Text
-                  style={[
-                    styles.blockChipText,
-                    selectedBlockId === block.id && { color: block.color },
-                  ]}
-                >
-                  {block.name}
-                </Text>
-              </TouchableOpacity>
-            ))}
-          </ScrollView>
-        )}
+        <DayScoreHeader
+          score={dayScore}
+          blocksPercent={todayScore?.blocksPercent}
+          tasksPercent={todayScore?.tasksPercent}
+          pomodorosPercent={todayScore?.pomodorosPercent}
+          ritualsPercent={todayScore?.ritualsPercent}
+        />
       </View>
+
+      {/* Séparateur hairline */}
+      <View style={{ height: 0.5, backgroundColor: '#38383A', marginHorizontal: 16 }} />
 
       {/* Timeline */}
       <ScrollView
@@ -335,76 +271,260 @@ export default function TodayScreen() {
         style={styles.scroll}
         showsVerticalScrollIndicator={false}
       >
-        <View style={styles.timelineContainer}>
-          {/* Hour markers */}
-          {Array.from({ length: END_HOUR - START_HOUR + 1 }, (_, i) => (
-            <View
-              key={i}
-              style={{ position: 'absolute', top: i * HOUR_HEIGHT, left: 0, right: 0 }}
-            >
-              <HourMarker hour={START_HOUR + i} />
+        {/* Banner Morning Ritual si matin et pas fait */}
+        {!morningDone && (
+          <Pressable
+            style={({ pressed }) => ({
+              flexDirection: 'row',
+              alignItems: 'center',
+              backgroundColor: pressed ? '#2C2C2E' : '#1C1C1E',
+              borderRadius: 13,
+              marginHorizontal: 16,
+              marginTop: 16,
+              paddingHorizontal: 16,
+              paddingVertical: 14,
+              borderLeftWidth: 3,
+              borderLeftColor: '#FF9F0A',
+            })}
+            onPress={() => router.push('/morning-ritual')}
+          >
+            <Ionicons name="sunny-outline" size={18} color="#FF9F0A" style={{ marginRight: 10 }} />
+            <Text style={{ flex: 1, fontSize: 15, color: '#FFFFFF', fontWeight: '500' }}>
+              Commencer la journée
+            </Text>
+            <Ionicons name="chevron-forward" size={14} color="#EBEBF54D" />
+          </Pressable>
+        )}
+
+        {/* Ajout rapide de tâche */}
+        <View style={{ marginHorizontal: 16, marginTop: 16 }}>
+          <View
+            style={{
+              backgroundColor: '#1C1C1E',
+              borderRadius: 13,
+              overflow: 'hidden',
+            }}
+          >
+            <View style={{ flexDirection: 'row', alignItems: 'center', paddingHorizontal: 12, paddingVertical: 4 }}>
+              <Ionicons name="add" size={22} color="#0A84FF" />
+              <TextInput
+                style={{
+                  flex: 1,
+                  fontSize: 17,
+                  color: '#FFFFFF',
+                  letterSpacing: -0.41,
+                  paddingVertical: 10,
+                  marginLeft: 4,
+                }}
+                placeholder="Nouvelle tâche..."
+                placeholderTextColor="#3C3C4399"
+                value={newTaskTitle}
+                onChangeText={setNewTaskTitle}
+                onSubmitEditing={handleAddTask}
+                returnKeyType="done"
+              />
             </View>
-          ))}
 
-          {/* Blocks + Free slots */}
-          {timelineItems.map((item, index) => {
-            const top = (item.startMinutes - START_HOUR * 60) * (HOUR_HEIGHT / 60);
-            const height = (item.endMinutes - item.startMinutes) * (HOUR_HEIGHT / 60);
+            {/* Séparateur indenté */}
+            <View style={{ height: 0.5, backgroundColor: '#54545899', marginLeft: 44 }} />
 
-            if (item.type === 'free') {
+            {/* Sélection du bloc */}
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              style={{ paddingHorizontal: 12, paddingVertical: 8 }}
+            >
+              <Pressable
+                style={{
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  paddingHorizontal: 10,
+                  paddingVertical: 5,
+                  backgroundColor: selectedBlockId === undefined ? '#2C2C2E' : 'transparent',
+                  borderRadius: 8,
+                  marginRight: 6,
+                }}
+                onPress={() => setSelectedBlockId(undefined)}
+              >
+                <Text style={{ fontSize: 13, color: selectedBlockId === undefined ? '#FFFFFF' : '#EBEBF599' }}>
+                  Sans bloc
+                </Text>
+              </Pressable>
+              {activeBlocks.map((block) => (
+                <Pressable
+                  key={block.id}
+                  style={{
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    gap: 4,
+                    paddingHorizontal: 10,
+                    paddingVertical: 5,
+                    backgroundColor: selectedBlockId === block.id ? '#2C2C2E' : 'transparent',
+                    borderRadius: 8,
+                    marginRight: 6,
+                  }}
+                  onPress={() =>
+                    setSelectedBlockId(selectedBlockId === block.id ? undefined : block.id)
+                  }
+                >
+                  <View style={{ width: 6, height: 6, borderRadius: 3, backgroundColor: block.color }} />
+                  <Text style={{ fontSize: 13, color: selectedBlockId === block.id ? '#FFFFFF' : '#EBEBF599' }}>
+                    {block.name}
+                  </Text>
+                </Pressable>
+              ))}
+            </ScrollView>
+          </View>
+        </View>
+
+        {/* Tâches du jour */}
+        {todayTasks.length > 0 && (
+          <View style={{ marginTop: 24 }}>
+            <Text
+              style={{
+                fontSize: 13,
+                color: '#EBEBF599',
+                paddingHorizontal: 32,
+                paddingBottom: 8,
+                textTransform: 'uppercase',
+                letterSpacing: -0.08,
+              }}
+            >
+              Tâches
+            </Text>
+            <View
+              style={{
+                backgroundColor: '#1C1C1E',
+                borderRadius: 13,
+                marginHorizontal: 16,
+                overflow: 'hidden',
+              }}
+            >
+              {todayTasks.map((task, index) => (
+                <View key={task.id}>
+                  <TaskCard
+                    task={task}
+                    onToggle={handleToggleTask}
+                    onDelete={() => {}}
+                  />
+                  {index < todayTasks.length - 1 && (
+                    <View style={{ height: 0.5, backgroundColor: '#54545899', marginLeft: 50 }} />
+                  )}
+                </View>
+              ))}
+            </View>
+          </View>
+        )}
+
+        {/* Timeline */}
+        <View style={{ marginTop: 24, marginBottom: 40 }}>
+          <Text
+            style={{
+              fontSize: 13,
+              color: '#EBEBF599',
+              paddingHorizontal: 32,
+              paddingBottom: 8,
+              textTransform: 'uppercase',
+              letterSpacing: -0.08,
+            }}
+          >
+            Planning
+          </Text>
+
+          <View style={styles.timelineContainer}>
+            {/* Hour markers */}
+            {Array.from({ length: END_HOUR - START_HOUR + 1 }, (_, i) => (
+              <View
+                key={i}
+                style={{ position: 'absolute', top: i * HOUR_HEIGHT, left: 0, right: 0 }}
+              >
+                <HourMarker hour={START_HOUR + i} />
+              </View>
+            ))}
+
+            {/* Blocks + Free slots */}
+            {timelineItems.map((item, index) => {
+              const top = (item.startMinutes - START_HOUR * 60) * (HOUR_HEIGHT / 60);
+              const height = (item.endMinutes - item.startMinutes) * (HOUR_HEIGHT / 60);
+
+              if (item.type === 'free') {
+                return (
+                  <View
+                    key={`free-${index}`}
+                    style={[styles.itemAbsolute, { top, height }]}
+                  >
+                    <FreeSlot height={height} duration={item.endMinutes - item.startMinutes} />
+                  </View>
+                );
+              }
+
+              const block = item.data;
+              const lifeBlock = getBlockById(block.lifeBlockId);
+              const blockTasks = lifeBlock
+                ? getTodayTasksByLifeBlock(lifeBlock.id)
+                : [];
+
+              const nowMin = currentMinutesSinceStart() + START_HOUR * 60;
+              const isActive =
+                nowMin >= item.startMinutes && nowMin < item.endMinutes;
+
               return (
                 <View
-                  key={`free-${index}`}
+                  key={`block-${block.id}`}
                   style={[styles.itemAbsolute, { top, height }]}
                 >
-                  <FreeSlot height={height} />
+                  <TimelineBlock
+                    emoji={lifeBlock?.emoji || '⬜'}
+                    name={lifeBlock?.name || 'Bloc'}
+                    title={block.title}
+                    color={lifeBlock?.color || '#8E8E93'}
+                    startTime={block.startTime}
+                    endTime={block.endTime}
+                    height={height}
+                    tasks={blockTasks}
+                    isActive={isActive}
+                    onToggleTask={handleToggleTask}
+                    onFocusTask={handleFocusTask}
+                  />
                 </View>
               );
-            }
+            })}
 
-            const block = item.data;
-            const lifeBlock = getBlockById(block.lifeBlockId);
-            const blockTasks = lifeBlock
-              ? getTodayTasksByLifeBlock(lifeBlock.id)
-              : [];
-
-            const nowMin = currentMinutesSinceStart() + START_HOUR * 60;
-            const isActive =
-              nowMin >= item.startMinutes && nowMin < item.endMinutes;
-
-            return (
-              <View
-                key={`block-${block.id}`}
-                style={[styles.itemAbsolute, { top, height }]}
-              >
-                <TimelineBlock
-                  emoji={lifeBlock?.emoji || '⬜'}
-                  name={lifeBlock?.name || 'Bloc'}
-                  title={block.title}
-                  color={lifeBlock?.color || Colors.textSecondary}
-                  startTime={block.startTime}
-                  endTime={block.endTime}
-                  height={height}
-                  tasks={blockTasks}
-                  isActive={isActive}
-                  onToggleTask={handleToggleTask}
-                  onFocusTask={handleFocusTask}
-                />
-              </View>
-            );
-          })}
-
-          {/* Current time line */}
-          <View
-            style={[
-              styles.itemAbsolute,
-              { top: nowY, height: 20, zIndex: 10 },
-            ]}
-          >
-            <CurrentTimeLine />
+            {/* Current time line */}
+            <View
+              style={[
+                styles.itemAbsolute,
+                { top: nowY, height: 20, zIndex: 10 },
+              ]}
+            >
+              <CurrentTimeLine />
+            </View>
           </View>
         </View>
       </ScrollView>
+
+      {/* FAB */}
+      <Pressable
+        style={{
+          position: 'absolute',
+          right: 16,
+          bottom: 24,
+          width: 56,
+          height: 56,
+          borderRadius: 28,
+          backgroundColor: '#0A84FF',
+          alignItems: 'center',
+          justifyContent: 'center',
+          shadowColor: '#000',
+          shadowOffset: { width: 0, height: 4 },
+          shadowOpacity: 0.3,
+          shadowRadius: 8,
+          elevation: 5,
+        }}
+        onPress={() => router.push('/focus')}
+      >
+        <Ionicons name="timer-outline" size={24} color="#FFFFFF" />
+      </Pressable>
     </SafeAreaView>
   );
 }
@@ -412,107 +532,29 @@ export default function TodayScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: Colors.bgPrimary,
+    backgroundColor: '#000000',
   },
   header: {
-    paddingHorizontal: Spacing.lg,
-    paddingTop: Spacing.md,
-    paddingBottom: Spacing.sm,
+    paddingHorizontal: 16,
+    paddingTop: 12,
+    paddingBottom: 8,
   },
   headerTop: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'flex-start',
-    marginBottom: Spacing.sm,
-  },
-  wrapButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: Spacing.xs,
-    backgroundColor: Colors.bgInput,
-    paddingHorizontal: Spacing.md,
-    paddingVertical: Spacing.sm,
-    borderRadius: Radius.md,
-  },
-  wrapButtonText: {
-    fontSize: Typography.sizes.sm,
-    color: Colors.accentCyan,
-    fontWeight: Typography.weights.medium,
+    marginBottom: 4,
   },
   headerTitle: {
-    fontSize: Typography.sizes.xxl,
-    fontWeight: Typography.weights.bold,
-    color: Colors.textPrimary,
-    letterSpacing: -0.5,
+    fontSize: 34,
+    fontWeight: '700',
+    color: '#FFFFFF',
+    letterSpacing: 0.37,
   },
   dateLabel: {
-    fontSize: Typography.sizes.base,
-    color: Colors.textSecondary,
-    marginTop: Spacing.xs,
-    textTransform: 'capitalize',
-  },
-  chargeIndicator: {
-    fontSize: Typography.sizes.xs,
-    color: Colors.textTertiary,
-    textAlign: 'center',
-    marginTop: Spacing.sm,
-    marginBottom: Spacing.xs,
-  },
-  addTaskRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: Spacing.sm,
-    marginTop: Spacing.md,
-  },
-  addTaskInput: {
-    flex: 1,
-    backgroundColor: Colors.bgInput,
-    borderRadius: Radius.md,
-    paddingHorizontal: Spacing.lg,
-    paddingVertical: Spacing.md,
-    fontSize: Typography.sizes.base,
-    color: Colors.textPrimary,
-  },
-  addTaskBtn: {
-    width: 44,
-    height: 44,
-    borderRadius: Radius.md,
-    backgroundColor: Colors.accentCyan,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  addTaskBtnDisabled: {
-    backgroundColor: Colors.bgInput,
-  },
-  blockSelector: {
-    marginTop: Spacing.sm,
-    flexGrow: 0,
-  },
-  blockChip: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: Spacing.md,
-    paddingVertical: Spacing.sm,
-    borderRadius: Radius.md,
-    borderWidth: 1,
-    borderColor: Colors.border,
-    backgroundColor: Colors.bgSurface,
-    marginRight: Spacing.sm,
-    gap: Spacing.xs,
-  },
-  blockChipSelected: {
-    backgroundColor: Colors.bgInput,
-  },
-  blockChipEmoji: {
-    fontSize: 14,
-  },
-  blockChipText: {
-    fontSize: Typography.sizes.sm,
-    color: Colors.textSecondary,
-    fontWeight: Typography.weights.medium,
-  },
-  blockChipTextSelected: {
-    color: Colors.textPrimary,
+    fontSize: 15,
+    color: '#EBEBF599',
+    marginTop: 2,
   },
   scroll: {
     flex: 1,

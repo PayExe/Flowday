@@ -1,5 +1,4 @@
 import { View, Text, StyleSheet } from 'react-native';
-import { Colors, Spacing, Typography } from '../../theme';
 
 export const HOUR_HEIGHT = 60;
 export const START_HOUR = 6;
@@ -26,15 +25,16 @@ const styles = StyleSheet.create({
     height: HOUR_HEIGHT,
   },
   text: {
-    width: 44,
-    fontSize: Typography.sizes.xs,
-    color: Colors.textTertiary,
+    width: 52,
+    color: '#EBEBF54D',
     textAlign: 'right',
-    paddingRight: Spacing.sm,
+    paddingRight: 10,
+    fontSize: 12,
+    letterSpacing: 0,
   },
   line: {
     flex: 1,
-    height: 1,
-    backgroundColor: Colors.border + '40',
+    height: 0.5,
+    backgroundColor: '#38383A',
   },
 });

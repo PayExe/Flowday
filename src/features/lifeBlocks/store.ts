@@ -21,7 +21,7 @@ const DEFAULT_BLOCKS: LifeBlock[] = [
   { id: 'default-sport', name: 'Sport', emoji: '🏃', color: '#30D158', isArchived: false, weeklyGoalMinutes: 5 * 60, order: 1, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() },
   { id: 'default-health', name: 'Health', emoji: '🍳', color: '#FF9F0A', isArchived: false, weeklyGoalMinutes: 3 * 60, order: 2, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() },
   { id: 'default-learning', name: 'Learning', emoji: '📚', color: '#BF5AF2', isArchived: false, weeklyGoalMinutes: 3 * 60, order: 3, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() },
-  { id: 'default-recharge', name: 'Recharge', emoji: '🧘', color: '#6C6C70', isArchived: false, weeklyGoalMinutes: 4 * 60, order: 4, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() },
+  { id: 'default-recharge', name: 'Recharge', emoji: '🧘', color: '#8E8E93', isArchived: false, weeklyGoalMinutes: 4 * 60, order: 4, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() },
 ];
 
 export const useLifeBlocksStore = create<LifeBlocksState>()(

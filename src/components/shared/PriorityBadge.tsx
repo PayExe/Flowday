@@ -3,9 +3,9 @@ import { Colors, Spacing, Radius, Typography } from '../../theme';
 import { Priority } from '../../types/task';
 
 const PRIORITY_CONFIG = {
-  high: { color: Colors.priorityHigh, label: 'Haute' },
-  medium: { color: Colors.priorityMedium, label: 'Moyenne' },
-  low: { color: Colors.priorityLow, label: 'Basse' },
+  high: { color: Colors.danger, label: 'Haute' },
+  medium: { color: Colors.warning, label: 'Moyenne' },
+  low: { color: Colors.success, label: 'Basse' },
 };
 
 interface PriorityBadgeProps {

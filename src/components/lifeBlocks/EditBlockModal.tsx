@@ -3,7 +3,7 @@ import {
   View,
   Text,
   TextInput,
-  TouchableOpacity,
+  Pressable,
   Modal,
   ScrollView,
   StyleSheet,
@@ -11,7 +11,6 @@ import {
   Platform,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { Colors, Spacing, Radius, Typography } from '../../theme';
 import { LifeBlock, LifeBlockColors, LifeBlockColor } from '../../types/lifeBlock';
 import { hapticSuccess } from '../../utils/haptics';
 
@@ -119,9 +118,9 @@ export function EditBlockModal({
             <Text style={styles.title}>
               {isEditing ? 'Modifier le bloc' : 'Nouveau bloc'}
             </Text>
-            <TouchableOpacity onPress={onClose} style={styles.closeBtn}>
-              <Ionicons name="close" size={24} color={Colors.textSecondary} />
-            </TouchableOpacity>
+            <Pressable onPress={onClose} style={styles.closeBtn}>
+              <Ionicons name="close" size={24} color="#EBEBF599" />
+            </Pressable>
           </View>
 
           <ScrollView showsVerticalScrollIndicator={false}>
@@ -131,7 +130,7 @@ export function EditBlockModal({
               <TextInput
                 style={styles.input}
                 placeholder="Ex: Deep Work, Sport..."
-                placeholderTextColor={Colors.textTertiary}
+                placeholderTextColor="#3C3C4399"
                 value={name}
                 onChangeText={setName}
                 autoFocus={!isEditing}
@@ -143,19 +142,19 @@ export function EditBlockModal({
               <Text style={styles.label}>Emoji</Text>
               <View style={styles.emojiGrid}>
                 {EMOJIS.map((emoji) => (
-                  <TouchableOpacity
+                  <Pressable
                     key={emoji}
                     style={[
                       styles.emojiItem,
                       selectedEmoji === emoji && {
-                        backgroundColor: Colors.bgInput,
-                        borderColor: Colors.accentCyan,
+                        backgroundColor: '#2C2C2E',
+                        borderColor: '#0A84FF',
                       },
                     ]}
                     onPress={() => setSelectedEmoji(emoji)}
                   >
                     <Text style={styles.emojiText}>{emoji}</Text>
-                  </TouchableOpacity>
+                  </Pressable>
                 ))}
               </View>
             </View>
@@ -165,14 +164,14 @@ export function EditBlockModal({
               <Text style={styles.label}>Couleur</Text>
               <View style={styles.colorGrid}>
                 {LifeBlockColors.map((color) => (
-                  <TouchableOpacity
+                  <Pressable
                     key={color}
                     style={[
                       styles.colorItem,
                       { backgroundColor: color },
                       selectedColor === color && {
                         borderWidth: 3,
-                        borderColor: Colors.textPrimary,
+                        borderColor: '#FFFFFF',
                       },
                     ]}
                     onPress={() => setSelectedColor(color)}
@@ -187,7 +186,7 @@ export function EditBlockModal({
               <TextInput
                 style={styles.input}
                 placeholder="Ex: 5h, 1h30, 90min..."
-                placeholderTextColor={Colors.textTertiary}
+                placeholderTextColor="#3C3C4399"
                 value={goalInput}
                 onChangeText={setGoalInput}
                 keyboardType="default"
@@ -199,30 +198,33 @@ export function EditBlockModal({
 
             {/* Actions */}
             <View style={styles.actions}>
-              <TouchableOpacity
-                style={[styles.saveBtn, !name.trim() && styles.saveBtnDisabled]}
+              <Pressable
+                style={[
+                  styles.saveBtn,
+                  !name.trim() && { backgroundColor: '#2C2C2E' },
+                ]}
                 onPress={handleSave}
                 disabled={!name.trim()}
               >
                 <Text style={styles.saveBtnText}>
                   {isEditing ? 'Enregistrer' : 'Créer'}
                 </Text>
-              </TouchableOpacity>
+              </Pressable>
 
               {isEditing && block && !block.isArchived && onArchive && (
-                <TouchableOpacity style={styles.archiveBtn} onPress={onArchive}>
-                  <Ionicons name="archive-outline" size={18} color={Colors.accentYellow} />
-                  <Text style={styles.archiveBtnText}>Archiver</Text>
-                </TouchableOpacity>
+                <Pressable style={styles.archiveBtn} onPress={onArchive}>
+                  <Ionicons name="archive-outline" size={18} color="#FF9F0A" />
+                  <Text style={[styles.archiveBtnText, { color: '#FF9F0A' }]}>Archiver</Text>
+                </Pressable>
               )}
 
               {isEditing && block && block.isArchived && onUnarchive && (
-                <TouchableOpacity style={styles.archiveBtn} onPress={onUnarchive}>
-                  <Ionicons name="refresh-outline" size={18} color={Colors.accentGreen} />
-                  <Text style={[styles.archiveBtnText, { color: Colors.accentGreen }]}>
+                <Pressable style={styles.archiveBtn} onPress={onUnarchive}>
+                  <Ionicons name="refresh-outline" size={18} color="#30D158" />
+                  <Text style={[styles.archiveBtnText, { color: '#30D158' }]}>
                     Restaurer
                   </Text>
-                </TouchableOpacity>
+                </Pressable>
               )}
             </View>
           </ScrollView>
@@ -235,61 +237,62 @@ export function EditBlockModal({
 const styles = StyleSheet.create({
   overlay: {
     flex: 1,
-    backgroundColor: Colors.bgPrimary + 'CC',
+    backgroundColor: '#000000CC',
     justifyContent: 'flex-end',
   },
   modal: {
-    backgroundColor: Colors.bgSurface,
-    borderTopLeftRadius: Radius.xxl,
-    borderTopRightRadius: Radius.xxl,
-    paddingHorizontal: Spacing.lg,
-    paddingBottom: Spacing.xxl + 20,
+    backgroundColor: '#1C1C1E',
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    paddingHorizontal: 16,
+    paddingBottom: 44,
     maxHeight: '90%',
   },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingVertical: Spacing.lg,
+    paddingVertical: 16,
   },
   title: {
-    fontSize: Typography.sizes.xl,
-    fontWeight: Typography.weights.bold,
-    color: Colors.textPrimary,
+    fontSize: 20,
+    fontWeight: '700',
+    color: '#FFFFFF',
   },
   closeBtn: {
-    padding: Spacing.sm,
+    padding: 8,
   },
   section: {
-    marginBottom: Spacing.lg,
+    marginBottom: 20,
   },
   label: {
-    fontSize: Typography.sizes.sm,
-    fontWeight: Typography.weights.semibold,
-    color: Colors.textSecondary,
+    fontSize: 13,
+    fontWeight: '400',
+    color: '#EBEBF599',
     textTransform: 'uppercase',
-    letterSpacing: 1,
-    marginBottom: Spacing.sm,
+    letterSpacing: -0.08,
+    marginBottom: 8,
   },
   input: {
-    backgroundColor: Colors.bgInput,
-    borderRadius: Radius.md,
-    paddingHorizontal: Spacing.lg,
-    paddingVertical: Spacing.md,
-    fontSize: Typography.sizes.base,
-    color: Colors.textPrimary,
+    backgroundColor: '#2C2C2E',
+    borderRadius: 10,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    fontSize: 17,
+    color: '#FFFFFF',
+    letterSpacing: -0.41,
   },
   emojiGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: Spacing.sm,
+    gap: 8,
   },
   emojiItem: {
     width: 48,
     height: 48,
-    borderRadius: Radius.md,
+    borderRadius: 10,
     borderWidth: 2,
-    borderColor: Colors.border,
+    borderColor: '#38383A',
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -299,48 +302,45 @@ const styles = StyleSheet.create({
   colorGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: Spacing.sm,
+    gap: 10,
   },
   colorItem: {
     width: 40,
     height: 40,
-    borderRadius: Radius.full,
+    borderRadius: 20,
     borderWidth: 2,
     borderColor: 'transparent',
   },
   goalHint: {
-    fontSize: Typography.sizes.sm,
-    color: Colors.textTertiary,
-    marginTop: Spacing.xs,
+    fontSize: 13,
+    color: '#EBEBF54D',
+    marginTop: 6,
   },
   actions: {
-    marginTop: Spacing.md,
-    gap: Spacing.md,
+    marginTop: 8,
+    gap: 12,
   },
   saveBtn: {
-    backgroundColor: Colors.accentCyan,
-    borderRadius: Radius.md,
-    paddingVertical: Spacing.md,
+    backgroundColor: '#0A84FF',
+    borderRadius: 13,
+    paddingVertical: 14,
     alignItems: 'center',
   },
-  saveBtnDisabled: {
-    backgroundColor: Colors.bgInput,
-  },
   saveBtnText: {
-    fontSize: Typography.sizes.base,
-    fontWeight: Typography.weights.semibold,
-    color: Colors.bgPrimary,
+    fontSize: 17,
+    fontWeight: '600',
+    color: '#FFFFFF',
   },
   archiveBtn: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    gap: Spacing.sm,
-    paddingVertical: Spacing.md,
+    gap: 8,
+    paddingVertical: 12,
   },
   archiveBtnText: {
-    fontSize: Typography.sizes.base,
-    color: Colors.accentYellow,
-    fontWeight: Typography.weights.medium,
+    fontSize: 17,
+    fontWeight: '400',
+    color: '#FF9F0A',
   },
 });

@@ -1,33 +1,45 @@
 import { View, Text, StyleSheet } from 'react-native';
-import { Colors, Spacing, Typography } from '../../theme';
 
 interface FreeSlotProps {
   height: number;
+  duration?: number;
 }
 
-export function FreeSlot({ height }: FreeSlotProps) {
+function formatMinutes(min: number): string {
+  const h = Math.floor(min / 60);
+  const m = min % 60;
+  if (h > 0 && m > 0) return `${h}h${m}`;
+  if (h > 0) return `${h}h`;
+  return `${m}min`;
+}
+
+export function FreeSlot({ height, duration = 0 }: FreeSlotProps) {
   return (
-    <View style={[styles.container, { height }]}>
-      <Text style={styles.text}>Libre</Text>
+    <View style={[styles.container, { height: Math.max(height, 36) }]}>
+      <View style={{ width: 52 }} />
+      <View style={styles.content}>
+        {duration >= 30 && (
+          <Text style={styles.text}>Libre · {formatMinutes(duration)}</Text>
+        )}
+      </View>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
-    marginLeft: 56,
+    flexDirection: 'row',
+    marginBottom: 2,
+    minHeight: 36,
+  },
+  content: {
+    flex: 1,
     marginRight: 16,
-    backgroundColor: Colors.bgSurface + '40',
-    borderRadius: 8,
-    borderStyle: 'dashed',
-    borderWidth: 1,
-    borderColor: Colors.border,
     alignItems: 'center',
     justifyContent: 'center',
   },
   text: {
-    fontSize: Typography.sizes.sm,
-    color: Colors.textTertiary,
-    fontStyle: 'italic',
+    fontSize: 12,
+    color: '#EBEBF54D',
   },
 });

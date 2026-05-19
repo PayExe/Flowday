@@ -1,13 +1,16 @@
 import { View, Text, StyleSheet } from 'react-native';
-import { Colors, Spacing, Typography } from '../../theme';
 
 export function CurrentTimeLine() {
+  const now = new Date();
+  const currentTime = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
+
   return (
     <View style={styles.container} pointerEvents="none">
-      <View style={styles.line} />
-      <View style={styles.timeBadge}>
-        <Text style={styles.timeText}>MAINTENANT</Text>
+      <View style={{ width: 52, alignItems: 'flex-end', paddingRight: 8 }}>
+        <Text style={styles.timeText}>{currentTime}</Text>
       </View>
+      <View style={styles.dot} />
+      <View style={styles.line} />
     </View>
   );
 }
@@ -20,24 +23,23 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
   },
-  line: {
-    position: 'absolute',
-    left: 56,
-    right: 16,
-    height: 1,
-    backgroundColor: Colors.nowLine,
-  },
-  timeBadge: {
-    position: 'absolute',
-    left: 60,
-    backgroundColor: Colors.bgPrimary,
-    paddingHorizontal: Spacing.sm,
-    zIndex: 1,
-  },
   timeText: {
-    fontSize: Typography.sizes.xs,
-    fontWeight: Typography.weights.bold,
-    color: Colors.nowLine,
-    letterSpacing: 1,
+    fontSize: 12,
+    color: '#FF453A',
+    fontWeight: '500',
+  },
+  dot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: '#FF453A',
+    marginRight: 6,
+  },
+  line: {
+    flex: 1,
+    height: 1,
+    backgroundColor: '#FF453A',
+    marginRight: 16,
+    opacity: 0.8,
   },
 });

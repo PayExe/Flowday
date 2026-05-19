@@ -2,7 +2,7 @@ import { useState, useMemo } from 'react';
 import {
   View,
   Text,
-  TouchableOpacity,
+  Pressable,
   TextInput,
   StyleSheet,
   ScrollView,
@@ -15,13 +15,12 @@ import { useTaskStore } from '../src/features/tasks/store';
 import { useTemplateStore } from '../src/features/templates/store';
 import { useLifeBlocksStore } from '../src/features/lifeBlocks/store';
 import { useDayScoreStore } from '../src/features/dayScore/store';
-import { Colors, Spacing, Radius, Typography } from '../src/theme';
 import { Mood } from '../src/types/ritual';
 
 const MOODS: { value: Mood; label: string; emoji: string; color: string }[] = [
-  { value: 'bad', label: 'Pas top', emoji: '🔴', color: Colors.accentRed },
-  { value: 'meh', label: 'Bof', emoji: '🟡', color: Colors.accentYellow },
-  { value: 'good', label: 'En forme', emoji: '🟢', color: Colors.accentGreen },
+  { value: 'bad', label: 'Pas top', emoji: '🔴', color: '#FF453A' },
+  { value: 'meh', label: 'Bof', emoji: '🟡', color: '#FFD60A' },
+  { value: 'good', label: 'En forme', emoji: '🟢', color: '#30D158' },
 ];
 
 const DAY_LABELS = ['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi', 'Dimanche'];
@@ -82,7 +81,7 @@ export default function MorningRitualScreen() {
   // ─── Validation des étapes ─────────────────────────────────
   const canProceed = useMemo(() => {
     if (step === 1 && morningConfig.steps.mood) return selectedMood !== null;
-    if (step === 3 && morningConfig.steps.priorities) return true; // Les priorités sont proposées, pas obligatoire de changer
+    if (step === 3 && morningConfig.steps.priorities) return true;
     return true;
   }, [step, selectedMood, morningConfig]);
 
@@ -94,15 +93,6 @@ export default function MorningRitualScreen() {
     });
     setMorningRitualDone(todayISO());
     router.replace('/');
-  };
-
-  // ─── Skip étape ────────────────────────────────────────────
-  const skipStep = () => {
-    if (step < 5) {
-      setStep(step + 1);
-    } else {
-      handleFinish();
-    }
   };
 
   const nextStep = () => {
@@ -120,31 +110,36 @@ export default function MorningRitualScreen() {
       <Text style={styles.stepSubtitle}>{capitalize(todayLabel)}</Text>
 
       {morningConfig.steps.mood && (
-        <View style={styles.moodSection}>
-          <Text style={styles.moodQuestion}>Comment tu te sens ?</Text>
-          <View style={styles.moodRow}>
+        <View style={{ marginTop: 40, alignItems: 'center', width: '100%' }}>
+          <Text style={{ fontSize: 15, color: '#EBEBF599', marginBottom: 20 }}>
+            Comment tu te sens ?
+          </Text>
+          <View style={{ flexDirection: 'row', gap: 12 }}>
             {MOODS.map((m) => (
-              <TouchableOpacity
+              <Pressable
                 key={m.value}
-                style={[
-                  styles.moodBtn,
-                  selectedMood === m.value && {
-                    backgroundColor: m.color + '25',
-                    borderColor: m.color,
-                  },
-                ]}
+                style={({ pressed }) => ({
+                  alignItems: 'center',
+                  padding: 16,
+                  borderRadius: 13,
+                  borderWidth: 2,
+                  borderColor: selectedMood === m.value ? m.color : '#38383A',
+                  backgroundColor: pressed ? '#2C2C2E' : '#1C1C1E',
+                  minWidth: 90,
+                })}
                 onPress={() => setSelectedMood(m.value)}
               >
-                <Text style={styles.moodEmoji}>{m.emoji}</Text>
+                <Text style={{ fontSize: 28, marginBottom: 8 }}>{m.emoji}</Text>
                 <Text
-                  style={[
-                    styles.moodLabel,
-                    selectedMood === m.value && { color: m.color, fontWeight: Typography.weights.bold },
-                  ]}
+                  style={{
+                    fontSize: 15,
+                    color: selectedMood === m.value ? m.color : '#EBEBF599',
+                    fontWeight: selectedMood === m.value ? '600' : '400',
+                  }}
                 >
                   {m.label}
                 </Text>
-              </TouchableOpacity>
+              </Pressable>
             ))}
           </View>
         </View>
@@ -162,21 +157,26 @@ export default function MorningRitualScreen() {
           : `${todayBlocks.length} bloc${todayBlocks.length > 1 ? 's' : ''} prévu${todayBlocks.length > 1 ? 's' : ''}`}
       </Text>
 
-      <View style={styles.blocksList}>
+      <View style={{ marginTop: 24, width: '100%', gap: 8 }}>
         {todayBlocks.map((b) => (
           <View
             key={b.id}
-            style={[
-              styles.blockItem,
-              { borderLeftColor: b.lifeBlock?.color || Colors.textTertiary },
-            ]}
+            style={{
+              flexDirection: 'row',
+              alignItems: 'center',
+              backgroundColor: '#1C1C1E',
+              borderRadius: 13,
+              borderLeftWidth: 3,
+              borderLeftColor: b.lifeBlock?.color || '#8E8E93',
+              padding: 14,
+            }}
           >
-            <Text style={styles.blockEmoji}>{b.lifeBlock?.emoji || '⬜'}</Text>
-            <View style={styles.blockInfo}>
-              <Text style={styles.blockName}>
+            <Text style={{ fontSize: 20, marginRight: 12 }}>{b.lifeBlock?.emoji || '⬜'}</Text>
+            <View style={{ flex: 1 }}>
+              <Text style={{ fontSize: 17, fontWeight: '500', color: '#FFFFFF', letterSpacing: -0.41 }}>
                 {b.title || b.lifeBlock?.name || 'Bloc'}
               </Text>
-              <Text style={styles.blockTime}>
+              <Text style={{ fontSize: 13, color: '#EBEBF599', marginTop: 2 }}>
                 {b.startTime} – {b.endTime}
               </Text>
             </View>
@@ -189,36 +189,42 @@ export default function MorningRitualScreen() {
   // ─── Render Step 3 : 3 priorités ───────────────────────────
   const renderStep3 = () => (
     <View style={styles.stepContent}>
-      <Text style={styles.stepTitle}>Tes 3 priorités</Text>
+      <Text style={styles.stepTitle}>Tes priorités</Text>
       <Text style={styles.stepSubtitle}>
         {topTasks.length === 0
           ? "Pas de tâches en cours"
           : "Voici ce qui attend aujourd'hui"}
       </Text>
 
-      <View style={styles.tasksList}>
+      <View style={{ marginTop: 24, width: '100%', gap: 10 }}>
         {topTasks.map((task, index) => (
-          <View key={task.id} style={styles.priorityItem}>
+          <View
+            key={task.id}
+            style={{
+              flexDirection: 'row',
+              alignItems: 'center',
+              backgroundColor: '#1C1C1E',
+              borderRadius: 13,
+              padding: 16,
+              gap: 12,
+            }}
+          >
             <View
-              style={[
-                styles.priorityDot,
-                {
-                  backgroundColor:
-                    index === 0
-                      ? Colors.accentRed
-                      : index === 1
-                      ? Colors.accentYellow
-                      : Colors.accentGreen,
-                },
-              ]}
+              style={{
+                width: 8,
+                height: 8,
+                borderRadius: 4,
+                backgroundColor:
+                  index === 0 ? '#FF453A' : index === 1 ? '#FFD60A' : '#30D158',
+              }}
             />
-            <Text style={styles.priorityTitle} numberOfLines={2}>
+            <Text style={{ fontSize: 17, color: '#FFFFFF', flex: 1, letterSpacing: -0.41 }} numberOfLines={2}>
               {task.title}
             </Text>
           </View>
         ))}
         {topTasks.length === 0 && (
-          <Text style={styles.emptyTasks}>
+          <Text style={{ fontSize: 13, color: '#EBEBF54D', textAlign: 'center', marginTop: 12 }}>
             Ajoute des tâches dans l'onglet Aujourd'hui pour voir tes priorités ici.
           </Text>
         )}
@@ -233,18 +239,30 @@ export default function MorningRitualScreen() {
       <Text style={styles.stepSubtitle}>Un mot pour cette journée ?</Text>
 
       <TextInput
-        style={styles.intentionInput}
+        style={{
+          marginTop: 40,
+          backgroundColor: '#1C1C1E',
+          borderRadius: 13,
+          paddingHorizontal: 20,
+          paddingVertical: 16,
+          fontSize: 20,
+          fontWeight: '500',
+          color: '#FFFFFF',
+          textAlign: 'center',
+          width: '100%',
+          letterSpacing: -0.4,
+        }}
         placeholder="Focus, Récupération, Sprint..."
-        placeholderTextColor={Colors.textTertiary}
+        placeholderTextColor="#3C3C4399"
         value={intention}
         onChangeText={setIntention}
         maxLength={20}
         autoFocus
       />
 
-      <TouchableOpacity style={styles.skipBtn} onPress={skipStep}>
-        <Text style={styles.skipText}>Passer →</Text>
-      </TouchableOpacity>
+      <Pressable onPress={nextStep} style={{ marginTop: 16, padding: 12 }}>
+        <Text style={{ fontSize: 15, color: '#EBEBF599' }}>Passer →</Text>
+      </Pressable>
     </View>
   );
 
@@ -258,43 +276,46 @@ export default function MorningRitualScreen() {
           : "Objectif : journée à 80+"}
       </Text>
 
-      {selectedMood && (
-        <View style={styles.recapRow}>
-          <Text style={styles.recapLabel}>Humeur</Text>
-          <Text style={styles.recapValue}>
-            {MOODS.find((m) => m.value === selectedMood)?.emoji}{' '}
-            {MOODS.find((m) => m.value === selectedMood)?.label}
-          </Text>
-        </View>
-      )}
+      <View style={{ marginTop: 32, width: '100%', gap: 12 }}>
+        {selectedMood && (
+          <View style={styles.recapRow}>
+            <Text style={styles.recapLabel}>Humeur</Text>
+            <Text style={styles.recapValue}>
+              {MOODS.find((m) => m.value === selectedMood)?.emoji}{' '}
+              {MOODS.find((m) => m.value === selectedMood)?.label}
+            </Text>
+          </View>
+        )}
 
-      {todayBlocks.length > 0 && (
-        <View style={styles.recapRow}>
-          <Text style={styles.recapLabel}>Blocs</Text>
-          <Text style={styles.recapValue}>{todayBlocks.length} aujourd'hui</Text>
-        </View>
-      )}
+        {todayBlocks.length > 0 && (
+          <View style={styles.recapRow}>
+            <Text style={styles.recapLabel}>Blocs</Text>
+            <Text style={styles.recapValue}>{todayBlocks.length} aujourd'hui</Text>
+          </View>
+        )}
 
-      {topTasks.length > 0 && (
-        <View style={styles.recapRow}>
-          <Text style={styles.recapLabel}>Priorités</Text>
-          <Text style={styles.recapValue}>{topTasks.length} tâches</Text>
-        </View>
-      )}
+        {topTasks.length > 0 && (
+          <View style={styles.recapRow}>
+            <Text style={styles.recapLabel}>Priorités</Text>
+            <Text style={styles.recapValue}>{topTasks.length} tâches</Text>
+          </View>
+        )}
+      </View>
     </View>
   );
 
   // ─── Step indicator ──────────────────────────────────────
   const renderStepIndicator = () => (
-    <View style={styles.stepIndicator}>
+    <View style={{ flexDirection: 'row', gap: 6 }}>
       {[1, 2, 3, 4, 5].map((s) => (
         <View
           key={s}
-          style={[
-            styles.stepDot,
-            s === step && styles.stepDotActive,
-            s < step && styles.stepDotDone,
-          ]}
+          style={{
+            width: s === step ? 24 : 8,
+            height: 8,
+            borderRadius: 4,
+            backgroundColor: s <= step ? '#0A84FF' : '#38383A',
+          }}
         />
       ))}
     </View>
@@ -304,7 +325,7 @@ export default function MorningRitualScreen() {
     <SafeAreaView style={styles.container} edges={['top']}>
       {/* Header */}
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>Flowday</Text>
+        <Text style={{ fontSize: 17, fontWeight: '700', color: '#FFFFFF' }}>Flowday</Text>
         {renderStepIndicator()}
       </View>
 
@@ -324,26 +345,29 @@ export default function MorningRitualScreen() {
       {/* Footer buttons */}
       <View style={styles.footer}>
         {step > 1 && (
-          <TouchableOpacity
-            style={styles.backBtn}
+          <Pressable
+            style={{ padding: 12 }}
             onPress={() => setStep(step - 1)}
           >
-            <Text style={styles.backBtnText}>← Retour</Text>
-          </TouchableOpacity>
+            <Text style={{ fontSize: 17, color: '#EBEBF599' }}>← Retour</Text>
+          </Pressable>
         )}
 
-        <TouchableOpacity
-          style={[
-            styles.nextBtn,
-            !canProceed && styles.nextBtnDisabled,
-          ]}
+        <Pressable
+          style={({ pressed }) => ({
+            backgroundColor: pressed ? '#0A84FFCC' : '#0A84FF',
+            borderRadius: 13,
+            paddingHorizontal: 24,
+            paddingVertical: 14,
+            opacity: canProceed ? 1 : 0.4,
+          })}
           onPress={nextStep}
           disabled={!canProceed}
         >
-          <Text style={styles.nextBtnText}>
+          <Text style={{ fontSize: 17, fontWeight: '600', color: '#FFFFFF' }}>
             {step === 5 ? 'Commencer la journée →' : 'Suivant →'}
           </Text>
-        </TouchableOpacity>
+        </Pressable>
       </View>
     </SafeAreaView>
   );
@@ -352,37 +376,15 @@ export default function MorningRitualScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: Colors.bgPrimary,
+    backgroundColor: '#000000',
   },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingHorizontal: Spacing.lg,
-    paddingTop: Spacing.lg,
-    paddingBottom: Spacing.md,
-  },
-  headerTitle: {
-    fontSize: Typography.sizes.lg,
-    fontWeight: Typography.weights.bold,
-    color: Colors.textPrimary,
-  },
-  stepIndicator: {
-    flexDirection: 'row',
-    gap: Spacing.sm,
-  },
-  stepDot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    backgroundColor: Colors.bgInput,
-  },
-  stepDotActive: {
-    backgroundColor: Colors.accentCyan,
-    width: 24,
-  },
-  stepDotDone: {
-    backgroundColor: Colors.accentCyan + '60',
+    paddingHorizontal: 16,
+    paddingTop: 16,
+    paddingBottom: 12,
   },
   scroll: {
     flex: 1,
@@ -390,180 +392,51 @@ const styles = StyleSheet.create({
   scrollContent: {
     flexGrow: 1,
     justifyContent: 'center',
-    paddingHorizontal: Spacing.lg,
-    paddingBottom: Spacing.xxl,
+    paddingHorizontal: 16,
+    paddingBottom: 32,
   },
   stepContent: {
     alignItems: 'center',
+    width: '100%',
   },
   stepTitle: {
-    fontSize: Typography.sizes.xxxl,
-    fontWeight: Typography.weights.bold,
-    color: Colors.textPrimary,
+    fontSize: 32,
+    fontWeight: '700',
+    color: '#FFFFFF',
     textAlign: 'center',
     letterSpacing: -0.5,
   },
   stepSubtitle: {
-    fontSize: Typography.sizes.lg,
-    color: Colors.textSecondary,
+    fontSize: 17,
+    color: '#EBEBF599',
     textAlign: 'center',
-    marginTop: Spacing.sm,
-  },
-  moodSection: {
-    marginTop: Spacing.xxl,
-    alignItems: 'center',
-  },
-  moodQuestion: {
-    fontSize: Typography.sizes.base,
-    color: Colors.textSecondary,
-    marginBottom: Spacing.lg,
-  },
-  moodRow: {
-    flexDirection: 'row',
-    gap: Spacing.md,
-  },
-  moodBtn: {
-    alignItems: 'center',
-    padding: Spacing.lg,
-    borderRadius: Radius.lg,
-    borderWidth: 2,
-    borderColor: Colors.border,
-    backgroundColor: Colors.bgSurface,
-    minWidth: 90,
-  },
-  moodEmoji: {
-    fontSize: 28,
-    marginBottom: Spacing.sm,
-  },
-  moodLabel: {
-    fontSize: Typography.sizes.base,
-    color: Colors.textSecondary,
-    fontWeight: Typography.weights.medium,
-  },
-  blocksList: {
-    marginTop: Spacing.xl,
-    width: '100%',
-    gap: Spacing.sm,
-  },
-  blockItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: Colors.bgSurface,
-    borderRadius: Radius.md,
-    borderLeftWidth: 3,
-    padding: Spacing.md,
-  },
-  blockEmoji: {
-    fontSize: 20,
-    marginRight: Spacing.md,
-  },
-  blockInfo: {
-    flex: 1,
-  },
-  blockName: {
-    fontSize: Typography.sizes.base,
-    fontWeight: Typography.weights.semibold,
-    color: Colors.textPrimary,
-  },
-  blockTime: {
-    fontSize: Typography.sizes.sm,
-    color: Colors.textSecondary,
-    marginTop: 2,
-  },
-  tasksList: {
-    marginTop: Spacing.xl,
-    width: '100%',
-    gap: Spacing.md,
-  },
-  priorityItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: Colors.bgSurface,
-    borderRadius: Radius.md,
-    padding: Spacing.lg,
-    gap: Spacing.md,
-  },
-  priorityDot: {
-    width: 10,
-    height: 10,
-    borderRadius: 5,
-  },
-  priorityTitle: {
-    fontSize: Typography.sizes.base,
-    color: Colors.textPrimary,
-    flex: 1,
-  },
-  emptyTasks: {
-    fontSize: Typography.sizes.sm,
-    color: Colors.textTertiary,
-    textAlign: 'center',
-    marginTop: Spacing.md,
-  },
-  intentionInput: {
-    marginTop: Spacing.xxl,
-    backgroundColor: Colors.bgInput,
-    borderRadius: Radius.md,
-    paddingHorizontal: Spacing.lg,
-    paddingVertical: Spacing.md,
-    fontSize: Typography.sizes.xl,
-    color: Colors.textPrimary,
-    textAlign: 'center',
-    width: '100%',
-  },
-  skipBtn: {
-    marginTop: Spacing.lg,
-    padding: Spacing.md,
-  },
-  skipText: {
-    fontSize: Typography.sizes.base,
-    color: Colors.textSecondary,
+    marginTop: 8,
   },
   recapRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     width: '100%',
-    paddingVertical: Spacing.md,
-    borderBottomWidth: 1,
-    borderBottomColor: Colors.border,
-    marginTop: Spacing.sm,
+    paddingVertical: 14,
+    paddingHorizontal: 16,
+    backgroundColor: '#1C1C1E',
+    borderRadius: 13,
   },
   recapLabel: {
-    fontSize: Typography.sizes.base,
-    color: Colors.textSecondary,
+    fontSize: 15,
+    color: '#EBEBF599',
   },
   recapValue: {
-    fontSize: Typography.sizes.base,
-    color: Colors.textPrimary,
-    fontWeight: Typography.weights.medium,
+    fontSize: 15,
+    color: '#FFFFFF',
+    fontWeight: '500',
   },
   footer: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: Spacing.lg,
-    paddingVertical: Spacing.lg,
-    borderTopWidth: 1,
-    borderTopColor: Colors.border,
-  },
-  backBtn: {
-    padding: Spacing.md,
-  },
-  backBtnText: {
-    fontSize: Typography.sizes.base,
-    color: Colors.textSecondary,
-  },
-  nextBtn: {
-    backgroundColor: Colors.accentCyan,
-    borderRadius: Radius.md,
-    paddingHorizontal: Spacing.xl,
-    paddingVertical: Spacing.md,
-  },
-  nextBtnDisabled: {
-    backgroundColor: Colors.bgInput,
-  },
-  nextBtnText: {
-    fontSize: Typography.sizes.base,
-    fontWeight: Typography.weights.semibold,
-    color: Colors.bgPrimary,
+    paddingHorizontal: 16,
+    paddingVertical: 16,
+    borderTopWidth: 0.5,
+    borderTopColor: '#38383A',
   },
 });

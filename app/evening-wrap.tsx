@@ -2,7 +2,7 @@ import { useState, useMemo } from 'react';
 import {
   View,
   Text,
-  TouchableOpacity,
+  Pressable,
   TextInput,
   StyleSheet,
   ScrollView,
@@ -14,9 +14,6 @@ import { Ionicons } from '@expo/vector-icons';
 import { useTaskStore } from '../src/features/tasks/store';
 import { useDayScoreStore } from '../src/features/dayScore/store';
 import { useRitualStore } from '../src/features/rituals/store';
-import { useFocusStore } from '../src/features/focus/store';
-import { Colors, Spacing, Radius, Typography } from '../src/theme';
-import { Task } from '../src/types/task';
 
 function todayISO(): string {
   return new Date().toISOString().split('T')[0];
@@ -37,31 +34,12 @@ function endOfWeekISO(): string {
 }
 
 function getScoreLabel(score: number): string {
-  if (score >= 90) return 'Journée parfaite. 🔥';
-  if (score >= 75) return 'Bonne journée.';
-  if (score >= 60) return 'Journée correcte.';
-  if (score >= 45) return 'Journée mitigée.';
-  if (score >= 30) return 'Journée difficile.';
-  return 'Ça arrive.';
-}
-
-interface ScoreBarProps {
-  label: string;
-  percent: number;
-  color: string;
-}
-
-function ScoreBar({ label, percent, color }: ScoreBarProps) {
-  const p = Math.min(Math.max(percent, 0), 100);
-  return (
-    <View style={styles.scoreBarRow}>
-      <Text style={styles.scoreBarLabel}>{label}</Text>
-      <View style={styles.scoreBarTrack}>
-        <View style={[styles.scoreBarFill, { width: `${p}%`, backgroundColor: color }]} />
-      </View>
-      <Text style={styles.scoreBarValue}>{Math.round(p)}%</Text>
-    </View>
-  );
+  if (score >= 90) return 'Journée parfaite';
+  if (score >= 75) return 'Bonne journée';
+  if (score >= 60) return 'Journée correcte';
+  if (score >= 45) return 'Journée mitigée';
+  if (score >= 30) return 'Journée difficile';
+  return 'Ça arrive';
 }
 
 export default function EveningWrapScreen() {
@@ -75,12 +53,9 @@ export default function EveningWrapScreen() {
   const getTodayTasks = useTaskStore((state) => state.getTodayTasks);
 
   const scores = useDayScoreStore((state) => state.scores);
-  const recalculateScore = useDayScoreStore((state) => state.recalculateScore);
   const setEveningWrapDone = useDayScoreStore((state) => state.setEveningWrapDone);
 
   const logEveningWrap = useRitualStore((state) => state.logEveningWrap);
-
-  const focusState = useFocusStore((state) => state.focusState);
 
   const today = todayISO();
   const todayTasks = useMemo(() => getTodayTasks(), [tasks, getTodayTasks]);
@@ -150,17 +125,35 @@ export default function EveningWrapScreen() {
     <View style={styles.stepContent}>
       <Text style={styles.stepTitle}>Bilan de la journée</Text>
 
-      <View style={styles.scoreContainer}>
-        <Text style={styles.bigScore}>{dayScore}</Text>
-        <Text style={styles.scoreLabel}>{getScoreLabel(dayScore)}</Text>
+      <View style={{ alignItems: 'center', marginTop: 32, marginBottom: 16 }}>
+        <Text style={{ fontSize: 72, fontWeight: '700', color: '#FFFFFF', letterSpacing: -2 }}>
+          {dayScore}
+        </Text>
+        <Text style={{ fontSize: 17, color: '#EBEBF599', marginTop: 4 }}>
+          {getScoreLabel(dayScore)}
+        </Text>
       </View>
 
       {scoreDetail && (
-        <View style={styles.barsContainer}>
-          <ScoreBar label="Blocs" percent={scoreDetail.blocks} color={Colors.accentCyan} />
-          <ScoreBar label="Tâches" percent={scoreDetail.tasks} color={Colors.accentGreen} />
-          <ScoreBar label="Focus" percent={scoreDetail.pomodoros} color={Colors.accentViolet} />
-          <ScoreBar label="Rituals" percent={scoreDetail.rituals} color={Colors.accentYellow} />
+        <View style={{ width: '100%', gap: 10, marginTop: 8 }}>
+          {[
+            { label: 'Blocs', value: scoreDetail.blocks, color: '#0A84FF' },
+            { label: 'Tâches', value: scoreDetail.tasks, color: '#30D158' },
+            { label: 'Focus', value: scoreDetail.pomodoros, color: '#BF5AF2' },
+            { label: 'Rituels', value: scoreDetail.rituals, color: '#FF9F0A' },
+          ].map(({ label, value, color }) => (
+            <View key={label} style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+              <Text style={{ fontSize: 13, color: '#EBEBF54D', width: 52, textAlign: 'right' }}>
+                {label}
+              </Text>
+              <View style={{ flex: 1, height: 3, backgroundColor: '#2C2C2E', borderRadius: 2, overflow: 'hidden' }}>
+                <View style={{ width: `${Math.min(Math.max(value, 0), 100)}%`, height: '100%', backgroundColor: color, borderRadius: 2 }} />
+              </View>
+              <Text style={{ fontSize: 13, color: '#EBEBF54D', width: 36, textAlign: 'right' }}>
+                {Math.round(value)}%
+              </Text>
+            </View>
+          ))}
         </View>
       )}
     </View>
@@ -177,34 +170,63 @@ export default function EveningWrapScreen() {
       </Text>
 
       {incompleteTasks.length === 0 ? (
-        <View style={styles.emptyState}>
-          <Ionicons name="checkmark-done-circle-outline" size={64} color={Colors.accentGreen} />
-          <Text style={styles.emptyStateText}>Journée complète !</Text>
+        <View style={{ alignItems: 'center', marginTop: 40 }}>
+          <Ionicons name="checkmark-done-circle-outline" size={64} color="#30D158" />
+          <Text style={{ fontSize: 17, color: '#30D158', marginTop: 16, fontWeight: '600' }}>
+            Journée complète !
+          </Text>
         </View>
       ) : (
-        <View style={styles.tasksList}>
+        <View style={{ width: '100%', marginTop: 24, gap: 10 }}>
           {incompleteTasks.map((task) => (
-            <View key={task.id} style={styles.taskCard}>
-              <Text style={styles.taskTitle} numberOfLines={2}>{task.title}</Text>
-              <View style={styles.taskActions}>
-                <TouchableOpacity
-                  style={styles.actionBtn}
+            <View
+              key={task.id}
+              style={{
+                backgroundColor: '#1C1C1E',
+                borderRadius: 13,
+                padding: 16,
+              }}
+            >
+              <Text style={{ fontSize: 17, color: '#FFFFFF', fontWeight: '500', letterSpacing: -0.41, marginBottom: 12 }} numberOfLines={2}>
+                {task.title}
+              </Text>
+              <View style={{ flexDirection: 'row', gap: 8 }}>
+                <Pressable
+                  style={({ pressed }) => ({
+                    flex: 1,
+                    backgroundColor: pressed ? '#3A3A3C' : '#2C2C2E',
+                    borderRadius: 10,
+                    paddingVertical: 10,
+                    alignItems: 'center',
+                  })}
                   onPress={() => handleRescheduleTomorrow(task.id)}
                 >
-                  <Text style={styles.actionBtnText}>Demain</Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  style={styles.actionBtn}
+                  <Text style={{ fontSize: 13, color: '#FFFFFF', fontWeight: '500' }}>Demain</Text>
+                </Pressable>
+                <Pressable
+                  style={({ pressed }) => ({
+                    flex: 1,
+                    backgroundColor: pressed ? '#3A3A3C' : '#2C2C2E',
+                    borderRadius: 10,
+                    paddingVertical: 10,
+                    alignItems: 'center',
+                  })}
                   onPress={() => handleRescheduleWeek(task.id)}
                 >
-                  <Text style={styles.actionBtnText}>Cette semaine</Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  style={[styles.actionBtn, styles.deleteBtn]}
+                  <Text style={{ fontSize: 13, color: '#FFFFFF', fontWeight: '500' }}>Cette semaine</Text>
+                </Pressable>
+                <Pressable
+                  style={({ pressed }) => ({
+                    flex: 1,
+                    backgroundColor: pressed ? '#3A3A3C' : '#2C2C2E',
+                    borderRadius: 10,
+                    paddingVertical: 10,
+                    alignItems: 'center',
+                  })}
                   onPress={() => handleDelete(task.id)}
                 >
-                  <Text style={[styles.actionBtnText, styles.deleteBtnText]}>Supprimer</Text>
-                </TouchableOpacity>
+                  <Text style={{ fontSize: 13, color: '#FF453A', fontWeight: '500' }}>Supprimer</Text>
+                </Pressable>
               </View>
             </View>
           ))}
@@ -220,9 +242,21 @@ export default function EveningWrapScreen() {
       <Text style={styles.stepSubtitle}>Qu'est-ce qui s'est passé aujourd'hui ?</Text>
 
       <TextInput
-        style={styles.noteInput}
+        style={{
+          marginTop: 32,
+          backgroundColor: '#1C1C1E',
+          borderRadius: 13,
+          paddingHorizontal: 16,
+          paddingVertical: 14,
+          fontSize: 17,
+          color: '#FFFFFF',
+          width: '100%',
+          height: 120,
+          textAlignVertical: 'top',
+          letterSpacing: -0.41,
+        }}
         placeholder="1-3 phrases max..."
-        placeholderTextColor={Colors.textTertiary}
+        placeholderTextColor="#3C3C4399"
         value={note}
         onChangeText={setNote}
         multiline
@@ -230,9 +264,9 @@ export default function EveningWrapScreen() {
         autoFocus
       />
 
-      <TouchableOpacity style={styles.skipBtn} onPress={nextStep}>
-        <Text style={styles.skipText}>Passer →</Text>
-      </TouchableOpacity>
+      <Pressable onPress={nextStep} style={{ marginTop: 12, padding: 12 }}>
+        <Text style={{ fontSize: 15, color: '#EBEBF599' }}>Passer →</Text>
+      </Pressable>
     </View>
   );
 
@@ -241,33 +275,48 @@ export default function EveningWrapScreen() {
     <View style={styles.stepContent}>
       <Text style={styles.stepTitle}>Journée validée.</Text>
 
-      <View style={styles.finalScoreBox}>
-        <Text style={styles.finalScore}>{dayScore}</Text>
-        <Text style={styles.finalScoreLabel}>{getScoreLabel(dayScore)}</Text>
+      <View style={{ alignItems: 'center', marginTop: 32, marginBottom: 16 }}>
+        <Text style={{ fontSize: 64, fontWeight: '700', color: '#0A84FF', letterSpacing: -2 }}>
+          {dayScore}
+        </Text>
+        <Text style={{ fontSize: 17, color: '#EBEBF599', marginTop: 4 }}>
+          {getScoreLabel(dayScore)}
+        </Text>
       </View>
 
       {note.trim() && (
-        <View style={styles.noteBox}>
-          <Text style={styles.noteLabel}>Ta note</Text>
-          <Text style={styles.noteText}>{note.trim()}</Text>
+        <View
+          style={{
+            backgroundColor: '#1C1C1E',
+            borderRadius: 13,
+            padding: 16,
+            width: '100%',
+            marginTop: 8,
+          }}
+        >
+          <Text style={{ fontSize: 11, color: '#EBEBF54D', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 6 }}>
+            Ta note
+          </Text>
+          <Text style={{ fontSize: 15, color: '#FFFFFF', fontStyle: 'italic' }}>{note.trim()}</Text>
         </View>
       )}
 
-      <Text style={styles.bonneNuit}>Bonne nuit 🌙</Text>
+      <Text style={{ fontSize: 20, color: '#EBEBF599', marginTop: 32 }}>Bonne nuit 🌙</Text>
     </View>
   );
 
   // ─── Step indicator ────────────────────────────────────────
   const renderStepIndicator = () => (
-    <View style={styles.stepIndicator}>
+    <View style={{ flexDirection: 'row', gap: 6 }}>
       {[1, 2, 3, 4].map((s) => (
         <View
           key={s}
-          style={[
-            styles.stepDot,
-            s === step && styles.stepDotActive,
-            s < step && styles.stepDotDone,
-          ]}
+          style={{
+            width: s === step ? 24 : 8,
+            height: 8,
+            borderRadius: 4,
+            backgroundColor: s <= step ? '#0A84FF' : '#38383A',
+          }}
         />
       ))}
     </View>
@@ -277,7 +326,7 @@ export default function EveningWrapScreen() {
     <SafeAreaView style={styles.container} edges={['top']}>
       {/* Header */}
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>Flowday</Text>
+        <Text style={{ fontSize: 17, fontWeight: '700', color: '#FFFFFF' }}>Flowday</Text>
         {renderStepIndicator()}
       </View>
 
@@ -296,26 +345,29 @@ export default function EveningWrapScreen() {
       {/* Footer */}
       <View style={styles.footer}>
         {step > 1 && (
-          <TouchableOpacity
-            style={styles.backBtn}
+          <Pressable
+            style={{ padding: 12 }}
             onPress={() => setStep(step - 1)}
           >
-            <Text style={styles.backBtnText}>← Retour</Text>
-          </TouchableOpacity>
+            <Text style={{ fontSize: 17, color: '#EBEBF599' }}>← Retour</Text>
+          </Pressable>
         )}
 
-        <TouchableOpacity
-          style={[
-            styles.nextBtn,
-            step === 2 && !allTasksHandled && styles.nextBtnDisabled,
-          ]}
+        <Pressable
+          style={({ pressed }) => ({
+            backgroundColor: pressed ? '#0A84FFCC' : '#0A84FF',
+            borderRadius: 13,
+            paddingHorizontal: 24,
+            paddingVertical: 14,
+            opacity: step === 2 && !allTasksHandled ? 0.4 : 1,
+          })}
           onPress={nextStep}
           disabled={step === 2 && !allTasksHandled}
         >
-          <Text style={styles.nextBtnText}>
+          <Text style={{ fontSize: 17, fontWeight: '600', color: '#FFFFFF' }}>
             {step === 4 ? 'Bonne nuit →' : 'Suivant →'}
           </Text>
-        </TouchableOpacity>
+        </Pressable>
       </View>
     </SafeAreaView>
   );
@@ -324,37 +376,15 @@ export default function EveningWrapScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: Colors.bgPrimary,
+    backgroundColor: '#000000',
   },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingHorizontal: Spacing.lg,
-    paddingTop: Spacing.lg,
-    paddingBottom: Spacing.md,
-  },
-  headerTitle: {
-    fontSize: Typography.sizes.lg,
-    fontWeight: Typography.weights.bold,
-    color: Colors.textPrimary,
-  },
-  stepIndicator: {
-    flexDirection: 'row',
-    gap: Spacing.sm,
-  },
-  stepDot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    backgroundColor: Colors.bgInput,
-  },
-  stepDotActive: {
-    backgroundColor: Colors.accentCyan,
-    width: 24,
-  },
-  stepDotDone: {
-    backgroundColor: Colors.accentCyan + '60',
+    paddingHorizontal: 16,
+    paddingTop: 16,
+    paddingBottom: 12,
   },
   scroll: {
     flex: 1,
@@ -362,216 +392,33 @@ const styles = StyleSheet.create({
   scrollContent: {
     flexGrow: 1,
     justifyContent: 'center',
-    paddingHorizontal: Spacing.lg,
-    paddingBottom: Spacing.xxl,
+    paddingHorizontal: 16,
+    paddingBottom: 32,
   },
   stepContent: {
     alignItems: 'center',
     width: '100%',
   },
   stepTitle: {
-    fontSize: Typography.sizes.xxxl,
-    fontWeight: Typography.weights.bold,
-    color: Colors.textPrimary,
+    fontSize: 32,
+    fontWeight: '700',
+    color: '#FFFFFF',
     textAlign: 'center',
     letterSpacing: -0.5,
   },
   stepSubtitle: {
-    fontSize: Typography.sizes.lg,
-    color: Colors.textSecondary,
+    fontSize: 17,
+    color: '#EBEBF599',
     textAlign: 'center',
-    marginTop: Spacing.sm,
+    marginTop: 8,
   },
-  // ─── Step 1 ────────────────────────────────────────────────
-  scoreContainer: {
-    alignItems: 'center',
-    marginTop: Spacing.xxl,
-    marginBottom: Spacing.lg,
-  },
-  bigScore: {
-    fontSize: 72,
-    fontWeight: Typography.weights.bold,
-    color: Colors.textPrimary,
-    letterSpacing: -2,
-  },
-  scoreLabel: {
-    fontSize: Typography.sizes.lg,
-    color: Colors.textSecondary,
-    marginTop: Spacing.xs,
-  },
-  barsContainer: {
-    width: '100%',
-    gap: Spacing.md,
-    marginTop: Spacing.md,
-  },
-  scoreBarRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: Spacing.sm,
-  },
-  scoreBarLabel: {
-    width: 70,
-    fontSize: Typography.sizes.sm,
-    color: Colors.textSecondary,
-    textAlign: 'right',
-  },
-  scoreBarTrack: {
-    flex: 1,
-    height: 8,
-    backgroundColor: Colors.bgInput,
-    borderRadius: Radius.full,
-    overflow: 'hidden',
-  },
-  scoreBarFill: {
-    height: '100%',
-    borderRadius: Radius.full,
-  },
-  scoreBarValue: {
-    width: 40,
-    fontSize: Typography.sizes.sm,
-    color: Colors.textSecondary,
-    textAlign: 'right',
-  },
-  // ─── Step 2 ────────────────────────────────────────────────
-  emptyState: {
-    alignItems: 'center',
-    marginTop: Spacing.xxl,
-  },
-  emptyStateText: {
-    fontSize: Typography.sizes.lg,
-    color: Colors.accentGreen,
-    marginTop: Spacing.md,
-    fontWeight: Typography.weights.semibold,
-  },
-  tasksList: {
-    width: '100%',
-    marginTop: Spacing.xl,
-    gap: Spacing.md,
-  },
-  taskCard: {
-    backgroundColor: Colors.bgSurface,
-    borderRadius: Radius.md,
-    padding: Spacing.lg,
-  },
-  taskTitle: {
-    fontSize: Typography.sizes.base,
-    color: Colors.textPrimary,
-    fontWeight: Typography.weights.medium,
-    marginBottom: Spacing.md,
-  },
-  taskActions: {
-    flexDirection: 'row',
-    gap: Spacing.sm,
-  },
-  actionBtn: {
-    flex: 1,
-    backgroundColor: Colors.bgInput,
-    borderRadius: Radius.sm,
-    paddingVertical: Spacing.sm,
-    alignItems: 'center',
-  },
-  actionBtnText: {
-    fontSize: Typography.sizes.sm,
-    color: Colors.textSecondary,
-    fontWeight: Typography.weights.medium,
-  },
-  deleteBtn: {
-    backgroundColor: Colors.accentRed + '15',
-  },
-  deleteBtnText: {
-    color: Colors.accentRed,
-  },
-  // ─── Step 3 ────────────────────────────────────────────────
-  noteInput: {
-    marginTop: Spacing.xxl,
-    backgroundColor: Colors.bgInput,
-    borderRadius: Radius.md,
-    paddingHorizontal: Spacing.lg,
-    paddingVertical: Spacing.md,
-    fontSize: Typography.sizes.base,
-    color: Colors.textPrimary,
-    width: '100%',
-    height: 120,
-    textAlignVertical: 'top',
-  },
-  skipBtn: {
-    marginTop: Spacing.lg,
-    padding: Spacing.md,
-  },
-  skipText: {
-    fontSize: Typography.sizes.base,
-    color: Colors.textSecondary,
-  },
-  // ─── Step 4 ────────────────────────────────────────────────
-  finalScoreBox: {
-    alignItems: 'center',
-    marginTop: Spacing.xxl,
-    marginBottom: Spacing.lg,
-  },
-  finalScore: {
-    fontSize: 64,
-    fontWeight: Typography.weights.bold,
-    color: Colors.accentCyan,
-    letterSpacing: -2,
-  },
-  finalScoreLabel: {
-    fontSize: Typography.sizes.lg,
-    color: Colors.textSecondary,
-    marginTop: Spacing.xs,
-  },
-  noteBox: {
-    backgroundColor: Colors.bgSurface,
-    borderRadius: Radius.md,
-    padding: Spacing.lg,
-    width: '100%',
-    marginTop: Spacing.md,
-  },
-  noteLabel: {
-    fontSize: Typography.sizes.xs,
-    color: Colors.textTertiary,
-    textTransform: 'uppercase',
-    letterSpacing: 1,
-    marginBottom: Spacing.sm,
-  },
-  noteText: {
-    fontSize: Typography.sizes.base,
-    color: Colors.textPrimary,
-    fontStyle: 'italic',
-  },
-  bonneNuit: {
-    fontSize: Typography.sizes.xl,
-    color: Colors.textSecondary,
-    marginTop: Spacing.xxl,
-  },
-  // ─── Footer ────────────────────────────────────────────────
   footer: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: Spacing.lg,
-    paddingVertical: Spacing.lg,
-    borderTopWidth: 1,
-    borderTopColor: Colors.border,
-  },
-  backBtn: {
-    padding: Spacing.md,
-  },
-  backBtnText: {
-    fontSize: Typography.sizes.base,
-    color: Colors.textSecondary,
-  },
-  nextBtn: {
-    backgroundColor: Colors.accentCyan,
-    borderRadius: Radius.md,
-    paddingHorizontal: Spacing.xl,
-    paddingVertical: Spacing.md,
-  },
-  nextBtnDisabled: {
-    backgroundColor: Colors.bgInput,
-  },
-  nextBtnText: {
-    fontSize: Typography.sizes.base,
-    fontWeight: Typography.weights.semibold,
-    color: Colors.bgPrimary,
+    paddingHorizontal: 16,
+    paddingVertical: 16,
+    borderTopWidth: 0.5,
+    borderTopColor: '#38383A',
   },
 });
