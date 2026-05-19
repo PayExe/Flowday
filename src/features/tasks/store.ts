@@ -1,7 +1,8 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { Task } from '../../types/task';
+import { v4 as uuidv4 } from 'uuid';
+import { Task, Priority } from '../../types/task';
 
 interface TaskState {
   tasks: Task[];
@@ -10,7 +11,11 @@ interface TaskState {
   deleteTask: (id: string) => void;
   updateTask: (id: string, updates: Partial<Omit<Task, 'id' | 'createdAt'>>) => void;
   getTodayTasks: () => Task[];
-  getTasksByProject: (projectId: string) => Task[];
+  getTodayTasksByLifeBlock: (lifeBlockId: string) => Task[];
+  getIncompleteTodayTasks: () => Task[];
+  getTasksByLifeBlock: (lifeBlockId: string) => Task[];
+  getOverdueTasks: () => Task[];
+  rescheduleTask: (id: string, newDate: string) => void;
 }
 
 export const useTaskStore = create<TaskState>()(
@@ -24,7 +29,7 @@ export const useTaskStore = create<TaskState>()(
             ...state.tasks,
             {
               ...taskData,
-              id: Date.now().toString(),
+              id: uuidv4(),
               createdAt: new Date().toISOString(),
             },
           ],
@@ -33,7 +38,13 @@ export const useTaskStore = create<TaskState>()(
       toggleTask: (id) =>
         set((state) => ({
           tasks: state.tasks.map((task) =>
-            task.id === id ? { ...task, completed: !task.completed } : task
+            task.id === id
+              ? {
+                  ...task,
+                  completed: !task.completed,
+                  completedAt: !task.completed ? new Date().toISOString() : undefined,
+                }
+              : task
           ),
         })),
 
@@ -52,13 +63,43 @@ export const useTaskStore = create<TaskState>()(
       getTodayTasks: () => {
         const today = new Date().toISOString().split('T')[0];
         return get().tasks.filter(
-          (task) => !task.dueDate || task.dueDate.startsWith(today)
+          (task) => !task.scheduledDate || task.scheduledDate === today
         );
       },
 
-      getTasksByProject: (projectId) => {
-        return get().tasks.filter((task) => task.projectId === projectId);
+      getTodayTasksByLifeBlock: (lifeBlockId) => {
+        const today = new Date().toISOString().split('T')[0];
+        return get().tasks.filter(
+          (task) =>
+            task.lifeBlockId === lifeBlockId &&
+            (!task.scheduledDate || task.scheduledDate === today)
+        );
       },
+
+      getIncompleteTodayTasks: () => {
+        return get().getTodayTasks().filter((t) => !t.completed);
+      },
+
+      getTasksByLifeBlock: (lifeBlockId) => {
+        return get().tasks.filter((task) => task.lifeBlockId === lifeBlockId);
+      },
+
+      getOverdueTasks: () => {
+        const today = new Date().toISOString().split('T')[0];
+        return get().tasks.filter(
+          (task) =>
+            !task.completed &&
+            task.scheduledDate &&
+            task.scheduledDate < today
+        );
+      },
+
+      rescheduleTask: (id, newDate) =>
+        set((state) => ({
+          tasks: state.tasks.map((task) =>
+            task.id === id ? { ...task, scheduledDate: newDate } : task
+          ),
+        })),
     }),
     {
       name: 'flowday-tasks',

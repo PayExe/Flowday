@@ -2,7 +2,6 @@ import { View, Text, TouchableOpacity, Pressable, StyleSheet } from 'react-nativ
 import { Ionicons } from '@expo/vector-icons';
 import { Colors, Spacing, Radius, Typography } from '../../theme';
 import { Task } from '../../types/task';
-import { useProjectStore } from '../../features/projects/store';
 import { PriorityBadge } from '../shared/PriorityBadge';
 
 interface TaskCardProps {
@@ -12,11 +11,6 @@ interface TaskCardProps {
 }
 
 export function TaskCard({ task, onToggle, onDelete }: TaskCardProps) {
-  const projects = useProjectStore((state) => state.projects);
-  const project = task.projectId
-    ? projects.find((p) => p.id === task.projectId)
-    : null;
-
   return (
     <View>
       <Pressable
@@ -57,14 +51,6 @@ export function TaskCard({ task, onToggle, onDelete }: TaskCardProps) {
           </Text>
           <View style={styles.meta}>
             <PriorityBadge priority={task.priority} />
-            {project && (
-              <View style={[styles.projectBadge, { backgroundColor: project.color + '18' }]}>
-                <View style={[styles.projectDot, { backgroundColor: project.color }]} />
-                <Text style={[styles.projectText, { color: project.color }]}>
-                  {project.name}
-                </Text>
-              </View>
-            )}
           </View>
         </View>
 
@@ -120,23 +106,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     marginTop: Spacing.xs,
     gap: Spacing.sm,
-  },
-  projectBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: Radius.sm,
-    gap: Spacing.xs,
-  },
-  projectDot: {
-    width: 6,
-    height: 6,
-    borderRadius: Radius.full,
-  },
-  projectText: {
-    fontSize: Typography.sizes.xs,
-    fontWeight: Typography.weights.semibold,
   },
   deleteButton: {
     padding: Spacing.sm,

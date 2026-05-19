@@ -12,7 +12,6 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useTaskStore } from '../../src/features/tasks/store';
-import { useProjectStore } from '../../src/features/projects/store';
 import { Task, Priority } from '../../src/types/task';
 import { Colors, Spacing, Typography } from '../../src/theme';
 import { TaskCard } from '../../src/components/tasks/TaskCard';
@@ -23,13 +22,11 @@ import { Divider } from '../../src/components/ui/Divider';
 export default function TodayScreen() {
   const [newTaskTitle, setNewTaskTitle] = useState('');
   const [selectedPriority, setSelectedPriority] = useState<Priority>('medium');
-  const [selectedProjectId, setSelectedProjectId] = useState<string | undefined>(undefined);
 
   const tasks = useTaskStore((state) => state.tasks);
   const addTask = useTaskStore((state) => state.addTask);
   const toggleTask = useTaskStore((state) => state.toggleTask);
   const deleteTask = useTaskStore((state) => state.deleteTask);
-  const projects = useProjectStore((state) => state.projects);
 
   const sortedTasks = [...tasks].sort((a, b) => {
     if (a.completed !== b.completed) return a.completed ? 1 : -1;
@@ -43,12 +40,10 @@ export default function TodayScreen() {
       title: newTaskTitle.trim(),
       completed: false,
       priority: selectedPriority,
-      projectId: selectedProjectId,
     });
     setNewTaskTitle('');
     setSelectedPriority('medium');
-    setSelectedProjectId(undefined);
-  }, [newTaskTitle, selectedPriority, selectedProjectId, addTask]);
+  }, [newTaskTitle, selectedPriority, addTask]);
 
   const renderTask = useCallback(
     ({ item }: { item: Task }) => (
@@ -104,65 +99,6 @@ export default function TodayScreen() {
             <Ionicons name="add" size={22} color={Colors.bgPrimary} />
           </TouchableOpacity>
         </View>
-
-        {/* Project Selector */}
-        {projects.length > 0 && (
-          <View style={styles.projectSelector}>
-            <Text style={styles.projectSelectorLabel}>Projet</Text>
-            <View style={styles.projectList}>
-              <TouchableOpacity
-                style={[
-                  styles.projectChip,
-                  !selectedProjectId && styles.projectChipSelected,
-                ]}
-                onPress={() => setSelectedProjectId(undefined)}
-                activeOpacity={0.7}
-              >
-                <Text
-                  style={[
-                    styles.projectChipText,
-                    !selectedProjectId && styles.projectChipTextSelected,
-                  ]}
-                >
-                  Aucun
-                </Text>
-              </TouchableOpacity>
-              {projects.map((project) => (
-                <TouchableOpacity
-                  key={project.id}
-                  style={[
-                    styles.projectChip,
-                    selectedProjectId === project.id && {
-                      backgroundColor: project.color + '20',
-                      borderColor: project.color,
-                    },
-                  ]}
-                  onPress={() =>
-                    setSelectedProjectId(
-                      selectedProjectId === project.id ? undefined : project.id
-                    )
-                  }
-                  activeOpacity={0.7}
-                >
-                  <View
-                    style={[
-                      styles.projectChipDot,
-                      { backgroundColor: project.color },
-                    ]}
-                  />
-                  <Text
-                    style={[
-                      styles.projectChipText,
-                      selectedProjectId === project.id && { color: project.color },
-                    ]}
-                  >
-                    {project.name}
-                  </Text>
-                </TouchableOpacity>
-              ))}
-            </View>
-          </View>
-        )}
 
         {/* Task List */}
         <FlatList
@@ -236,51 +172,6 @@ const styles = StyleSheet.create({
   },
   addButtonDisabled: {
     backgroundColor: Colors.bgInput,
-  },
-  projectSelector: {
-    paddingHorizontal: Spacing.lg,
-    marginBottom: Spacing.md,
-  },
-  projectSelectorLabel: {
-    fontSize: Typography.sizes.xs,
-    fontWeight: Typography.weights.semibold,
-    color: Colors.textSecondary,
-    textTransform: 'uppercase',
-    letterSpacing: 1.5,
-    marginBottom: Spacing.sm,
-  },
-  projectList: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: Spacing.sm,
-  },
-  projectChip: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: Spacing.md,
-    paddingVertical: Spacing.sm,
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: Colors.border,
-    backgroundColor: Colors.bgSurface,
-    gap: Spacing.xs,
-  },
-  projectChipSelected: {
-    backgroundColor: Colors.bgInput,
-    borderColor: Colors.border,
-  },
-  projectChipText: {
-    fontSize: Typography.sizes.sm,
-    color: Colors.textSecondary,
-  },
-  projectChipTextSelected: {
-    color: Colors.textPrimary,
-    fontWeight: Typography.weights.medium,
-  },
-  projectChipDot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
   },
   listContent: {
     paddingBottom: Spacing.xxl,

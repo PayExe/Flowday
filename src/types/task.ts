@@ -5,8 +5,11 @@ export interface Task {
   title: string;
   description?: string;
   completed: boolean;
+  completedAt?: string;
   priority: Priority;
-  projectId?: string;
+  lifeBlockId?: string;
+  estimatedMinutes?: number;
+  scheduledDate?: string; // YYYY-MM-DD
   createdAt: string;
   dueDate?: string;
 }

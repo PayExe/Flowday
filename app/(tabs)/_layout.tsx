@@ -33,11 +33,20 @@ export default function TabsLayout() {
         }}
       />
       <Tabs.Screen
-        name="projects"
+        name="week"
         options={{
-          title: 'Projets',
+          title: 'Semaine',
           tabBarIcon: ({ color, size }) => (
-            <Ionicons name="folder-outline" size={size} color={color} />
+            <Ionicons name="calendar-outline" size={size} color={color} />
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="blocks"
+        options={{
+          title: 'Blocs',
+          tabBarIcon: ({ color, size }) => (
+            <Ionicons name="cube-outline" size={size} color={color} />
           ),
         }}
       />
