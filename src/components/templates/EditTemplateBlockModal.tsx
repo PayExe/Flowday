@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useRef } from 'react';
 import {
   View,
   Text,
@@ -12,9 +12,11 @@ import {
   Alert,
   Switch,
 } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { Picker } from '@react-native-picker/picker';
 import { TemplateBlock } from '../../types/template';
 import { LifeBlock } from '../../types/lifeBlock';
+import { useTheme } from '../../theme';
+import { Symbol, SymbolNames } from '../ui/Symbol';
 
 interface EditTemplateBlockModalProps {
   visible: boolean;
@@ -32,24 +34,13 @@ function timeToMinutes(time: string): number {
   return h * 60 + m;
 }
 
-function minutesToTime(min: number): string {
-  const h = Math.floor(min / 60);
-  const m = min % 60;
-  return `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}`;
-}
-
-function formatTimeInput(input: string): string {
-  const cleaned = input.replace(/[^0-9]/g, '');
-  if (cleaned.length <= 2) {
-    const h = parseInt(cleaned, 10);
-    return `${h.toString().padStart(2, '0')}:00`;
-  }
-  const h = parseInt(cleaned.slice(0, 2), 10);
-  const m = parseInt(cleaned.slice(2, 4), 10);
-  return `${h.toString().padStart(2, '0')}:${Math.min(m, 59).toString().padStart(2, '0')}`;
-}
-
 const DAY_LABELS = ['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi', 'Dimanche'];
+
+const TIME_OPTIONS = Array.from({ length: 48 }, (_, i) => {
+  const h = Math.floor(i / 2);
+  const m = (i % 2) * 30;
+  return `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}`;
+});
 
 export function EditTemplateBlockModal({
   visible,
@@ -61,6 +52,7 @@ export function EditTemplateBlockModal({
   onSave,
   onDelete,
 }: EditTemplateBlockModalProps) {
+  const { colors } = useTheme();
   const isEditing = block !== null;
 
   const [selectedLifeBlockId, setSelectedLifeBlockId] = useState('');
@@ -141,6 +133,11 @@ export function EditTemplateBlockModal({
     );
   };
 
+  const pickerStyle = {
+    color: colors.text.primary,
+    backgroundColor: colors.bg.input,
+  };
+
   return (
     <Modal
       visible={visible}
@@ -152,27 +149,27 @@ export function EditTemplateBlockModal({
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         style={styles.overlay}
       >
-        <View style={styles.modal}>
+        <View style={[styles.modal, { backgroundColor: colors.bg.elevated }]}>
           {/* Header */}
           <View style={styles.header}>
-            <Text style={styles.title}>
+            <Text style={[styles.title, { color: colors.text.primary }]}>
               {isEditing ? 'Modifier le créneau' : 'Nouveau créneau'}
             </Text>
             <Pressable onPress={onClose} style={styles.closeBtn}>
-              <Ionicons name="close" size={24} color="#EBEBF599" />
+              <Symbol name={SymbolNames.close} size={24} color={colors.text.secondary} />
             </Pressable>
           </View>
 
           <ScrollView showsVerticalScrollIndicator={false}>
             {/* Jour */}
             <View style={styles.section}>
-              <Text style={styles.label}>Jour</Text>
-              <Text style={styles.dayText}>{DAY_LABELS[dayOfWeek]}</Text>
+              <Text style={[styles.label, { color: colors.text.secondary }]}>Jour</Text>
+              <Text style={[styles.dayText, { color: colors.text.primary }]}>{DAY_LABELS[dayOfWeek]}</Text>
             </View>
 
             {/* Life Block */}
             <View style={styles.section}>
-              <Text style={styles.label}>Life Block</Text>
+              <Text style={[styles.label, { color: colors.text.secondary }]}>Life Block</Text>
               <ScrollView horizontal showsHorizontalScrollIndicator={false}>
                 <View style={styles.lifeBlockRow}>
                   {lifeBlocks.map((lb) => (
@@ -180,6 +177,10 @@ export function EditTemplateBlockModal({
                       key={lb.id}
                       style={[
                         styles.lifeBlockChip,
+                        {
+                          borderColor: colors.border,
+                          backgroundColor: colors.bg.input,
+                        },
                         selectedLifeBlockId === lb.id && {
                           backgroundColor: lb.color + '20',
                           borderColor: lb.color,
@@ -191,6 +192,7 @@ export function EditTemplateBlockModal({
                       <Text
                         style={[
                           styles.lifeBlockName,
+                          { color: colors.text.secondary },
                           selectedLifeBlockId === lb.id && { color: lb.color },
                         ]}
                       >
@@ -202,46 +204,52 @@ export function EditTemplateBlockModal({
               </ScrollView>
             </View>
 
-            {/* Horaires */}
+            {/* Horaires — Picker natif iOS wheel */}
             <View style={styles.section}>
-              <Text style={styles.label}>Horaires</Text>
+              <Text style={[styles.label, { color: colors.text.secondary }]}>Horaires</Text>
               <View style={styles.timeRow}>
                 <View style={styles.timeInputWrapper}>
-                  <Text style={styles.timeLabel}>Début</Text>
-                  <TextInput
-                    style={styles.timeInput}
-                    value={startTime}
-                    onChangeText={(text) => setStartTime(formatTimeInput(text))}
-                    placeholder="09:00"
-                    placeholderTextColor="#3C3C4399"
-                    keyboardType="numbers-and-punctuation"
-                  />
+                  <Text style={[styles.timeLabel, { color: colors.text.quaternary }]}>Début</Text>
+                  <View style={[styles.pickerContainer, { backgroundColor: colors.bg.input }]}>
+                    <Picker
+                      selectedValue={startTime}
+                      onValueChange={(itemValue) => setStartTime(itemValue)}
+                      itemStyle={{ color: colors.text.primary, fontSize: 17 }}
+                    >
+                      {TIME_OPTIONS.map((t) => (
+                        <Picker.Item key={t} label={t} value={t} />
+                      ))}
+                    </Picker>
+                  </View>
                 </View>
-                <Text style={styles.timeSeparator}>→</Text>
+                <Text style={[styles.timeSeparator, { color: colors.text.secondary }]}>→</Text>
                 <View style={styles.timeInputWrapper}>
-                  <Text style={styles.timeLabel}>Fin</Text>
-                  <TextInput
-                    style={styles.timeInput}
-                    value={endTime}
-                    onChangeText={(text) => setEndTime(formatTimeInput(text))}
-                    placeholder="10:00"
-                    placeholderTextColor="#3C3C4399"
-                    keyboardType="numbers-and-punctuation"
-                  />
+                  <Text style={[styles.timeLabel, { color: colors.text.quaternary }]}>Fin</Text>
+                  <View style={[styles.pickerContainer, { backgroundColor: colors.bg.input }]}>
+                    <Picker
+                      selectedValue={endTime}
+                      onValueChange={(itemValue) => setEndTime(itemValue)}
+                      itemStyle={{ color: colors.text.primary, fontSize: 17 }}
+                    >
+                      {TIME_OPTIONS.map((t) => (
+                        <Picker.Item key={t} label={t} value={t} />
+                      ))}
+                    </Picker>
+                  </View>
                 </View>
               </View>
               {validationError && (
-                <Text style={styles.errorText}>{validationError}</Text>
+                <Text style={[styles.errorText, { color: colors.system.red }]}>{validationError}</Text>
               )}
             </View>
 
             {/* Titre optionnel */}
             <View style={styles.section}>
-              <Text style={styles.label}>Titre (optionnel)</Text>
+              <Text style={[styles.label, { color: colors.text.secondary }]}>Titre (optionnel)</Text>
               <TextInput
-                style={styles.input}
+                style={[styles.input, { backgroundColor: colors.bg.input, color: colors.text.primary }]}
                 placeholder="Ex: Deep Work, Chest day..."
-                placeholderTextColor="#3C3C4399"
+                placeholderTextColor={colors.text.placeholder}
                 value={title}
                 onChangeText={setTitle}
               />
@@ -256,11 +264,11 @@ export function EditTemplateBlockModal({
                 <Switch
                   value={isFlexible}
                   onValueChange={setIsFlexible}
-                  trackColor={{ false: '#38383A', true: '#30D158' }}
+                  trackColor={{ false: colors.separator.default, true: colors.system.green }}
                   thumbColor="#FFFFFF"
-                  ios_backgroundColor="#38383A"
+                  ios_backgroundColor={colors.separator.default}
                 />
-                <Text style={{ fontSize: 17, color: '#FFFFFF', letterSpacing: -0.41, marginLeft: 10 }}>
+                <Text style={{ fontSize: 17, color: colors.text.primary, letterSpacing: -0.41, marginLeft: 10 }}>
                   Créneau flexible
                 </Text>
               </Pressable>
@@ -268,11 +276,11 @@ export function EditTemplateBlockModal({
 
             {/* Notes */}
             <View style={styles.section}>
-              <Text style={styles.label}>Notes (optionnel)</Text>
+              <Text style={[styles.label, { color: colors.text.secondary }]}>Notes (optionnel)</Text>
               <TextInput
-                style={[styles.input, { height: 80, textAlignVertical: 'top' }]}
+                style={[styles.input, { backgroundColor: colors.bg.input, color: colors.text.primary, height: 80, textAlignVertical: 'top' }]}
                 placeholder="Ajouter des notes..."
-                placeholderTextColor="#3C3C4399"
+                placeholderTextColor={colors.text.placeholder}
                 value={notes}
                 onChangeText={setNotes}
                 multiline
@@ -284,20 +292,21 @@ export function EditTemplateBlockModal({
               <Pressable
                 style={[
                   styles.saveBtn,
-                  validationError && { backgroundColor: '#2C2C2E' },
+                  { backgroundColor: colors.system.blue },
+                  validationError && { backgroundColor: colors.bg.hover },
                 ]}
                 onPress={handleSave}
                 disabled={!!validationError}
               >
-                <Text style={styles.saveBtnText}>
+                <Text style={[styles.saveBtnText, { color: colors.text.inverse }]}>
                   {isEditing ? 'Enregistrer' : 'Créer'}
                 </Text>
               </Pressable>
 
               {isEditing && onDelete && (
                 <Pressable style={styles.deleteBtn} onPress={handleDelete}>
-                  <Ionicons name="trash-outline" size={18} color="#FF453A" />
-                  <Text style={styles.deleteBtnText}>Supprimer</Text>
+                  <Symbol name={SymbolNames.trash} size={18} color={colors.system.red} />
+                  <Text style={[styles.deleteBtnText, { color: colors.system.red }]}>Supprimer</Text>
                 </Pressable>
               )}
             </View>
@@ -311,11 +320,9 @@ export function EditTemplateBlockModal({
 const styles = StyleSheet.create({
   overlay: {
     flex: 1,
-    backgroundColor: '#000000CC',
     justifyContent: 'flex-end',
   },
   modal: {
-    backgroundColor: '#1C1C1E',
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
     paddingHorizontal: 16,
@@ -331,7 +338,6 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 20,
     fontWeight: '700',
-    color: '#FFFFFF',
   },
   closeBtn: {
     padding: 8,
@@ -342,7 +348,6 @@ const styles = StyleSheet.create({
   label: {
     fontSize: 13,
     fontWeight: '400',
-    color: '#EBEBF599',
     textTransform: 'uppercase',
     letterSpacing: -0.08,
     marginBottom: 8,
@@ -350,7 +355,6 @@ const styles = StyleSheet.create({
   dayText: {
     fontSize: 17,
     fontWeight: '600',
-    color: '#FFFFFF',
     letterSpacing: -0.41,
   },
   lifeBlockRow: {
@@ -364,8 +368,6 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
     borderRadius: 10,
     borderWidth: 1,
-    borderColor: '#38383A',
-    backgroundColor: '#2C2C2E',
     gap: 6,
   },
   lifeBlockEmoji: {
@@ -373,12 +375,11 @@ const styles = StyleSheet.create({
   },
   lifeBlockName: {
     fontSize: 13,
-    color: '#EBEBF599',
     fontWeight: '500',
   },
   timeRow: {
     flexDirection: 'row',
-    alignItems: 'flex-end',
+    alignItems: 'flex-start',
     gap: 12,
   },
   timeInputWrapper: {
@@ -386,36 +387,27 @@ const styles = StyleSheet.create({
   },
   timeLabel: {
     fontSize: 12,
-    color: '#EBEBF54D',
     marginBottom: 4,
   },
-  timeInput: {
-    backgroundColor: '#2C2C2E',
+  pickerContainer: {
     borderRadius: 10,
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    fontSize: 17,
-    color: '#FFFFFF',
-    textAlign: 'center',
-    letterSpacing: -0.41,
+    overflow: 'hidden',
+    height: 140,
+    justifyContent: 'center',
   },
   timeSeparator: {
     fontSize: 20,
-    color: '#EBEBF599',
-    paddingBottom: 12,
+    paddingTop: 32,
   },
   input: {
-    backgroundColor: '#2C2C2E',
     borderRadius: 10,
     paddingHorizontal: 16,
     paddingVertical: 12,
     fontSize: 17,
-    color: '#FFFFFF',
     letterSpacing: -0.41,
   },
   errorText: {
     fontSize: 13,
-    color: '#FF453A',
     marginTop: 8,
   },
   toggleRow: {
@@ -427,7 +419,6 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   saveBtn: {
-    backgroundColor: '#0A84FF',
     borderRadius: 13,
     paddingVertical: 14,
     alignItems: 'center',
@@ -435,7 +426,6 @@ const styles = StyleSheet.create({
   saveBtnText: {
     fontSize: 17,
     fontWeight: '600',
-    color: '#FFFFFF',
   },
   deleteBtn: {
     flexDirection: 'row',
@@ -447,6 +437,5 @@ const styles = StyleSheet.create({
   deleteBtnText: {
     fontSize: 17,
     fontWeight: '400',
-    color: '#FF453A',
   },
 });

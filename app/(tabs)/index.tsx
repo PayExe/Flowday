@@ -9,13 +9,14 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
-import { Ionicons } from '@expo/vector-icons';
 import { useTaskStore } from '../../src/features/tasks/store';
 import { useTemplateStore } from '../../src/features/templates/store';
 import { useLifeBlocksStore } from '../../src/features/lifeBlocks/store';
 import { useDayScoreStore } from '../../src/features/dayScore/store';
 import { useFocusStore } from '../../src/features/focus/store';
 import { useRitualStore } from '../../src/features/rituals/store';
+import { useTheme } from '../../src/theme';
+import { Symbol, SymbolNames } from '../../src/components/ui/Symbol';
 import { DayScoreHeader } from '../../src/components/dayScore/DayScoreHeader';
 import { TimelineBlock } from '../../src/components/timeline/TimelineBlock';
 import { CurrentTimeLine } from '../../src/components/timeline/CurrentTimeLine';
@@ -64,6 +65,7 @@ interface TimelineItem {
 
 export default function TodayScreen() {
   const router = useRouter();
+  const { colors, typography } = useTheme();
   const scrollRef = useRef<ScrollView>(null);
   const [nowY, setNowY] = useState(currentMinutesSinceStart() * (HOUR_HEIGHT / 60));
   const [newTaskTitle, setNewTaskTitle] = useState('');
@@ -213,10 +215,10 @@ export default function TodayScreen() {
   // ─── Render ────────────────────────────────────────────────
   if (!hasTemplate) {
     return (
-      <SafeAreaView style={styles.container} edges={['top']}>
+      <SafeAreaView style={[styles.container, { backgroundColor: colors.bg.primary }]} edges={['top']}>
         <View style={styles.header}>
-          <Text style={styles.headerTitle}>Aujourd'hui</Text>
-          <Text style={styles.dateLabel}>{formatDateFr(new Date())}</Text>
+          <Text style={[styles.headerTitle, { color: colors.text.primary }]}>Aujourd'hui</Text>
+          <Text style={[styles.dateLabel, { color: colors.text.secondary }]}>{formatDateFr(new Date())}</Text>
         </View>
         <EmptyState
           icon="calendar-outline"
@@ -229,10 +231,10 @@ export default function TodayScreen() {
 
   if (activeBlocks.length === 0) {
     return (
-      <SafeAreaView style={styles.container} edges={['top']}>
+      <SafeAreaView style={[styles.container, { backgroundColor: colors.bg.primary }]} edges={['top']}>
         <View style={styles.header}>
-          <Text style={styles.headerTitle}>Aujourd'hui</Text>
-          <Text style={styles.dateLabel}>{formatDateFr(new Date())}</Text>
+          <Text style={[styles.headerTitle, { color: colors.text.primary }]}>Aujourd'hui</Text>
+          <Text style={[styles.dateLabel, { color: colors.text.secondary }]}>{formatDateFr(new Date())}</Text>
         </View>
         <EmptyState
           icon="cube-outline"
@@ -244,13 +246,13 @@ export default function TodayScreen() {
   }
 
   return (
-    <SafeAreaView style={styles.container} edges={['top']}>
+    <SafeAreaView style={[styles.container, { backgroundColor: colors.bg.primary }]} edges={['top']}>
       {/* Header */}
       <View style={styles.header}>
         <View style={styles.headerTop}>
           <View>
-            <Text style={styles.headerTitle}>Aujourd'hui</Text>
-            <Text style={styles.dateLabel}>{formatDateFr(new Date())}</Text>
+            <Text style={[styles.headerTitle, { color: colors.text.primary }]}>Aujourd'hui</Text>
+            <Text style={[styles.dateLabel, { color: colors.text.secondary }]}>{formatDateFr(new Date())}</Text>
           </View>
         </View>
         <DayScoreHeader
@@ -263,7 +265,7 @@ export default function TodayScreen() {
       </View>
 
       {/* Séparateur hairline */}
-      <View style={{ height: 0.5, backgroundColor: '#38383A', marginHorizontal: 16 }} />
+      <View style={{ height: 0.5, backgroundColor: colors.separator.default, marginHorizontal: 16 }} />
 
       {/* Timeline */}
       <ScrollView
@@ -277,22 +279,22 @@ export default function TodayScreen() {
             style={({ pressed }) => ({
               flexDirection: 'row',
               alignItems: 'center',
-              backgroundColor: pressed ? '#2C2C2E' : '#1C1C1E',
+              backgroundColor: pressed ? colors.bg.hover : colors.bg.secondary,
               borderRadius: 13,
               marginHorizontal: 16,
               marginTop: 16,
               paddingHorizontal: 16,
               paddingVertical: 14,
               borderLeftWidth: 3,
-              borderLeftColor: '#FF9F0A',
+              borderLeftColor: colors.system.orange,
             })}
             onPress={() => router.push('/morning-ritual')}
           >
-            <Ionicons name="sunny-outline" size={18} color="#FF9F0A" style={{ marginRight: 10 }} />
-            <Text style={{ flex: 1, fontSize: 15, color: '#FFFFFF', fontWeight: '500' }}>
+            <Symbol name={SymbolNames.sun} size={18} color={colors.system.orange} style={{ marginRight: 10 }} />
+            <Text style={{ flex: 1, fontSize: 15, color: colors.text.primary, fontWeight: '500' }}>
               Commencer la journée
             </Text>
-            <Ionicons name="chevron-forward" size={14} color="#EBEBF54D" />
+            <Symbol name={SymbolNames.chevronRight} size={14} color={colors.text.tertiary} />
           </Pressable>
         )}
 
@@ -300,24 +302,24 @@ export default function TodayScreen() {
         <View style={{ marginHorizontal: 16, marginTop: 16 }}>
           <View
             style={{
-              backgroundColor: '#1C1C1E',
+              backgroundColor: colors.bg.secondary,
               borderRadius: 13,
               overflow: 'hidden',
             }}
           >
             <View style={{ flexDirection: 'row', alignItems: 'center', paddingHorizontal: 12, paddingVertical: 4 }}>
-              <Ionicons name="add" size={22} color="#0A84FF" />
+              <Symbol name={SymbolNames.add} size={22} color={colors.system.blue} />
               <TextInput
                 style={{
                   flex: 1,
                   fontSize: 17,
-                  color: '#FFFFFF',
+                  color: colors.text.primary,
                   letterSpacing: -0.41,
                   paddingVertical: 10,
                   marginLeft: 4,
                 }}
                 placeholder="Nouvelle tâche..."
-                placeholderTextColor="#3C3C4399"
+                placeholderTextColor={colors.text.placeholder}
                 value={newTaskTitle}
                 onChangeText={setNewTaskTitle}
                 onSubmitEditing={handleAddTask}
@@ -326,7 +328,7 @@ export default function TodayScreen() {
             </View>
 
             {/* Séparateur indenté */}
-            <View style={{ height: 0.5, backgroundColor: '#54545899', marginLeft: 44 }} />
+            <View style={{ height: 0.5, backgroundColor: colors.separator.hairline, marginLeft: 44 }} />
 
             {/* Sélection du bloc */}
             <ScrollView
@@ -340,13 +342,13 @@ export default function TodayScreen() {
                   alignItems: 'center',
                   paddingHorizontal: 10,
                   paddingVertical: 5,
-                  backgroundColor: selectedBlockId === undefined ? '#2C2C2E' : 'transparent',
+                  backgroundColor: selectedBlockId === undefined ? colors.bg.hover : 'transparent',
                   borderRadius: 8,
                   marginRight: 6,
                 }}
                 onPress={() => setSelectedBlockId(undefined)}
               >
-                <Text style={{ fontSize: 13, color: selectedBlockId === undefined ? '#FFFFFF' : '#EBEBF599' }}>
+                <Text style={{ fontSize: 13, color: selectedBlockId === undefined ? colors.text.primary : colors.text.secondary }}>
                   Sans bloc
                 </Text>
               </Pressable>
@@ -359,7 +361,7 @@ export default function TodayScreen() {
                     gap: 4,
                     paddingHorizontal: 10,
                     paddingVertical: 5,
-                    backgroundColor: selectedBlockId === block.id ? '#2C2C2E' : 'transparent',
+                    backgroundColor: selectedBlockId === block.id ? colors.bg.hover : 'transparent',
                     borderRadius: 8,
                     marginRight: 6,
                   }}
@@ -368,7 +370,7 @@ export default function TodayScreen() {
                   }
                 >
                   <View style={{ width: 6, height: 6, borderRadius: 3, backgroundColor: block.color }} />
-                  <Text style={{ fontSize: 13, color: selectedBlockId === block.id ? '#FFFFFF' : '#EBEBF599' }}>
+                  <Text style={{ fontSize: 13, color: selectedBlockId === block.id ? colors.text.primary : colors.text.secondary }}>
                     {block.name}
                   </Text>
                 </Pressable>
@@ -383,7 +385,7 @@ export default function TodayScreen() {
             <Text
               style={{
                 fontSize: 13,
-                color: '#EBEBF599',
+                color: colors.text.secondary,
                 paddingHorizontal: 32,
                 paddingBottom: 8,
                 textTransform: 'uppercase',
@@ -394,7 +396,7 @@ export default function TodayScreen() {
             </Text>
             <View
               style={{
-                backgroundColor: '#1C1C1E',
+                backgroundColor: colors.bg.secondary,
                 borderRadius: 13,
                 marginHorizontal: 16,
                 overflow: 'hidden',
@@ -408,7 +410,7 @@ export default function TodayScreen() {
                     onDelete={() => {}}
                   />
                   {index < todayTasks.length - 1 && (
-                    <View style={{ height: 0.5, backgroundColor: '#54545899', marginLeft: 50 }} />
+                    <View style={{ height: 0.5, backgroundColor: colors.separator.hairline, marginLeft: 50 }} />
                   )}
                 </View>
               ))}
@@ -421,7 +423,7 @@ export default function TodayScreen() {
           <Text
             style={{
               fontSize: 13,
-              color: '#EBEBF599',
+              color: colors.text.secondary,
               paddingHorizontal: 32,
               paddingBottom: 8,
               textTransform: 'uppercase',
@@ -512,7 +514,7 @@ export default function TodayScreen() {
           width: 56,
           height: 56,
           borderRadius: 28,
-          backgroundColor: '#0A84FF',
+          backgroundColor: colors.system.blue,
           alignItems: 'center',
           justifyContent: 'center',
           shadowColor: '#000',
@@ -523,7 +525,7 @@ export default function TodayScreen() {
         }}
         onPress={() => router.push('/focus')}
       >
-        <Ionicons name="timer-outline" size={24} color="#FFFFFF" />
+        <Symbol name={SymbolNames.timer} size={24} color="#FFFFFF" />
       </Pressable>
     </SafeAreaView>
   );
@@ -532,7 +534,6 @@ export default function TodayScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#000000',
   },
   header: {
     paddingHorizontal: 16,
@@ -548,12 +549,10 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 34,
     fontWeight: '700',
-    color: '#FFFFFF',
     letterSpacing: 0.37,
   },
   dateLabel: {
     fontSize: 15,
-    color: '#EBEBF599',
     marginTop: 2,
   },
   scroll: {

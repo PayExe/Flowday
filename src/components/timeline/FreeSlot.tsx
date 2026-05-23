@@ -1,4 +1,5 @@
-import { View, Text, StyleSheet } from 'react-native';
+import { View, Text } from 'react-native';
+import { useTheme } from '../../theme';
 
 interface FreeSlotProps {
   height: number;
@@ -14,32 +15,17 @@ function formatMinutes(min: number): string {
 }
 
 export function FreeSlot({ height, duration = 0 }: FreeSlotProps) {
+  const { colors } = useTheme();
   return (
-    <View style={[styles.container, { height: Math.max(height, 36) }]}>
+    <View style={{ flexDirection: 'row', marginBottom: 2, minHeight: 36, height: Math.max(height, 36) }}>
       <View style={{ width: 52 }} />
-      <View style={styles.content}>
+      <View style={{ flex: 1, marginRight: 16, alignItems: 'center', justifyContent: 'center' }}>
         {duration >= 30 && (
-          <Text style={styles.text}>Libre · {formatMinutes(duration)}</Text>
+          <Text style={{ fontSize: 12, color: colors.text.quaternary }}>
+            Libre · {formatMinutes(duration)}
+          </Text>
         )}
       </View>
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flexDirection: 'row',
-    marginBottom: 2,
-    minHeight: 36,
-  },
-  content: {
-    flex: 1,
-    marginRight: 16,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  text: {
-    fontSize: 12,
-    color: '#EBEBF54D',
-  },
-});

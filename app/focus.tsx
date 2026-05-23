@@ -8,9 +8,10 @@ import {
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Ionicons } from '@expo/vector-icons';
 import { useFocusStore } from '../src/features/focus/store';
 import { useDayScoreStore } from '../src/features/dayScore/store';
+import { useTheme } from '../src/theme';
+import { Symbol, SymbolNames } from '../src/components/ui/Symbol';
 
 function formatTime(seconds: number): string {
   const m = Math.floor(seconds / 60);
@@ -24,6 +25,7 @@ function todayISO(): string {
 
 export default function FocusScreen() {
   const router = useRouter();
+  const { colors } = useTheme();
 
   const focusState = useFocusStore((state) => state.focusState);
   const tick = useFocusStore((state) => state.tick);
@@ -82,11 +84,11 @@ export default function FocusScreen() {
   // Si pas de focus actif, rediriger
   if (!focusState.currentTaskId) {
     return (
-      <SafeAreaView style={styles.container} edges={['top']}>
+      <SafeAreaView style={[styles.container, { backgroundColor: colors.bg.primary }]} edges={['top']}>
         <View style={styles.center}>
-          <Text style={styles.noTask}>Aucune tâche en cours</Text>
+          <Text style={[styles.noTask, { color: colors.text.secondary }]}>Aucune tâche en cours</Text>
           <Pressable style={styles.backBtn} onPress={() => router.back()}>
-            <Text style={styles.backBtnText}>← Retour</Text>
+            <Text style={[styles.backBtnText, { color: colors.system.blue }]}>← Retour</Text>
           </Pressable>
         </View>
       </SafeAreaView>
@@ -94,7 +96,7 @@ export default function FocusScreen() {
   }
 
   return (
-    <SafeAreaView style={styles.container} edges={['top']}>
+    <SafeAreaView style={[styles.container, { backgroundColor: colors.bg.primary }]} edges={['top']}>
       <StatusBar hidden />
 
       {/* Header minimal */}
@@ -105,27 +107,27 @@ export default function FocusScreen() {
             width: 36,
             height: 36,
             borderRadius: 10,
-            backgroundColor: pressed ? '#3A3A3C' : '#1C1C1E',
+            backgroundColor: pressed ? colors.system.gray4 : colors.bg.secondary,
             alignItems: 'center',
             justifyContent: 'center',
           })}
         >
-          <Ionicons name="close" size={20} color="#FFFFFF" />
+          <Symbol name={SymbolNames.close} size={20} color={colors.text.primary} />
         </Pressable>
       </View>
 
       {/* Content */}
       <View style={styles.content}>
         {/* Tâche en cours */}
-        <Text style={styles.taskTitle} numberOfLines={2}>
+        <Text style={[styles.taskTitle, { color: colors.text.primary }]} numberOfLines={2}>
           {focusState.currentTaskTitle}
         </Text>
 
         {/* Timer */}
-        <Text style={styles.timer}>{formatTime(focusState.timeRemaining)}</Text>
+        <Text style={[styles.timer, { color: colors.text.primary }]}>{formatTime(focusState.timeRemaining)}</Text>
 
         {/* Mode actuel */}
-        <Text style={styles.modeLabel}>
+        <Text style={[styles.modeLabel, { color: colors.text.secondary }]}>
           {focusState.isBreak ? 'Pause · 5 min' : 'Focus · 25 min'}
         </Text>
 
@@ -136,14 +138,14 @@ export default function FocusScreen() {
               key={i}
               style={[
                 styles.dot,
-                filled && { backgroundColor: '#0A84FF' },
+                { backgroundColor: filled ? colors.system.blue : colors.separator.default },
               ]}
             />
           ))}
         </View>
 
         {/* Objectif quotidien */}
-        <Text style={styles.dailyGoal}>
+        <Text style={[styles.dailyGoal, { color: colors.text.secondary }]}>
           {focusState.dailyPomodoroCount} / {focusState.dailyPomodoroGoal} aujourd'hui
         </Text>
       </View>
@@ -152,23 +154,23 @@ export default function FocusScreen() {
       <View style={styles.footer}>
         <Pressable
           style={({ pressed }) => ({
-            backgroundColor: pressed ? '#3A3A3C' : '#1C1C1E',
+            backgroundColor: pressed ? colors.system.gray4 : colors.bg.secondary,
             borderRadius: 13,
             paddingVertical: 14,
             paddingHorizontal: 32,
             alignItems: 'center',
             borderWidth: 1,
-            borderColor: '#38383A',
+            borderColor: colors.separator.default,
           })}
           onPress={focusState.isActive ? pauseFocus : resumeFocus}
         >
-          <Text style={{ fontSize: 17, fontWeight: '600', color: '#FFFFFF' }}>
+          <Text style={{ fontSize: 17, fontWeight: '600', color: colors.text.primary }}>
             {focusState.isActive ? 'Pause' : 'Reprendre'}
           </Text>
         </Pressable>
 
         <Pressable onPress={handleAbandon} style={{ padding: 12 }}>
-          <Text style={{ fontSize: 15, color: '#FF453A' }}>Abandonner</Text>
+          <Text style={{ fontSize: 15, color: colors.system.red }}>Abandonner</Text>
         </Pressable>
       </View>
     </SafeAreaView>
@@ -178,7 +180,6 @@ export default function FocusScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#000000',
   },
   header: {
     paddingHorizontal: 16,
@@ -194,7 +195,6 @@ const styles = StyleSheet.create({
   taskTitle: {
     fontSize: 20,
     fontWeight: '500',
-    color: '#FFFFFF',
     textAlign: 'center',
     lineHeight: 28,
     marginBottom: 32,
@@ -203,13 +203,11 @@ const styles = StyleSheet.create({
   timer: {
     fontSize: 56,
     fontWeight: '300',
-    color: '#FFFFFF',
     letterSpacing: -2,
     fontVariant: ['tabular-nums'],
   },
   modeLabel: {
     fontSize: 13,
-    color: '#EBEBF599',
     marginTop: 12,
   },
   dotsRow: {
@@ -221,11 +219,9 @@ const styles = StyleSheet.create({
     width: 8,
     height: 8,
     borderRadius: 4,
-    backgroundColor: '#38383A',
   },
   dailyGoal: {
     fontSize: 13,
-    color: '#EBEBF599',
     marginTop: 16,
   },
   footer: {
@@ -241,13 +237,11 @@ const styles = StyleSheet.create({
   },
   noTask: {
     fontSize: 17,
-    color: '#EBEBF599',
   },
   backBtn: {
     padding: 12,
   },
   backBtnText: {
     fontSize: 17,
-    color: '#0A84FF',
   },
 });

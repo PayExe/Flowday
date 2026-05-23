@@ -1,4 +1,5 @@
-import { View, Text, StyleSheet } from 'react-native';
+import { View, Text } from 'react-native';
+import { useTheme } from '../../theme';
 
 export const HOUR_HEIGHT = 60;
 export const START_HOUR = 6;
@@ -9,32 +10,14 @@ interface HourMarkerProps {
 }
 
 export function HourMarker({ hour }: HourMarkerProps) {
+  const { colors } = useTheme();
   const label = `${hour.toString().padStart(2, '0')}:00`;
   return (
-    <View style={styles.container}>
-      <Text style={styles.text}>{label}</Text>
-      <View style={styles.line} />
+    <View style={{ flexDirection: 'row', alignItems: 'center', height: HOUR_HEIGHT }}>
+      <Text style={{ width: 52, color: colors.text.quaternary, textAlign: 'right', paddingRight: 10, fontSize: 12, letterSpacing: 0 }}>
+        {label}
+      </Text>
+      <View style={{ flex: 1, height: 0.5, backgroundColor: colors.separator.default }} />
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    height: HOUR_HEIGHT,
-  },
-  text: {
-    width: 52,
-    color: '#EBEBF54D',
-    textAlign: 'right',
-    paddingRight: 10,
-    fontSize: 12,
-    letterSpacing: 0,
-  },
-  line: {
-    flex: 1,
-    height: 0.5,
-    backgroundColor: '#38383A',
-  },
-});

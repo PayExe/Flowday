@@ -1,9 +1,13 @@
 import { useEffect, useRef } from 'react';
 import { Stack, useRouter, usePathname } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
+import { BottomSheetModalProvider } from '@gorhom/bottom-sheet';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import { StyleSheet } from 'react-native';
 import { useRitualStore } from '../src/features/rituals/store';
 import { useLifeBlocksStore } from '../src/features/lifeBlocks/store';
 import { useTemplateStore } from '../src/features/templates/store';
+import { useThemeStore } from '../src/features/theme/store';
 
 function todayISO(): string {
   return new Date().toISOString().split('T')[0];
@@ -21,6 +25,8 @@ export default function RootLayout() {
 
   const templates = useTemplateStore((state) => state.templates);
   const initializeTemplates = useTemplateStore((state) => state.initializeDefaults);
+
+  const themeName = useThemeStore((state) => state.themeName);
 
   const hasDoneMorning = logs.some(
     (log) => log.date === todayISO() && log.type === 'morning'
@@ -59,9 +65,17 @@ export default function RootLayout() {
   }, [hasDoneMorning, pathname, router, morningConfig.enabled]);
 
   return (
-    <>
-      <StatusBar style="light" />
-      <Stack screenOptions={{ headerShown: false }} />
-    </>
+    <GestureHandlerRootView style={styles.container}>
+      <BottomSheetModalProvider>
+        <StatusBar style={themeName === 'dark' ? 'light' : 'dark'} />
+        <Stack screenOptions={{ headerShown: false }} />
+      </BottomSheetModalProvider>
+    </GestureHandlerRootView>
   );
 }
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+  },
+});

@@ -1,21 +1,24 @@
 import { Tabs } from 'expo-router';
-import { Ionicons } from '@expo/vector-icons';
+import { useTheme } from '../../src/theme';
+import { Symbol, SymbolNames } from '../../src/components/ui/Symbol';
 
 export default function TabsLayout() {
+  const { colors } = useTheme();
+
   return (
     <Tabs
       screenOptions={{
         headerShown: false,
         tabBarStyle: {
-          backgroundColor: '#1C1C1E',
-          borderTopColor: '#38383A',
+          backgroundColor: colors.bg.secondary,
+          borderTopColor: colors.separator.default,
           borderTopWidth: 0.5,
           height: 80,
           paddingBottom: 24,
           paddingTop: 10,
         },
-        tabBarActiveTintColor: '#0A84FF',
-        tabBarInactiveTintColor: '#8E8E93',
+        tabBarActiveTintColor: colors.system.blue,
+        tabBarInactiveTintColor: colors.system.gray,
         tabBarLabelStyle: { fontSize: 10, fontWeight: '500' },
       }}
     >
@@ -24,7 +27,12 @@ export default function TabsLayout() {
         options={{
           title: "Aujourd'hui",
           tabBarIcon: ({ color, focused }) => (
-            <Ionicons name={focused ? 'today' : 'today-outline'} size={24} color={color} />
+            <Symbol
+              name={focused ? SymbolNames.home : 'house.fill'}
+              size={24}
+              color={color}
+              weight={focused ? 'semibold' : 'regular'}
+            />
           ),
         }}
       />
@@ -33,7 +41,12 @@ export default function TabsLayout() {
         options={{
           title: 'Semaine',
           tabBarIcon: ({ color, focused }) => (
-            <Ionicons name={focused ? 'calendar' : 'calendar-outline'} size={24} color={color} />
+            <Symbol
+              name={focused ? SymbolNames.calendar : SymbolNames.calendar}
+              size={24}
+              color={color}
+              weight={focused ? 'semibold' : 'regular'}
+            />
           ),
         }}
       />
@@ -42,7 +55,12 @@ export default function TabsLayout() {
         options={{
           title: 'Blocs',
           tabBarIcon: ({ color, focused }) => (
-            <Ionicons name={focused ? 'layers' : 'layers-outline'} size={24} color={color} />
+            <Symbol
+              name={focused ? SymbolNames.blocks : SymbolNames.blocks}
+              size={24}
+              color={color}
+              weight={focused ? 'semibold' : 'regular'}
+            />
           ),
         }}
       />
@@ -51,7 +69,12 @@ export default function TabsLayout() {
         options={{
           title: 'Réglages',
           tabBarIcon: ({ color, focused }) => (
-            <Ionicons name={focused ? 'settings' : 'settings-outline'} size={24} color={color} />
+            <Symbol
+              name={focused ? SymbolNames.settings : SymbolNames.settings}
+              size={24}
+              color={color}
+              weight={focused ? 'semibold' : 'regular'}
+            />
           ),
         }}
       />

@@ -1,11 +1,14 @@
 import { View, Text, Pressable, StyleSheet, Switch, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Ionicons } from '@expo/vector-icons';
+import SegmentedControl from '@react-native-segmented-control/segmented-control';
 import { useThemeStore } from '../../src/features/theme/store';
 import { useRitualStore } from '../../src/features/rituals/store';
+import { useTheme } from '../../src/theme';
+import { Symbol, SymbolNames } from '../../src/components/ui/Symbol';
 import { ThemeName } from '../../src/theme';
 
 export default function SettingsScreen() {
+  const { colors, typography, isDark } = useTheme();
   const themeName = useThemeStore((state) => state.themeName);
   const setTheme = useThemeStore((state) => state.setTheme);
 
@@ -15,9 +18,8 @@ export default function SettingsScreen() {
   const updateEveningConfig = useRitualStore((state) => state.updateEveningConfig);
 
   const themes: { name: ThemeName; label: string }[] = [
-    { name: 'dark', label: 'Dark' },
-    { name: 'oled', label: 'OLED' },
-    { name: 'tinted', label: 'Tinted' },
+    { name: 'dark', label: 'Sombre' },
+    { name: 'light', label: 'Clair' },
   ];
 
   const renderCell = (
@@ -36,7 +38,7 @@ export default function SettingsScreen() {
         alignItems: 'center',
         paddingHorizontal: 16,
         paddingVertical: 11,
-        backgroundColor: pressed ? '#2C2C2E' : 'transparent',
+        backgroundColor: pressed ? colors.bg.hover : 'transparent',
         minHeight: 44,
       })}
     >
@@ -51,15 +53,15 @@ export default function SettingsScreen() {
           marginRight: 12,
         }}
       >
-        <Ionicons name={icon as any} size={16} color="#FFFFFF" />
+        <Symbol name={icon} size={16} color="#FFFFFF" />
       </View>
-      <Text style={{ flex: 1, fontSize: 17, color: '#FFFFFF', letterSpacing: -0.41 }}>
+      <Text style={{ flex: 1, fontSize: 17, color: colors.text.primary, letterSpacing: -0.41 }}>
         {label}
       </Text>
       {typeof value === 'string' ? (
         <>
-          <Text style={{ fontSize: 17, color: '#EBEBF599', marginRight: 6 }}>{value}</Text>
-          {onPress && <Ionicons name="chevron-forward" size={14} color="#EBEBF54D" />}
+          <Text style={{ fontSize: 17, color: colors.text.secondary, marginRight: 6 }}>{value}</Text>
+          {onPress && <Symbol name={SymbolNames.chevronRight} size={14} color={colors.text.tertiary} />}
         </>
       ) : (
         value
@@ -71,7 +73,7 @@ export default function SettingsScreen() {
     <View style={{ marginBottom: 24 }}>
       <View
         style={{
-          backgroundColor: '#1C1C1E',
+          backgroundColor: colors.bg.secondary,
           borderRadius: 13,
           marginHorizontal: 16,
           overflow: 'hidden',
@@ -80,7 +82,7 @@ export default function SettingsScreen() {
         {children}
       </View>
       {footer && (
-        <Text style={{ fontSize: 13, color: '#EBEBF599', paddingHorizontal: 32, paddingTop: 8 }}>
+        <Text style={{ fontSize: 13, color: colors.text.secondary, paddingHorizontal: 32, paddingTop: 8 }}>
           {footer}
         </Text>
       )}
@@ -88,96 +90,83 @@ export default function SettingsScreen() {
   );
 
   const renderSeparator = () => (
-    <View style={{ height: 0.5, backgroundColor: '#54545899', marginLeft: 57 }} />
+    <View style={{ height: 0.5, backgroundColor: colors.separator.hairline, marginLeft: 57 }} />
   );
 
   return (
-    <SafeAreaView style={styles.container} edges={['top']}>
+    <SafeAreaView style={[styles.container, { backgroundColor: colors.bg.primary }]} edges={['top']}>
       {/* Header */}
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>Réglages</Text>
+        <Text style={[styles.headerTitle, { color: colors.text.primary }]}>Réglages</Text>
       </View>
 
       <ScrollView showsVerticalScrollIndicator={false}>
-        {/* Thème */}
-        <Text style={styles.sectionHeader}>Thème</Text>
-        {renderGroup(
-          <>
-            {themes.map((t, index) => (
-              <View key={t.name}>
-                <Pressable
-                  onPress={() => setTheme(t.name)}
-                  style={({ pressed }) => ({
-                    flexDirection: 'row',
-                    alignItems: 'center',
-                    paddingHorizontal: 16,
-                    paddingVertical: 11,
-                    backgroundColor: pressed ? '#2C2C2E' : 'transparent',
-                    minHeight: 44,
-                  })}
-                >
-                  <Text style={{ flex: 1, fontSize: 17, color: '#FFFFFF', letterSpacing: -0.41 }}>
-                    {t.label}
-                  </Text>
-                  {themeName === t.name && (
-                    <Ionicons name="checkmark" size={20} color="#0A84FF" />
-                  )}
-                </Pressable>
-                {index < themes.length - 1 && renderSeparator()}
-              </View>
-            ))}
-          </>
-        )}
+        {/* Thème — Segmented Control natif iOS */}
+        <Text style={[styles.sectionHeader, { color: colors.text.secondary }]}>Thème</Text>
+        <View style={{ marginHorizontal: 16, marginBottom: 24 }}>
+          <SegmentedControl
+            values={themes.map((t) => t.label)}
+            selectedIndex={themes.findIndex((t) => t.name === themeName)}
+            onChange={(event) => {
+              const index = event.nativeEvent.selectedSegmentIndex;
+              setTheme(themes[index].name);
+            }}
+            appearance={isDark ? 'dark' : 'light'}
+            tintColor={colors.system.blue}
+            backgroundColor={colors.bg.secondary}
+            style={{ height: 36 }}
+          />
+        </View>
 
         {/* Morning Ritual */}
-        <Text style={styles.sectionHeader}>Morning Ritual</Text>
+        <Text style={[styles.sectionHeader, { color: colors.text.secondary }]}>Morning Ritual</Text>
         {renderGroup(
           <>
             {renderCell(
-              'sunny-outline',
+              SymbolNames.sun,
               '#FF9F0A',
               'Activer',
               <Switch
                 value={morningConfig.enabled}
                 onValueChange={(v) => updateMorningConfig({ enabled: v })}
-                trackColor={{ false: '#38383A', true: '#30D158' }}
+                trackColor={{ false: colors.separator.default, true: colors.system.green }}
                 thumbColor="#FFFFFF"
-                ios_backgroundColor="#38383A"
+                ios_backgroundColor={colors.separator.default}
               />
             )}
             {renderSeparator()}
             {renderCell(
-              'time-outline',
-              '#0A84FF',
+              SymbolNames.clock,
+              colors.system.blue,
               'Heure',
               morningConfig.time,
               undefined,
               true
             )}
           </>,
-          'Le Morning Ritual s\'ouvre automatiquement chaque matin.'
+          "Le Morning Ritual s'ouvre automatiquement chaque matin."
         )}
 
         {/* Evening Wrap */}
-        <Text style={styles.sectionHeader}>Evening Wrap</Text>
+        <Text style={[styles.sectionHeader, { color: colors.text.secondary }]}>Evening Wrap</Text>
         {renderGroup(
           <>
             {renderCell(
-              'moon-outline',
+              SymbolNames.moon,
               '#5E5CE6',
               'Activer',
               <Switch
                 value={eveningConfig.enabled}
                 onValueChange={(v) => updateEveningConfig({ enabled: v })}
-                trackColor={{ false: '#38383A', true: '#30D158' }}
+                trackColor={{ false: colors.separator.default, true: colors.system.green }}
                 thumbColor="#FFFFFF"
-                ios_backgroundColor="#38383A"
+                ios_backgroundColor={colors.separator.default}
               />
             )}
             {renderSeparator()}
             {renderCell(
-              'time-outline',
-              '#0A84FF',
+              SymbolNames.clock,
+              colors.system.blue,
               'Heure',
               eveningConfig.time,
               undefined,
@@ -188,8 +177,8 @@ export default function SettingsScreen() {
 
         {/* About */}
         <View style={{ marginTop: 24, alignItems: 'center', paddingVertical: 32 }}>
-          <Text style={{ fontSize: 13, color: '#EBEBF54D' }}>Flowday v1.0</Text>
-          <Text style={{ fontSize: 12, color: '#EBEBF52E', marginTop: 4 }}>Built with Expo</Text>
+          <Text style={{ fontSize: 13, color: colors.text.tertiary }}>Flowday v1.0</Text>
+          <Text style={{ fontSize: 12, color: colors.text.quaternary, marginTop: 4 }}>Built with Expo</Text>
         </View>
       </ScrollView>
     </SafeAreaView>
@@ -199,7 +188,6 @@ export default function SettingsScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#000000',
   },
   header: {
     paddingHorizontal: 16,
@@ -209,12 +197,10 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 34,
     fontWeight: '700',
-    color: '#FFFFFF',
     letterSpacing: 0.37,
   },
   sectionHeader: {
     fontSize: 13,
-    color: '#EBEBF599',
     paddingHorizontal: 32,
     paddingTop: 28,
     paddingBottom: 8,

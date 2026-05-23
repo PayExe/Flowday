@@ -30,6 +30,13 @@
     },
     "plugins": [
       "expo-router"
-    ]
+    ],
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "5a67f9ba-2c8d-45b2-b57a-ed1eccfe1a27"
+      }
+    },
+    "owner": "flowday"
   }
 }

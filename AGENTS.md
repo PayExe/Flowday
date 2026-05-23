@@ -8,20 +8,25 @@
 
 ## Stack Technique
 
-| Technologie             | Version           | Rôle                                            |
-| ----------------------- | ----------------- | ----------------------------------------------- |
-| React Native            | 0.81.5            | Framework UI natif                              |
-| Expo SDK                | ~54.0.33          | Tooling, bundler, OTA                           |
-| Expo Router             | ~6.0.23           | Navigation file-based                           |
-| React                   | 19.1.0            | Core UI                                         |
-| Zustand                 | ^5.0.13           | State management (avec persistance)             |
-| AsyncStorage            | 2.2.0             | Persistance locale                              |
-| react-native-reanimated | SDK 54            | Animations (timeline live)                      |
-| @gorhom/bottom-sheet    | compatible SDK 54 | Bottom sheets                                   |
-| lucide-react-native     | compatible SDK 54 | Icônes (complément Ionicons)                    |
-| expo-haptics            | SDK 54            | Feedback tactile                                |
-| expo-linear-gradient    | SDK 54            | Dégradés (jauges, scores)                       |
-| date-fns                | compatible SDK 54 | Manipulation de dates (utilisé avec précaution) |
+| Technologie                                       | Version           | Rôle                                            |
+| ------------------------------------------------- | ----------------- | ----------------------------------------------- |
+| React Native                                      | 0.81.5            | Framework UI natif                              |
+| Expo SDK                                          | ~54.0.33          | Tooling, bundler, OTA                           |
+| Expo Router                                       | ~6.0.23           | Navigation file-based                           |
+| React                                             | 19.1.0            | Core UI                                         |
+| Zustand                                           | ^5.0.13           | State management (avec persistance)             |
+| AsyncStorage                                      | 2.2.0             | Persistance locale                              |
+| react-native-reanimated                           | SDK 54            | Animations (bottom sheets)                      |
+| @gorhom/bottom-sheet                              | compatible SDK 54 | Bottom sheets natifs iOS                       |
+| expo-symbols                                      | SDK 54            | SFSymbols natifs Apple                           |
+| expo-blur                                         | SDK 54            | Backdrop flouté (sheets, modals)               |
+| @react-native-picker/picker                     | SDK 54            | Picker wheel natif iOS                         |
+| ContextMenu (custom)                            | ActionSheetIOS RN | Menu long-press via ActionSheet natif iOS      |
+| @react-native-segmented-control/segmented-control | compatible SDK 54 | Segmented control natif iOS                    |
+| lucide-react-native                               | compatible SDK 54 | Icônes fallback (Android)                      |
+| expo-haptics                                      | SDK 54            | Feedback tactile                                |
+| expo-linear-gradient                              | SDK 54            | Dégradés (jauges, scores) — réservé futur     |
+| date-fns                                          | compatible SDK 54 | Manipulation de dates (utilisé avec précaution) |
 
 > **Important** : Tous les packages sont 100% compatibles **Expo Go** (pas de module natif custom). MMKV a été remplacé par AsyncStorage pour cette raison.
 
@@ -68,32 +73,38 @@ Flowday/
 │   │   └── focus/
 │   │       └── store.ts
 │   │
-│   ├── components/
-│   │   ├── dayScore/
-│   │   │   └── DayScoreHeader.tsx
-│   │   ├── lifeBlocks/
-│   │   │   ├── LifeBlockCard.tsx
-│   │   │   └── EditBlockModal.tsx
-│   │   ├── tasks/
-│   │   │   └── TaskCard.tsx
-│   │   ├── templates/
-│   │   │   ├── TemplateBlockCard.tsx
-│   │   │   └── EditTemplateBlockModal.tsx
-│   │   ├── timeline/
-│   │   │   ├── CurrentTimeLine.tsx
-│   │   │   ├── FreeSlot.tsx
-│   │   │   ├── HourMarker.tsx
-│   │   │   └── TimelineBlock.tsx
-│   │   ├── shared/
-│   │   │   ├── EmptyState.tsx
-│   │   │   ├── PriorityBadge.tsx
-│   │   │   ├── PrioritySelector.tsx
-│   │   │   └── ProgressBar.tsx
-│   │   └── ui/
-│   │       ├── Button.tsx
-│   │       ├── Card.tsx
-│   │       ├── Divider.tsx
-│   │       └── IconButton.tsx
+  │   ├── components/
+  │   │   ├── dayScore/
+  │   │   │   └── DayScoreHeader.tsx
+  │   │   ├── lifeBlocks/
+  │   │   │   ├── LifeBlockCard.tsx
+  │   │   │   └── EditBlockModal.tsx
+  │   │   ├── tasks/
+  │   │   │   └── TaskCard.tsx
+  │   │   ├── templates/
+  │   │   │   ├── TemplateBlockCard.tsx
+  │   │   │   └── EditTemplateBlockModal.tsx
+  │   │   ├── timeline/
+  │   │   │   ├── CurrentTimeLine.tsx
+  │   │   │   ├── FreeSlot.tsx
+  │   │   │   ├── HourMarker.tsx
+  │   │   │   └── TimelineBlock.tsx
+  │   │   ├── shared/
+  │   │   │   ├── EmptyState.tsx
+  │   │   │   ├── PriorityBadge.tsx
+  │   │   │   ├── PrioritySelector.tsx
+  │   │   │   └── ProgressBar.tsx
+  │   │   └── ui/
+  │   │       ├── Button.tsx
+  │   │       ├── Card.tsx
+  │   │       ├── Divider.tsx
+  │   │       ├── IconButton.tsx
+  │   │       ├── Symbol.tsx          # SFSymbols natifs iOS + fallback Ionicons
+  │   │       └── BottomSheetModal.tsx # Wrapper @gorhom/bottom-sheet + blur
+  │   │
+  │   ├── theme/
+  │   │   ├── index.ts               # Hooks + exports
+  │   │   └── colors.ts              # Palettes Dark & Light Apple UIKit
 │   │
 │   ├── theme/
 │   │   └── index.ts               # Design system complet
@@ -110,19 +121,19 @@ Flowday/
 
 ---
 
-## Design System — v3 Apple Dark natif
+## Design System — v4 Apple UIKit (Dark + Light)
 
-> Refonte complète mai 2026. Style Things 3 + Apple Reminders + UIKit dark.
+> Refonte complète mai 2026. Style Things 3 + Apple Reminders + UIKit natif.
+> Support complet du thème **Dark** et **Light** avec bascule dynamique.
 
-### 3 Thèmes
+### 2 Thèmes
 
 | Thème      | Fond                    | Usage                               |
 | ---------- | ----------------------- | ----------------------------------- |
 | **Dark**   | `#000000`               | Par défaut (systemBackground Apple) |
-| **OLED**   | `#000000`               | Identique à dark (consolidé)        |
-| **Tinted** | `#000000` + accent bleu | Couleur personnalisable             |
+| **Light**  | `#FFFFFF`               | iOS light mode                      |
 
-### Palette Apple UIKit (dark)
+### Palette Apple UIKit — Dark
 
 ```
 Fond principal    : #000000
@@ -137,6 +148,23 @@ Link / Accent     : #0A84FF
 Success           : #30D158
 Danger            : #FF453A
 Warning           : #FF9F0A
+```
+
+### Palette Apple UIKit — Light
+
+```
+Fond principal    : #FFFFFF
+Cartes / groupes  : #F2F2F7
+Hover / pressed   : #E5E5EA
+Séparateurs       : #C6C6C8 (opaque) / #3C3C4340 (hairline)
+Texte primary     : #000000
+Texte secondary   : #3C3C4399 (60%)
+Texte tertiary    : #3C3C434D (30%)
+Texte quaternary  : #3C3C432E (18%)
+Link / Accent     : #007AFF
+Success           : #34C759
+Danger            : #FF3B30
+Warning           : #FF9500
 ```
 
 ### 12 Couleurs Apple (Life Blocks)
@@ -173,7 +201,7 @@ Warning           : #FF9F0A
 
 | Store             | Clé                  | Rôle                                           |
 | ----------------- | -------------------- | ---------------------------------------------- |
-| `themeStore`      | `flowday-theme`      | Thème actif (dark/oled/tinted)                 |
+| `themeStore`      | `flowday-theme`      | Thème actif (dark/light)                       |
 | `lifeBlocksStore` | `flowday-lifeblocks` | CRUD blocs, archive, réordonner                |
 | `templateStore`   | `flowday-templates`  | Templates + blocs 7j (CRUD, validation)        |
 | `taskStore`       | `flowday-tasks`      | Tâches (CRUD, toggle, filtrage par date/bloc)  |
@@ -199,7 +227,7 @@ Warning           : #FF9F0A
 | **Morning Ritual**  | ✅   | 5 étapes, auto-redirect, humeur, overview, priorités, intention         |
 | **Evening Wrap**    | ✅   | 4 étapes, tâches forcées (report/suppr), note, score final              |
 | **Focus Mode**      | ✅   | Pomodoro 25/5, plein écran noir, points session, pause/abandon          |
-| **Thèmes**          | ✅   | Dark, OLED, Tinted (switchable dans Réglages)                           |
+| **Thèmes**          | ✅   | Dark + Light (switchable dans Réglages via Segmented Control natif)    |
 
 ### v1.5+ (non implémenté)
 

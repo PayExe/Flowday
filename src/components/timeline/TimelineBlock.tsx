@@ -1,7 +1,9 @@
-import { View, Text, Pressable, StyleSheet } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { View, Text, Pressable } from 'react-native';
+import { StyleSheet } from 'react-native';
 import { Task } from '../../types/task';
 import { hapticLight } from '../../utils/haptics';
+import { useTheme } from '../../theme';
+import { Symbol, SymbolNames } from '../ui/Symbol';
 
 interface TimelineBlockProps {
   emoji: string;
@@ -41,6 +43,7 @@ export function TimelineBlock({
   onToggleTask,
   onFocusTask,
 }: TimelineBlockProps) {
+  const { colors } = useTheme();
   const displayTitle = title || name;
   const duration = formatDuration(startTime, endTime);
 
@@ -48,7 +51,7 @@ export function TimelineBlock({
     <View style={{ flexDirection: 'row', marginBottom: 2 }}>
       {/* Colonne heure */}
       <View style={{ width: 52, alignItems: 'flex-end', paddingRight: 10, paddingTop: 10 }}>
-        <Text style={{ fontSize: 12, color: '#EBEBF54D' }}>{startTime}</Text>
+        <Text style={{ fontSize: 12, color: colors.text.quaternary }}>{startTime}</Text>
       </View>
 
       {/* Bloc */}
@@ -57,16 +60,16 @@ export function TimelineBlock({
           styles.block,
           {
             borderLeftColor: color,
-            backgroundColor: isActive ? '#2C2C2E' : '#1C1C1E',
+            backgroundColor: isActive ? colors.bg.hover : colors.bg.secondary,
           },
         ]}
       >
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
           <Text style={{ fontSize: 14 }}>{emoji}</Text>
-          <Text style={{ fontSize: 15, fontWeight: '500', color: '#FFFFFF', flex: 1 }}>
+          <Text style={{ fontSize: 15, fontWeight: '500', color: colors.text.primary, flex: 1 }}>
             {displayTitle}
           </Text>
-          <Text style={{ fontSize: 12, color: '#EBEBF54D' }}>{duration}</Text>
+          <Text style={{ fontSize: 12, color: colors.text.quaternary }}>{duration}</Text>
         </View>
 
         {/* Tâches du bloc */}
@@ -83,13 +86,13 @@ export function TimelineBlock({
                     width: 5,
                     height: 5,
                     borderRadius: 3,
-                    backgroundColor: task.completed ? '#30D158' : '#48484A',
+                    backgroundColor: task.completed ? colors.system.green : colors.system.gray3,
                   }}
                 />
                 <Text
                   style={{
                     fontSize: 13,
-                    color: task.completed ? '#EBEBF54D' : '#EBEBF599',
+                    color: task.completed ? colors.text.quaternary : colors.text.secondary,
                     textDecorationLine: task.completed ? 'line-through' : 'none',
                     flex: 1,
                   }}
@@ -100,7 +103,7 @@ export function TimelineBlock({
               </Pressable>
             ))}
             {tasks.length > 3 && (
-              <Text style={{ fontSize: 12, color: '#EBEBF54D' }}>
+              <Text style={{ fontSize: 12, color: colors.text.quaternary }}>
                 +{tasks.length - 3} autres
               </Text>
             )}
@@ -114,7 +117,6 @@ export function TimelineBlock({
 const styles = StyleSheet.create({
   block: {
     flex: 1,
-    backgroundColor: '#1C1C1E',
     borderRadius: 10,
     borderLeftWidth: 3,
     padding: 10,

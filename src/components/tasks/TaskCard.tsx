@@ -1,7 +1,9 @@
-import { View, Text, Pressable, StyleSheet } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { View, Text, Pressable } from 'react-native';
 import { Task } from '../../types/task';
-import { hapticLight } from '../../utils/haptics';
+import { hapticLight, hapticWarning } from '../../utils/haptics';
+import { useTheme } from '../../theme';
+import { Symbol, SymbolNames } from '../ui/Symbol';
+import { ContextMenu } from '../ui/ContextMenu';
 
 interface TaskCardProps {
   task: Task;
@@ -9,29 +11,30 @@ interface TaskCardProps {
   onDelete: (id: string) => void;
 }
 
-function priorityColor(priority: string): string {
+function priorityColor(priority: string, colors: any): string {
   switch (priority) {
-    case 'high': return '#FF453A';
-    case 'medium': return '#FFD60A';
-    case 'low': return '#8E8E93';
-    default: return '#8E8E93';
+    case 'high': return colors.system.red;
+    case 'medium': return colors.system.yellow;
+    case 'low': return colors.system.gray;
+    default: return colors.system.gray;
   }
 }
 
 export function TaskCard({ task, onToggle, onDelete }: TaskCardProps) {
+  const { colors } = useTheme();
   const done = task.completed;
-  const pColor = priorityColor(task.priority);
+  const pColor = priorityColor(task.priority, colors);
 
-  return (
-    <Pressable
-      style={({ pressed }) => ({
+  const cardContent = (
+    <View
+      style={{
         flexDirection: 'row',
         alignItems: 'flex-start',
         paddingHorizontal: 16,
         paddingVertical: 10,
-        backgroundColor: pressed ? '#2C2C2E' : 'transparent',
+        backgroundColor: 'transparent',
         gap: 12,
-      })}
+      }}
     >
       {/* Cercle checkbox — Things 3 */}
       <Pressable
@@ -50,7 +53,7 @@ export function TaskCard({ task, onToggle, onDelete }: TaskCardProps) {
         }}
       >
         {done && (
-          <Ionicons name="checkmark" size={13} color="#FFFFFF" />
+          <Symbol name={SymbolNames.checkmark} size={13} color="#FFFFFF" />
         )}
       </Pressable>
 
@@ -59,7 +62,7 @@ export function TaskCard({ task, onToggle, onDelete }: TaskCardProps) {
         <Text
           style={{
             fontSize: 17,
-            color: done ? '#EBEBF54D' : '#FFFFFF',
+            color: done ? colors.text.quaternary : colors.text.primary,
             letterSpacing: -0.41,
             textDecorationLine: done ? 'line-through' : 'none',
           }}
@@ -70,8 +73,35 @@ export function TaskCard({ task, onToggle, onDelete }: TaskCardProps) {
 
       {/* Badge priorité (discret) */}
       {task.priority === 'high' && !done && (
-        <Ionicons name="flag-outline" size={14} color="#FF453A" style={{ marginTop: 3 }} />
+        <Symbol name={SymbolNames.flag} size={14} color={colors.system.red} style={{ marginTop: 3 }} />
       )}
-    </Pressable>
+    </View>
+  );
+
+  return (
+    <ContextMenu
+      actions={[
+        {
+          title: done ? 'Annuler' : 'Terminer',
+          systemIcon: done ? 'xmark.circle' : 'checkmark.circle',
+        },
+        {
+          title: 'Supprimer',
+          systemIcon: 'trash',
+          destructive: true,
+        },
+      ]}
+      onPress={(name) => {
+        if (name === 'Terminer' || name === 'Annuler') {
+          hapticLight();
+          onToggle(task.id);
+        } else if (name === 'Supprimer') {
+          hapticWarning();
+          onDelete(task.id);
+        }
+      }}
+    >
+      {cardContent}
+    </ContextMenu>
   );
 }

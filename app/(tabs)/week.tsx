@@ -7,13 +7,14 @@ import {
   StyleSheet,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Ionicons } from '@expo/vector-icons';
 import { useTemplateStore } from '../../src/features/templates/store';
 import { useLifeBlocksStore } from '../../src/features/lifeBlocks/store';
 import { TemplateBlock } from '../../src/types/template';
 import { TemplateBlockCard } from '../../src/components/templates/TemplateBlockCard';
 import { EditTemplateBlockModal } from '../../src/components/templates/EditTemplateBlockModal';
 import { EmptyState } from '../../src/components/shared/EmptyState';
+import { useTheme } from '../../src/theme';
+import { Symbol, SymbolNames } from '../../src/components/ui/Symbol';
 
 const DAY_LABELS = ['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi', 'Dimanche'];
 
@@ -23,6 +24,7 @@ function timeToMinutes(time: string): number {
 }
 
 export default function WeekScreen() {
+  const { colors } = useTheme();
   const [modalVisible, setModalVisible] = useState(false);
   const [editingBlock, setEditingBlock] = useState<TemplateBlock | null>(null);
   const [editingDay, setEditingDay] = useState(0);
@@ -101,10 +103,10 @@ export default function WeekScreen() {
 
   if (lifeBlocks.length === 0) {
     return (
-      <SafeAreaView style={styles.container} edges={['top']}>
+      <SafeAreaView style={[styles.container, { backgroundColor: colors.bg.primary }]} edges={['top']}>
         <View style={styles.header}>
-          <Text style={styles.headerTitle}>Semaine</Text>
-          <Text style={styles.headerSubtitle}>
+          <Text style={[styles.headerTitle, { color: colors.text.primary }]}>Semaine</Text>
+          <Text style={[styles.headerSubtitle, { color: colors.text.secondary }]}>
             Définis ton template hebdomadaire
           </Text>
         </View>
@@ -118,19 +120,19 @@ export default function WeekScreen() {
   }
 
   return (
-    <SafeAreaView style={styles.container} edges={['top']}>
+    <SafeAreaView style={[styles.container, { backgroundColor: colors.bg.primary }]} edges={['top']}>
       {/* Header */}
       <View style={styles.header}>
         <View style={styles.headerTop}>
           <View>
-            <Text style={styles.headerTitle}>Semaine</Text>
-            <Text style={styles.headerSubtitle}>
+            <Text style={[styles.headerTitle, { color: colors.text.primary }]}>Semaine</Text>
+            <Text style={[styles.headerSubtitle, { color: colors.text.secondary }]}>
               {template?.name || 'Template'}
             </Text>
           </View>
         </View>
         {totalPlannedMinutes > 0 && (
-          <Text style={styles.totalTime}>
+          <Text style={[styles.totalTime, { color: colors.text.quaternary }]}>
             {formatDuration(totalPlannedMinutes)} planifiées cette semaine
           </Text>
         )}
@@ -148,28 +150,28 @@ export default function WeekScreen() {
           return (
             <View key={dayIndex} style={{ marginBottom: 24 }}>
               <View style={styles.dayHeader}>
-                <Text style={styles.dayTitle}>{dayLabel}</Text>
+                <Text style={[styles.dayTitle, { color: colors.text.primary }]}>{dayLabel}</Text>
                 <Pressable
                   style={({ pressed }) => ({
                     width: 28,
                     height: 28,
                     borderRadius: 8,
-                    backgroundColor: pressed ? '#2C2C2E' : '#1C1C1E',
+                    backgroundColor: pressed ? colors.bg.hover : colors.bg.secondary,
                     alignItems: 'center',
                     justifyContent: 'center',
                     borderWidth: 1,
-                    borderColor: '#38383A',
+                    borderColor: colors.separator.default,
                   })}
                   onPress={() => handleCreate(dayIndex)}
                 >
-                  <Ionicons name="add" size={16} color="#0A84FF" />
+                  <Symbol name={SymbolNames.add} size={16} color={colors.system.blue} />
                 </Pressable>
               </View>
 
               {dayBlocks.length === 0 ? null : (
                 <View
                   style={{
-                    backgroundColor: '#1C1C1E',
+                    backgroundColor: colors.bg.secondary,
                     borderRadius: 13,
                     marginHorizontal: 16,
                     overflow: 'hidden',
@@ -187,7 +189,7 @@ export default function WeekScreen() {
                           onPress={() => handleEdit(block)}
                         />
                         {index < dayBlocks.length - 1 && (
-                          <View style={{ height: 0.5, backgroundColor: '#54545899', marginLeft: 57 }} />
+                          <View style={{ height: 0.5, backgroundColor: colors.separator.hairline, marginLeft: 57 }} />
                         )}
                       </View>
                     );
@@ -220,7 +222,6 @@ export default function WeekScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#000000',
   },
   header: {
     paddingHorizontal: 16,
@@ -235,17 +236,14 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 34,
     fontWeight: '700',
-    color: '#FFFFFF',
     letterSpacing: 0.37,
   },
   headerSubtitle: {
     fontSize: 15,
-    color: '#EBEBF599',
     marginTop: 2,
   },
   totalTime: {
     fontSize: 13,
-    color: '#EBEBF54D',
     marginTop: 8,
   },
   scroll: {
@@ -261,7 +259,6 @@ const styles = StyleSheet.create({
   dayTitle: {
     fontSize: 20,
     fontWeight: '600',
-    color: '#FFFFFF',
     letterSpacing: 0.38,
   },
 });

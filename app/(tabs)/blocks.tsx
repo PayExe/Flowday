@@ -1,7 +1,6 @@
 import { useState, useCallback } from 'react';
 import { View, Text, Pressable, FlatList, StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Ionicons } from '@expo/vector-icons';
 import { useLifeBlocksStore } from '../../src/features/lifeBlocks/store';
 import { useTaskStore } from '../../src/features/tasks/store';
 import { useTemplateStore } from '../../src/features/templates/store';
@@ -9,6 +8,8 @@ import { LifeBlock, LifeBlockColor } from '../../src/types/lifeBlock';
 import { LifeBlockCard } from '../../src/components/lifeBlocks/LifeBlockCard';
 import { EditBlockModal } from '../../src/components/lifeBlocks/EditBlockModal';
 import { EmptyState } from '../../src/components/shared/EmptyState';
+import { useTheme } from '../../src/theme';
+import { Symbol, SymbolNames } from '../../src/components/ui/Symbol';
 
 // ─── Helpers ─────────────────────────────────────────────────
 
@@ -31,6 +32,7 @@ function getBlockTimeSpent(
 // ─── Screen ──────────────────────────────────────────────────
 
 export default function BlocksScreen() {
+  const { colors } = useTheme();
   const [modalVisible, setModalVisible] = useState(false);
   const [editingBlock, setEditingBlock] = useState<LifeBlock | null>(null);
 
@@ -117,13 +119,13 @@ export default function BlocksScreen() {
   );
 
   return (
-    <SafeAreaView style={styles.container} edges={['top']}>
+    <SafeAreaView style={[styles.container, { backgroundColor: colors.bg.primary }]} edges={['top']}>
       {/* Header */}
       <View style={styles.header}>
         <View style={styles.headerTop}>
           <View>
-            <Text style={styles.headerTitle}>Blocs</Text>
-            <Text style={styles.headerSubtitle}>
+            <Text style={[styles.headerTitle, { color: colors.text.primary }]}>Blocs</Text>
+            <Text style={[styles.headerSubtitle, { color: colors.text.secondary }]}>
               {activeBlocks.length} bloc{activeBlocks.length !== 1 ? 's' : ''} actif
               {activeBlocks.length !== 1 ? 's' : ''}
             </Text>
@@ -133,15 +135,15 @@ export default function BlocksScreen() {
               width: 32,
               height: 32,
               borderRadius: 8,
-              backgroundColor: pressed ? '#2C2C2E' : '#1C1C1E',
+              backgroundColor: pressed ? colors.bg.hover : colors.bg.secondary,
               alignItems: 'center',
               justifyContent: 'center',
               borderWidth: 1,
-              borderColor: '#38383A',
+              borderColor: colors.separator.default,
             })}
             onPress={handleCreate}
           >
-            <Ionicons name="add" size={20} color="#0A84FF" />
+            <Symbol name={SymbolNames.add} size={20} color={colors.system.blue} />
           </Pressable>
         </View>
       </View>
@@ -163,12 +165,12 @@ export default function BlocksScreen() {
         ListFooterComponent={
           archivedBlocks.length > 0 ? (
             <View style={{ marginTop: 24 }}>
-              <Text style={styles.sectionHeader}>
+              <Text style={[styles.sectionHeader, { color: colors.text.secondary }]}>
                 Archivés
               </Text>
               <View
                 style={{
-                  backgroundColor: '#1C1C1E',
+                  backgroundColor: colors.bg.secondary,
                   borderRadius: 13,
                   marginHorizontal: 16,
                   overflow: 'hidden',
@@ -182,7 +184,7 @@ export default function BlocksScreen() {
                         alignItems: 'center',
                         paddingHorizontal: 16,
                         paddingVertical: 11,
-                        backgroundColor: pressed ? '#2C2C2E' : 'transparent',
+                        backgroundColor: pressed ? colors.bg.hover : 'transparent',
                         minHeight: 44,
                         opacity: 0.5,
                       })}
@@ -201,18 +203,18 @@ export default function BlocksScreen() {
                       >
                         <Text style={{ fontSize: 16 }}>{block.emoji}</Text>
                       </View>
-                      <Text style={{ flex: 1, fontSize: 17, color: '#FFFFFF', letterSpacing: -0.41 }}>
+                      <Text style={{ flex: 1, fontSize: 17, color: colors.text.primary, letterSpacing: -0.41 }}>
                         {block.name}
                       </Text>
                       <Pressable
                         onPress={() => unarchiveBlock(block.id)}
                         hitSlop={8}
                       >
-                        <Text style={{ fontSize: 15, color: '#0A84FF' }}>Restaurer</Text>
+                        <Text style={{ fontSize: 15, color: colors.system.blue }}>Restaurer</Text>
                       </Pressable>
                     </Pressable>
                     {index < archivedBlocks.length - 1 && (
-                      <View style={{ height: 0.5, backgroundColor: '#54545899', marginLeft: 57 }} />
+                      <View style={{ height: 0.5, backgroundColor: colors.separator.hairline, marginLeft: 57 }} />
                     )}
                   </View>
                 ))}
@@ -238,7 +240,6 @@ export default function BlocksScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#000000',
   },
   header: {
     paddingHorizontal: 16,
@@ -253,12 +254,10 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 34,
     fontWeight: '700',
-    color: '#FFFFFF',
     letterSpacing: 0.37,
   },
   headerSubtitle: {
     fontSize: 15,
-    color: '#EBEBF599',
     marginTop: 2,
   },
   listContent: {
@@ -267,7 +266,6 @@ const styles = StyleSheet.create({
   },
   sectionHeader: {
     fontSize: 13,
-    color: '#EBEBF599',
     paddingHorizontal: 32,
     paddingTop: 28,
     paddingBottom: 8,

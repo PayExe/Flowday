@@ -1,7 +1,9 @@
-import { View, Text, Pressable, StyleSheet, Alert } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { View, Text, Pressable, Alert } from 'react-native';
 import { LifeBlock } from '../../types/lifeBlock';
 import { hapticWarning } from '../../utils/haptics';
+import { useTheme } from '../../theme';
+import { Symbol, SymbolNames } from '../ui/Symbol';
+import { ContextMenu } from '../ui/ContextMenu';
 
 interface LifeBlockCardProps {
   block: LifeBlock;
@@ -34,6 +36,7 @@ export function LifeBlockCard({
   canMoveUp,
   canMoveDown,
 }: LifeBlockCardProps) {
+  const { colors } = useTheme();
   const progress = Math.min(progressPercent, 100);
 
   const handleArchive = () => {
@@ -48,16 +51,15 @@ export function LifeBlockCard({
     );
   };
 
-  return (
-    <Pressable
-      onPress={onEdit}
-      style={({ pressed }) => ({
-        backgroundColor: pressed ? '#2C2C2E' : '#1C1C1E',
+  const cardContent = (
+    <View
+      style={{
+        backgroundColor: colors.bg.secondary,
         borderRadius: 13,
         padding: 16,
         marginHorizontal: 16,
         marginBottom: 12,
-      })}
+      }}
     >
       {/* Header */}
       <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12, marginBottom: 14 }}>
@@ -76,10 +78,10 @@ export function LifeBlockCard({
         </View>
 
         <View style={{ flex: 1 }}>
-          <Text style={{ fontSize: 17, fontWeight: '600', color: '#FFFFFF', letterSpacing: -0.41 }}>
+          <Text style={{ fontSize: 17, fontWeight: '600', color: colors.text.primary, letterSpacing: -0.41 }}>
             {block.name}
           </Text>
-          <Text style={{ fontSize: 13, color: '#EBEBF599', marginTop: 1 }}>
+          <Text style={{ fontSize: 13, color: colors.text.secondary, marginTop: 1 }}>
             {formatMinutes(timeSpentMinutes)} cette semaine
           </Text>
         </View>
@@ -92,7 +94,7 @@ export function LifeBlockCard({
             hitSlop={6}
             style={{ padding: 6, opacity: canMoveUp ? 1 : 0.2 }}
           >
-            <Ionicons name="chevron-up" size={16} color="#EBEBF599" />
+            <Symbol name={SymbolNames.chevronUp} size={16} color={colors.text.secondary} />
           </Pressable>
           <Pressable
             onPress={onMoveDown}
@@ -100,16 +102,16 @@ export function LifeBlockCard({
             hitSlop={6}
             style={{ padding: 6, opacity: canMoveDown ? 1 : 0.2 }}
           >
-            <Ionicons name="chevron-down" size={16} color="#EBEBF599" />
+            <Symbol name={SymbolNames.chevronDown} size={16} color={colors.text.secondary} />
           </Pressable>
           <Pressable onPress={handleArchive} hitSlop={6} style={{ padding: 6 }}>
-            <Ionicons name="archive-outline" size={16} color="#EBEBF54D" />
+            <Symbol name={SymbolNames.archive} size={16} color={colors.text.tertiary} />
           </Pressable>
         </View>
       </View>
 
       {/* Progress bar */}
-      <View style={{ height: 4, backgroundColor: '#2C2C2E', borderRadius: 2, overflow: 'hidden' }}>
+      <View style={{ height: 4, backgroundColor: colors.bg.hover, borderRadius: 2, overflow: 'hidden' }}>
         <View
           style={{
             height: '100%',
@@ -122,13 +124,32 @@ export function LifeBlockCard({
 
       {/* Footer */}
       <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginTop: 8 }}>
-        <Text style={{ fontSize: 12, color: '#EBEBF54D' }}>
+        <Text style={{ fontSize: 12, color: colors.text.quaternary }}>
           {formatMinutes(timeSpentMinutes)}
         </Text>
-        <Text style={{ fontSize: 12, color: '#EBEBF54D' }}>
+        <Text style={{ fontSize: 12, color: colors.text.quaternary }}>
           objectif {formatMinutes(block.weeklyGoalMinutes)}
         </Text>
       </View>
-    </Pressable>
+    </View>
+  );
+
+  return (
+    <ContextMenu
+      actions={[
+        { title: 'Modifier', systemIcon: 'pencil' },
+        { title: 'Monter', systemIcon: 'arrow.up', disabled: !canMoveUp },
+        { title: 'Descendre', systemIcon: 'arrow.down', disabled: !canMoveDown },
+        { title: 'Archiver', systemIcon: 'archivebox', destructive: true },
+      ]}
+      onPress={(name) => {
+        if (name === 'Modifier') onEdit();
+        else if (name === 'Monter') canMoveUp && onMoveUp();
+        else if (name === 'Descendre') canMoveDown && onMoveDown();
+        else if (name === 'Archiver') handleArchive();
+      }}
+    >
+      {cardContent}
+    </ContextMenu>
   );
 }

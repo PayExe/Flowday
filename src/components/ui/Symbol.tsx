@@ -1,0 +1,333 @@
+import React from 'react';
+import { Platform } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
+
+// expo-symbols est uniquement disponible sur iOS
+let SymbolView: React.ComponentType<any> | null = null;
+if (Platform.OS === 'ios') {
+  try {
+    const Symbols = require('expo-symbols');
+    SymbolView = Symbols.SymbolView || Symbols.default;
+  } catch {
+    SymbolView = null;
+  }
+}
+
+// Mapping SFSymbol -> Ionicons fallback (les plus proches visuellement)
+const SF_TO_IONICON: Record<string, keyof typeof Ionicons.glyphMap> = {
+  // Navigation & Tabs
+  'house.fill': 'home',
+  'calendar': 'calendar-outline',
+  'square.stack.3d.up.fill': 'layers',
+  'gearshape.fill': 'settings',
+  'plus': 'add',
+  'plus.circle.fill': 'add-circle',
+  'checkmark': 'checkmark',
+  'checkmark.circle.fill': 'checkmark-circle',
+  'xmark': 'close',
+  'xmark.circle.fill': 'close-circle',
+  'arrow.left': 'arrow-back',
+  'arrow.right': 'arrow-forward',
+  'trash': 'trash-outline',
+  'trash.fill': 'trash',
+  'pencil': 'pencil-outline',
+  'pencil.circle.fill': 'create',
+  'clock': 'time-outline',
+  'clock.fill': 'time',
+  'flame.fill': 'flame',
+  'bolt.fill': 'flash',
+  'moon.fill': 'moon',
+  'sun.max.fill': 'sunny',
+  'bell.fill': 'notifications',
+  'flag.fill': 'flag',
+  'tag.fill': 'pricetag',
+  'folder.fill': 'folder',
+  'doc.text.fill': 'document-text',
+  'chart.bar.fill': 'bar-chart',
+  'eye.fill': 'eye',
+  'eye.slash.fill': 'eye-off',
+  'lock.fill': 'lock-closed',
+  'lock.open.fill': 'lock-open',
+  'person.fill': 'person',
+  'person.2.fill': 'people',
+  'heart.fill': 'heart',
+  'star.fill': 'star',
+  'play.fill': 'play',
+  'pause.fill': 'pause',
+  'stop.fill': 'stop',
+  'forward.fill': 'play-forward',
+  'backward.fill': 'play-back',
+  'arrow.clockwise': 'refresh',
+  'arrow.counterclockwise': 'refresh-circle',
+  'magnifyingglass': 'search',
+  'slider.horizontal.3': 'options',
+  'line.3.horizontal': 'menu',
+  'ellipsis': 'ellipsis-horizontal',
+  'ellipsis.circle': 'ellipsis-horizontal-circle',
+  'info.circle.fill': 'information-circle',
+  'exclamationmark.triangle.fill': 'warning',
+  'exclamationmark.circle.fill': 'alert-circle',
+  'questionmark.circle.fill': 'help-circle',
+  'chevron.right': 'chevron-forward',
+  'chevron.left': 'chevron-back',
+  'chevron.down': 'chevron-down',
+  'chevron.up': 'chevron-up',
+  'timer': 'timer-outline',
+  'hourglass': 'hourglass-outline',
+  'target': 'locate',
+  'scope': 'scan',
+  'wand.and.stars': 'color-wand',
+  'sparkles': 'sparkles',
+  'dumbbell.fill': 'barbell',
+  'book.fill': 'book',
+  'fork.knife': 'restaurant',
+  'bed.double.fill': 'bed',
+  'music.note': 'musical-notes',
+  'paintbrush.fill': 'brush',
+  'terminal.fill': 'terminal',
+  'command': 'logo-electron',
+  'cpu': 'hardware-chip',
+  'keyboard': 'keypad',
+  'wifi': 'wifi',
+  'icloud': 'cloud',
+  'gear': 'settings',
+  'tortoise.fill': 'shuffle',
+  'hare.fill': 'flash',
+  'leaf.fill': 'leaf',
+  'drop.fill': 'water',
+  'sunrise.fill': 'partly-sunny',
+  'figure.run': 'walk',
+  'figure.walk': 'footsteps',
+  'figure.mind.and.body': 'body',
+  'figure.yoga': 'body',
+  'meditation': 'sunny',
+  'powersleep': 'moon',
+  'alarm.fill': 'alarm',
+  'stopwatch.fill': 'stopwatch',
+  'chart.pie.fill': 'pie-chart',
+  'list.bullet': 'list',
+  'list.number': 'list-outline',
+  'archivebox.fill': 'archive',
+  'arrow.uturn.left': 'arrow-undo',
+  'arrow.uturn.right': 'arrow-redo',
+  'link': 'link',
+  'paperclip': 'attach',
+  'camera.fill': 'camera',
+  'photo.fill': 'image',
+  'mic.fill': 'mic',
+  'video.fill': 'videocam',
+  'phone.fill': 'call',
+  'envelope.fill': 'mail',
+  'paperplane.fill': 'send',
+  'bookmark.fill': 'bookmark',
+  'pin.fill': 'pin',
+  'map.fill': 'map',
+  'location.fill': 'location',
+  'compass.fill': 'compass',
+  'globe': 'globe',
+  'network': 'planet',
+  'cube.fill': 'cube',
+  'gift.fill': 'gift',
+  'cart.fill': 'cart',
+  'creditcard.fill': 'card',
+  'banknote.fill': 'cash',
+  'dollarsign.circle.fill': 'logo-usd',
+  'eurosign.circle.fill': 'logo-euro',
+  'bitcoinsign.circle.fill': 'logo-bitcoin',
+  'qrcode': 'qr-code',
+  'barcode': 'barcode',
+  'faceid': 'scan',
+  'touchid': 'finger-print',
+  'hand.raised.fill': 'hand-left',
+  'hand.thumbsup.fill': 'thumbs-up',
+  'hand.thumbsdown.fill': 'thumbs-down',
+  'person.crop.circle.fill': 'person-circle',
+  'person.crop.rectangle.fill': 'people',
+  'rectangle.stack.fill': 'albums',
+  'square.grid.2x2.fill': 'grid',
+  'circle.grid.2x2.fill': 'apps',
+  'square.split.1x2.fill': 'duplicate',
+  'square.on.square.fill': 'copy',
+  'scissors': 'cut',
+  'doc.on.doc.fill': 'documents',
+  'doc.text.magnifyingglass': 'search',
+  'printer.fill': 'print',
+  'scanner': 'scan',
+  'keyboard.chevron.compact.down': 'chevron-down',
+  'eject.fill': 'log-out',
+  'power': 'power',
+  'restart': 'reload',
+  'sleep': 'moon',
+  'wake': 'sunny',
+};
+
+export interface SymbolProps {
+  name: string;
+  size?: number;
+  color?: string;
+  weight?: 'ultraLight' | 'thin' | 'light' | 'regular' | 'medium' | 'semibold' | 'bold' | 'heavy' | 'black';
+  type?: 'monochrome' | 'hierarchical' | 'palette' | 'multicolor';
+  style?: React.CSSProperties;
+}
+
+/**
+ * Symbol — SFSymbol natif iOS avec fallback Ionicons
+ *
+ * Sur iOS : utilise expo-symbols (SFSymbols Apple natifs)
+ * Sur Android / fallback : utilise Ionicons
+ *
+ * Usage :
+ *   <Symbol name="checkmark.circle.fill" size={24} color="#0A84FF" />
+ */
+export function Symbol({
+  name,
+  size = 24,
+  color = '#0A84FF',
+  weight = 'regular',
+  type = 'monochrome',
+  style,
+}: SymbolProps) {
+  // iOS avec expo-symbols disponible
+  if (Platform.OS === 'ios' && SymbolView) {
+    return (
+      <SymbolView
+        name={name}
+        style={[{ width: size, height: size }, style]}
+        type={type}
+        weight={weight}
+        tintColor={color}
+        resizeMode="scaleAspectFit"
+      />
+    );
+  }
+
+  // Fallback Ionicons
+  const ioniconName = SF_TO_IONICON[name] || 'help-circle';
+  return (
+    <Ionicons
+      name={ioniconName}
+      size={size}
+      color={color}
+      style={style as any}
+    />
+  );
+}
+
+/**
+ * Raccourci pour les symboles les plus courants
+ */
+export const SymbolNames = {
+  home: 'house.fill',
+  calendar: 'calendar',
+  blocks: 'square.stack.3d.up.fill',
+  settings: 'gearshape.fill',
+  add: 'plus',
+  addCircle: 'plus.circle.fill',
+  checkmark: 'checkmark',
+  checkmarkCircle: 'checkmark.circle.fill',
+  close: 'xmark',
+  closeCircle: 'xmark.circle.fill',
+  back: 'arrow.left',
+  forward: 'arrow.right',
+  trash: 'trash',
+  edit: 'pencil',
+  clock: 'clock',
+  flame: 'flame.fill',
+  bolt: 'bolt.fill',
+  moon: 'moon.fill',
+  sun: 'sun.max.fill',
+  bell: 'bell.fill',
+  flag: 'flag.fill',
+  tag: 'tag.fill',
+  folder: 'folder.fill',
+  document: 'doc.text.fill',
+  chart: 'chart.bar.fill',
+  eye: 'eye.fill',
+  eyeOff: 'eye.slash.fill',
+  lock: 'lock.fill',
+  unlock: 'lock.open.fill',
+  person: 'person.fill',
+  people: 'person.2.fill',
+  heart: 'heart.fill',
+  star: 'star.fill',
+  play: 'play.fill',
+  pause: 'pause.fill',
+  stop: 'stop.fill',
+  refresh: 'arrow.clockwise',
+  search: 'magnifyingglass',
+  options: 'slider.horizontal.3',
+  menu: 'line.3.horizontal',
+  more: 'ellipsis',
+  moreCircle: 'ellipsis.circle',
+  info: 'info.circle.fill',
+  warning: 'exclamationmark.triangle.fill',
+  error: 'exclamationmark.circle.fill',
+  help: 'questionmark.circle.fill',
+  chevronRight: 'chevron.right',
+  chevronLeft: 'chevron.left',
+  chevronDown: 'chevron.down',
+  chevronUp: 'chevron.up',
+  timer: 'timer',
+  hourglass: 'hourglass',
+  target: 'target',
+  sparkles: 'sparkles',
+  dumbbell: 'dumbbell.fill',
+  book: 'book.fill',
+  food: 'fork.knife',
+  bed: 'bed.double.fill',
+  music: 'music.note',
+  brush: 'paintbrush.fill',
+  terminal: 'terminal.fill',
+  keyboard: 'keyboard',
+  wifi: 'wifi',
+  cloud: 'icloud',
+  gear: 'gear',
+  leaf: 'leaf.fill',
+  water: 'drop.fill',
+  run: 'figure.run',
+  walk: 'figure.walk',
+  alarm: 'alarm.fill',
+  stopwatch: 'stopwatch.fill',
+  pieChart: 'chart.pie.fill',
+  list: 'list.bullet',
+  archive: 'archivebox.fill',
+  undo: 'arrow.uturn.left',
+  redo: 'arrow.uturn.right',
+  link: 'link',
+  attach: 'paperclip',
+  camera: 'camera.fill',
+  image: 'photo.fill',
+  mic: 'mic.fill',
+  video: 'video.fill',
+  phone: 'phone.fill',
+  mail: 'envelope.fill',
+  send: 'paperplane.fill',
+  bookmark: 'bookmark.fill',
+  pin: 'pin.fill',
+  map: 'map.fill',
+  location: 'location.fill',
+  compass: 'compass.fill',
+  globe: 'globe',
+  cube: 'cube.fill',
+  gift: 'gift.fill',
+  cart: 'cart.fill',
+  card: 'creditcard.fill',
+  cash: 'banknote.fill',
+  qrCode: 'qrcode',
+  barcode: 'barcode',
+  hand: 'hand.raised.fill',
+  thumbsUp: 'hand.thumbsup.fill',
+  thumbsDown: 'hand.thumbsdown.fill',
+  personCircle: 'person.crop.circle.fill',
+  albums: 'rectangle.stack.fill',
+  grid: 'square.grid.2x2.fill',
+  apps: 'circle.grid.2x2.fill',
+  duplicate: 'square.split.1x2.fill',
+  copy: 'square.on.square.fill',
+  cut: 'scissors',
+  documents: 'doc.on.doc.fill',
+  print: 'printer.fill',
+  eject: 'eject.fill',
+  power: 'power',
+  reload: 'restart',
+} as const;
