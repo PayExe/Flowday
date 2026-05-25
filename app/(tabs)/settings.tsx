@@ -53,7 +53,7 @@ export default function SettingsScreen() {
           marginRight: 12,
         }}
       >
-        <Symbol name={icon} size={16} color="#FFFFFF" />
+        <Symbol name={icon} size={16} color={colors.text.inverse} />
       </View>
       <Text style={{ flex: 1, fontSize: 17, color: colors.text.primary, letterSpacing: -0.41 }}>
         {label}
@@ -97,7 +97,7 @@ export default function SettingsScreen() {
     <SafeAreaView style={[styles.container, { backgroundColor: colors.bg.primary }]} edges={['top']}>
       {/* Header */}
       <View style={styles.header}>
-        <Text style={[styles.headerTitle, { color: colors.text.primary }]}>Réglages</Text>
+        <Text style={[typography.screenTitle, { color: colors.text.primary }]}>Réglages</Text>
       </View>
 
       <ScrollView showsVerticalScrollIndicator={false}>
@@ -130,7 +130,7 @@ export default function SettingsScreen() {
                 value={morningConfig.enabled}
                 onValueChange={(v) => updateMorningConfig({ enabled: v })}
                 trackColor={{ false: colors.separator.default, true: colors.system.green }}
-                thumbColor="#FFFFFF"
+                thumbColor={colors.text.inverse}
                 ios_backgroundColor={colors.separator.default}
               />
             )}
@@ -153,13 +153,13 @@ export default function SettingsScreen() {
           <>
             {renderCell(
               SymbolNames.moon,
-              '#5E5CE6',
+              colors.system.indigo,
               'Activer',
               <Switch
                 value={eveningConfig.enabled}
                 onValueChange={(v) => updateEveningConfig({ enabled: v })}
                 trackColor={{ false: colors.separator.default, true: colors.system.green }}
-                thumbColor="#FFFFFF"
+                thumbColor={colors.text.inverse}
                 ios_backgroundColor={colors.separator.default}
               />
             )}
@@ -194,11 +194,7 @@ const styles = StyleSheet.create({
     paddingTop: 16,
     paddingBottom: 8,
   },
-  headerTitle: {
-    fontSize: 34,
-    fontWeight: '700',
-    letterSpacing: 0.37,
-  },
+
   sectionHeader: {
     fontSize: 13,
     paddingHorizontal: 32,

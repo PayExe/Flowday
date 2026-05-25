@@ -53,7 +53,7 @@ export function ContextMenu({
           options: ['Annuler', ...options],
           cancelButtonIndex: 0,
           destructiveButtonIndex: destructiveIndices.length > 0 ? destructiveIndices.map((i) => i + 1) : undefined,
-          tintColor: '#0A84FF',
+          tintColor: '#0A84FF', // ActionSheetIOS tintColor est iOS natif, OK en dur
         },
         (buttonIndex) => {
           if (buttonIndex === 0) return; // Annuler

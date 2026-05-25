@@ -265,7 +265,7 @@ export function EditTemplateBlockModal({
                   value={isFlexible}
                   onValueChange={setIsFlexible}
                   trackColor={{ false: colors.separator.default, true: colors.system.green }}
-                  thumbColor="#FFFFFF"
+                    thumbColor={colors.text.inverse}
                   ios_backgroundColor={colors.separator.default}
                 />
                 <Text style={{ fontSize: 17, color: colors.text.primary, letterSpacing: -0.41, marginLeft: 10 }}>
