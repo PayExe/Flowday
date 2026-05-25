@@ -124,8 +124,8 @@ export default function BlocksScreen() {
       <View style={styles.header}>
         <View style={styles.headerTop}>
           <View>
-            <Text style={[styles.headerTitle, { color: colors.text.primary }]}>Blocs</Text>
-            <Text style={[styles.headerSubtitle, { color: colors.text.secondary }]}>
+            <Text style={[typography.screenTitle, { color: colors.text.primary }]}>Blocs</Text>
+            <Text style={[typography.subheadline, { color: colors.text.secondary }]}>
               {activeBlocks.length} bloc{activeBlocks.length !== 1 ? 's' : ''} actif
               {activeBlocks.length !== 1 ? 's' : ''}
             </Text>
@@ -251,15 +251,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'flex-end',
   },
-  headerTitle: {
-    fontSize: 34,
-    fontWeight: '700',
-    letterSpacing: 0.37,
-  },
-  headerSubtitle: {
-    fontSize: 15,
-    marginTop: 2,
-  },
+
   listContent: {
     paddingTop: 8,
     paddingBottom: 32,

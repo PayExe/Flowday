@@ -125,8 +125,8 @@ export default function WeekScreen() {
       <View style={styles.header}>
         <View style={styles.headerTop}>
           <View>
-            <Text style={[styles.headerTitle, { color: colors.text.primary }]}>Semaine</Text>
-            <Text style={[styles.headerSubtitle, { color: colors.text.secondary }]}>
+            <Text style={[typography.screenTitle, { color: colors.text.primary }]}>Semaine</Text>
+            <Text style={[typography.subheadline, { color: colors.text.secondary }]}>
               {template?.name || 'Template'}
             </Text>
           </View>
@@ -233,15 +233,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'flex-end',
   },
-  headerTitle: {
-    fontSize: 34,
-    fontWeight: '700',
-    letterSpacing: 0.37,
-  },
-  headerSubtitle: {
-    fontSize: 15,
-    marginTop: 2,
-  },
+
   totalTime: {
     fontSize: 13,
     marginTop: 8,
