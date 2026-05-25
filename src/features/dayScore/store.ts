@@ -10,7 +10,7 @@ interface DayScoreState {
   setPomodoroGoal: (goal: number) => void;
   recalculateScore: (date: string) => void;
   getScoreForDate: (date: string) => DayScore | undefined;
-  // Actions
+
   incrementPomodoro: (date: string) => void;
   setMorningRitualDone: (date: string) => void;
   setEveningWrapDone: (date: string) => void;
