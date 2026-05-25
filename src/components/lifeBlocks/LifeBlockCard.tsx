@@ -36,7 +36,7 @@ export function LifeBlockCard({
   canMoveUp,
   canMoveDown,
 }: LifeBlockCardProps) {
-  const { colors } = useTheme();
+  const { colors, typography } = useTheme();
   const progress = Math.min(progressPercent, 100);
 
   const handleArchive = () => {
@@ -74,14 +74,14 @@ export function LifeBlockCard({
             justifyContent: 'center',
           }}
         >
-          <Text style={{ fontSize: 20 }}>{block.emoji}</Text>
+          <Text style={{ fontSize: typography.sizes.xl }}>{block.emoji}</Text>
         </View>
 
         <View style={{ flex: 1 }}>
-          <Text style={{ fontSize: 17, fontWeight: '600', color: colors.text.primary, letterSpacing: -0.41 }}>
+            <Text style={{ fontSize: typography.sizes.lg, fontWeight: typography.weights.semibold, color: colors.text.primary, letterSpacing: -0.41 }}>
             {block.name}
           </Text>
-          <Text style={{ fontSize: 13, color: colors.text.secondary, marginTop: 1 }}>
+            <Text style={{ fontSize: typography.sizes.sm, color: colors.text.secondary, marginTop: 1 }}>
             {formatMinutes(timeSpentMinutes)} cette semaine
           </Text>
         </View>
@@ -124,10 +124,10 @@ export function LifeBlockCard({
 
       {/* Footer */}
       <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginTop: 8 }}>
-        <Text style={{ fontSize: 12, color: colors.text.quaternary }}>
+        <Text style={{ fontSize: typography.sizes.xs, color: colors.text.quaternary }}>
           {formatMinutes(timeSpentMinutes)}
         </Text>
-        <Text style={{ fontSize: 12, color: colors.text.quaternary }}>
+        <Text style={{ fontSize: typography.sizes.xs, color: colors.text.quaternary }}>
           objectif {formatMinutes(block.weeklyGoalMinutes)}
         </Text>
       </View>

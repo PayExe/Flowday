@@ -43,7 +43,7 @@ export function TimelineBlock({
   onToggleTask,
   onFocusTask,
 }: TimelineBlockProps) {
-  const { colors } = useTheme();
+  const { colors, typography } = useTheme();
   const displayTitle = title || name;
   const duration = formatDuration(startTime, endTime);
 
@@ -51,7 +51,7 @@ export function TimelineBlock({
     <View style={{ flexDirection: 'row', marginBottom: 2 }}>
       {/* Colonne heure */}
       <View style={{ width: 52, alignItems: 'flex-end', paddingRight: 10, paddingTop: 10 }}>
-        <Text style={{ fontSize: 12, color: colors.text.quaternary }}>{startTime}</Text>
+        <Text style={{ fontSize: typography.sizes.xs, color: colors.text.quaternary }}>{startTime}</Text>
       </View>
 
       {/* Bloc */}
@@ -65,11 +65,11 @@ export function TimelineBlock({
         ]}
       >
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-          <Text style={{ fontSize: 14 }}>{emoji}</Text>
-          <Text style={{ fontSize: 15, fontWeight: '500', color: colors.text.primary, flex: 1 }}>
+          <Text style={{ fontSize: typography.sizes.base }}>{emoji}</Text>
+          <Text style={{ fontSize: typography.sizes.base, fontWeight: typography.weights.medium, color: colors.text.primary, flex: 1 }}>
             {displayTitle}
           </Text>
-          <Text style={{ fontSize: 12, color: colors.text.quaternary }}>{duration}</Text>
+          <Text style={{ fontSize: typography.sizes.xs, color: colors.text.quaternary }}>{duration}</Text>
         </View>
 
         {/* Tâches du bloc */}
@@ -91,7 +91,7 @@ export function TimelineBlock({
                 />
                 <Text
                   style={{
-                    fontSize: 13,
+                    fontSize: typography.sizes.sm,
                     color: task.completed ? colors.text.quaternary : colors.text.secondary,
                     textDecorationLine: task.completed ? 'line-through' : 'none',
                     flex: 1,
@@ -103,7 +103,7 @@ export function TimelineBlock({
               </Pressable>
             ))}
             {tasks.length > 3 && (
-              <Text style={{ fontSize: 12, color: colors.text.quaternary }}>
+              <Text style={{ fontSize: typography.sizes.xs, color: colors.text.quaternary }}>
                 +{tasks.length - 3} autres
               </Text>
             )}

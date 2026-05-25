@@ -10,14 +10,14 @@ interface HourMarkerProps {
 }
 
 export function HourMarker({ hour }: HourMarkerProps) {
-  const { colors } = useTheme();
+  const { colors, typography } = useTheme();
   const label = `${hour.toString().padStart(2, '0')}:00`;
   return (
     <View style={{ flexDirection: 'row', alignItems: 'center', height: HOUR_HEIGHT }}>
       <Text style={{ width: 52, color: colors.text.quaternary, textAlign: 'right', paddingRight: 10, fontSize: 12, letterSpacing: 0 }}>
         {label}
       </Text>
-      <View style={{ flex: 1, height: 0.5, backgroundColor: colors.separator.default }} />
+      <View style={{ flex: 1, height: 0.5, backgroundColor: colors.separator.hairline }} />
     </View>
   );
 }
