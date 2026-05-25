@@ -1,10 +1,22 @@
 # Flowday — Documentation Technique
 
+> Ce document est structuré en 2 parties :
+> - **Partie 1 (terminée)** : MVP v1.0 fonctionnel — features, stores, types, design system
+> - **Partie 2 (en cours)** : Refonte visuelle — 5 tabs, nouveaux écrans, polish UI
+>
+> Si tu es un agent IA travaillant sur la Partie 2, lis UNIQUEMENT la Partie 2
+> et le README.md pour les sessions de redesign. Ne modifie PAS la Partie 1.
+
+---
+
+# PARTIE 2 — REFONTE VISUELLE (en cours)
+
+> Objectif : rendre l'app belle, cohérente, et agréable au quotidien.
+> Apple UIKit appliqué correctement partout, 0 exception.
+
 ## Contexte
 
 **Flowday** est un outil de design de vie pour développeurs et knowledge workers. L'utilisateur ne subit pas sa semaine, il la **conçoit**. Une fois sa semaine type définie, Flowday l'aide à la tenir jour après jour.
-
----
 
 ## Stack Technique
 
@@ -32,7 +44,7 @@
 
 ---
 
-## Architecture du Projet
+## Architecture à atteindre
 
 ```
 Flowday/
@@ -42,381 +54,259 @@ Flowday/
 │   ├── evening-wrap.tsx            # Evening Wrap (4 étapes)
 │   ├── focus.tsx                   # Focus Mode (pomodoro plein écran)
 │   └── (tabs)/
-│       ├── _layout.tsx             # Tab bar (4 onglets)
-│       ├── index.tsx               # Aujourd'hui (Daily Timeline)
-│       ├── week.tsx                # Semaine (Weekly Template Editor)
-│       ├── blocks.tsx              # Blocs (Life Blocks Management)
-│       └── settings.tsx            # Réglages
+│       ├── _layout.tsx             # Tab bar (5 onglets — à modifier)
+│       ├── index.tsx               # Accueil (Dashboard — à CRÉER)
+│       ├── planning.tsx            # Planning (Timeline — à CRÉER)
+│       ├── week.tsx                # Semaine (à POLIR)
+│       ├── blocks.tsx              # Blocs (à POLIR)
+│       └── settings.tsx            # Réglages (à POLIR)
 │
 ├── src/
-│   ├── types/                      # Types TypeScript
-│   │   ├── lifeBlock.ts
-│   │   ├── template.ts
-│   │   ├── task.ts
-│   │   ├── dayScore.ts
-│   │   ├── ritual.ts
-│   │   └── focus.ts
+│   ├── types/                      # Types — NE PAS MODIFIER
+│   ├── features/                   # Stores — NE PAS MODIFIER
 │   │
-│   ├── features/                   # Stores Zustand (par domaine)
-│   │   ├── theme/
-│   │   │   └── store.ts
-│   │   ├── lifeBlocks/
-│   │   │   └── store.ts
-│   │   ├── templates/
-│   │   │   └── store.ts
-│   │   ├── tasks/
-│   │   │   └── store.ts
+│   ├── components/
 │   │   ├── dayScore/
-│   │   │   └── store.ts
-│   │   ├── rituals/
-│   │   │   └── store.ts
-│   │   └── focus/
-│   │       └── store.ts
+│   │   │   └── DayScoreHeader.tsx  # À conserver (déjà theme-aware)
+│   │   ├── lifeBlocks/
+│   │   │   ├── LifeBlockCard.tsx   # À vérifier
+│   │   │   └── EditBlockModal.tsx  # À vérifier light mode
+│   │   ├── tasks/
+│   │   │   └── TaskCard.tsx        # À conserver
+│   │   ├── templates/
+│   │   │   ├── TemplateBlockCard.tsx  # À vérifier
+│   │   │   └── EditTemplateBlockModal.tsx  # À vérifier light mode
+│   │   ├── timeline/
+│   │   │   ├── CurrentTimeLine.tsx # À conserver
+│   │   │   ├── FreeSlot.tsx        # À conserver
+│   │   │   ├── HourMarker.tsx      # À conserver
+│   │   │   └── TimelineBlock.tsx   # À conserver
+│   │   ├── shared/
+│   │   │   ├── EmptyState.tsx      # À conserver
+│   │   │   ├── PriorityBadge.tsx   # À vérifier
+│   │   │   ├── PrioritySelector.tsx# À vérifier light mode
+│   │   │   └── ProgressBar.tsx     # À vérifier
+│   │   └── ui/
+│   │       ├── Button.tsx          # Theme-aware ✅
+│   │       ├── Card.tsx            # StyleSheet contient du dark en dur — à NETTOYER
+│   │       ├── Divider.tsx         # Importe `{ Colors }` static — à CORRIGER
+│   │       ├── IconButton.tsx      # Theme-aware ✅
+│   │       ├── Symbol.tsx          # Pas de couleur, OK
+│   │       └── BottomSheetModal.tsx# Theme-aware ✅
 │   │
-  │   ├── components/
-  │   │   ├── dayScore/
-  │   │   │   └── DayScoreHeader.tsx
-  │   │   ├── lifeBlocks/
-  │   │   │   ├── LifeBlockCard.tsx
-  │   │   │   └── EditBlockModal.tsx
-  │   │   ├── tasks/
-  │   │   │   └── TaskCard.tsx
-  │   │   ├── templates/
-  │   │   │   ├── TemplateBlockCard.tsx
-  │   │   │   └── EditTemplateBlockModal.tsx
-  │   │   ├── timeline/
-  │   │   │   ├── CurrentTimeLine.tsx
-  │   │   │   ├── FreeSlot.tsx
-  │   │   │   ├── HourMarker.tsx
-  │   │   │   └── TimelineBlock.tsx
-  │   │   ├── shared/
-  │   │   │   ├── EmptyState.tsx
-  │   │   │   ├── PriorityBadge.tsx
-  │   │   │   ├── PrioritySelector.tsx
-  │   │   │   └── ProgressBar.tsx
-  │   │   └── ui/
-  │   │       ├── Button.tsx
-  │   │       ├── Card.tsx
-  │   │       ├── Divider.tsx
-  │   │       ├── IconButton.tsx
-  │   │       ├── Symbol.tsx          # SFSymbols natifs iOS + fallback Ionicons
-  │   │       └── BottomSheetModal.tsx # Wrapper @gorhom/bottom-sheet + blur
-  │   │
-  │   ├── theme/
-  │   │   ├── index.ts               # Hooks + exports
-  │   │   └── colors.ts              # Palettes Dark & Light Apple UIKit
-│   │
-│   ├── theme/
-│   │   └── index.ts               # Design system complet
+│   ├── theme/                      # Déjà bien — NE PAS MODIFIER
+│   │   ├── index.ts                # useTheme() hook
+│   │   └── colors.ts               # Palettes Dark & Light
 │   │
 │   └── utils/
-│       ├── id.ts                  # Générateur d'ID (sans crypto)
-│       └── haptics.ts             # Feedback tactile
-│
-├── package.json
-├── app.json                        # Config Expo
-├── tsconfig.json
-└── index.ts                        # Entry point
+│       ├── id.ts                   # NE PAS MODIFIER
+│       └── haptics.ts              # NE PAS MODIFIER
 ```
 
 ---
 
-## Design System — v4 Apple UIKit (Dark + Light)
+## Nouvelle structure des tabs (5 onglets)
 
-> Refonte complète mai 2026. Style Things 3 + Apple Reminders + UIKit natif.
-> Support complet du thème **Dark** et **Light** avec bascule dynamique.
+| # | Tab | Rôle | Fichier |
+|---|-----|------|---------|
+| 1 | **Accueil** | Dashboard : score, prochain bloc, streaks, tâches rapides | `app/(tabs)/index.tsx` |
+| 2 | **Planning** | Timeline verticale + tâches du jour | `app/(tabs)/planning.tsx` |
+| 3 | **Semaine** | Éditeur template 7 jours | `app/(tabs)/week.tsx` |
+| 4 | **Blocs** | CRUD Life Blocks | `app/(tabs)/blocks.tsx` |
+| 5 | **Réglages** | Thème, config rituals, à propos | `app/(tabs)/settings.tsx` |
 
-### 2 Thèmes
+---
 
-| Thème      | Fond                    | Usage                               |
-| ---------- | ----------------------- | ----------------------------------- |
-| **Dark**   | `#000000`               | Par défaut (systemBackground Apple) |
-| **Light**  | `#FFFFFF`               | iOS light mode                      |
+## Règles strictes pour le redesign
 
-### Palette Apple UIKit — Dark
+1. **Tout utilise `useTheme()`** — pas de couleur en dur, pas de `ColorsDark`/`Colors` legacy
+2. **Tout utilise les tokens typo** — `typography.headline`, `typography.footnote`, etc. pas de fontSize en dur
+3. **Padding et radius cohérents** — tab bar bg = `bg.primary` (#000000), headers padding = 16, groups radius = 13
+4. **Section headers** — pattern unique : `fontSize: 13, color: text.secondary, letterSpacing: -0.08, uppercase`
+5. **Divider utilise `useTheme()`** — plus d'import de `{ Colors }` statique
+6. **Séparateurs indentés** — tous les items en groupe Apple : `marginLeft: 57` sur le hairline
+7. **Tab bar** — 5 items max, active tint = `system.blue`, inactive = `system.gray`
+8. **FAB** — position vérifiée par rapport à la tab bar (pas de chevauchement)
+9. **Radius** : `Button` = 10 (md), groupes Apple = 13 (lg), sheets = 20 (xl)
+10. **Zéro font size en dur** — toujours via `typography.sizes.*`
 
-```
-Fond principal    : #000000
-Cartes / groupes  : #1C1C1E
-Hover / pressed   : #2C2C2E
-Séparateurs       : #38383A (opaque) / #54545899 (hairline)
-Texte primary     : #FFFFFF
-Texte secondary   : #EBEBF599 (60%)
-Texte tertiary    : #EBEBF54D (30%)
-Texte quaternary  : #EBEBF52E (18%)
-Link / Accent     : #0A84FF
-Success           : #30D158
-Danger            : #FF453A
-Warning           : #FF9F0A
-```
+---
 
-### Palette Apple UIKit — Light
+## Sessions de redesign
 
-```
-Fond principal    : #FFFFFF
-Cartes / groupes  : #F2F2F7
-Hover / pressed   : #E5E5EA
-Séparateurs       : #C6C6C8 (opaque) / #3C3C4340 (hairline)
-Texte primary     : #000000
-Texte secondary   : #3C3C4399 (60%)
-Texte tertiary    : #3C3C434D (30%)
-Texte quaternary  : #3C3C432E (18%)
-Link / Accent     : #007AFF
-Success           : #34C759
-Danger            : #FF3B30
-Warning           : #FF9500
-```
+> Référence détaillée dans `README.md`. Exécuter les sessions dans l'ordre.
 
-### 12 Couleurs Apple (Life Blocks)
+### Session 1 — Fondations : tout rendre theme-aware
 
-```
-#30D158 (vert)  #FF453A (rouge)  #FFD60A (jaune)
-#BF5AF2 (violet) #0A84FF (bleu)   #FF9F0A (orange)
-#FF375F (rose)   #5E5CE6 (indigo) #40CBE0 (teal)
-#AC8E68 (marron) #8E8E93 (gris)   #FFFFFF (blanc)
-```
+**Fichiers à modifier :**
+- `src/components/ui/Divider.tsx` — Remplacer `import { Colors }` par `useTheme()`
+- `src/components/ui/Card.tsx` — Nettoyer le StyleSheet (supprimer les couleurs en dur)
+
+**Fichiers à vérifier (si déjà theme-aware, ne pas y toucher) :**
+- `src/components/ui/Button.tsx`
+- `src/components/ui/IconButton.tsx`
+- `src/components/shared/PrioritySelector.tsx`
+- `src/components/shared/PriorityBadge.tsx`
+- `src/app.json` → mettre `"userInterfaceStyle": "automatic"`
+
+### Session 2 — Restructuration 5 tabs
+
+**Actions :**
+1. Modifier `app/(tabs)/_layout.tsx` — passer de 4 à 5 tabs
+2. Créer `app/(tabs)/planning.tsx` — déplacer le contenu de l'actuel `index.tsx` (Today)
+3. Créer un nouveau `app/(tabs)/index.tsx` vierge pour l'Accueil
+
+### Session 3 — Page Accueil (dashboard)
+
+**Créer `app/(tabs)/index.tsx`** avec :
+- Header : date + intention du jour (si morning ritual fait)
+- DayScoreHeader (réutiliser le composant existant)
+- Prochain bloc (carte colorée)
+- Streaks (à calculer depuis dayScore store)
+- 3 tâches les plus prioritaires du jour
+- Bannière Morning Ritual si pas fait
+
+### Session 4 — Redesign Planning
+
+**Modifier `app/(tabs)/planning.tsx`** :
+- Header épuré : "Mardi 26 mai · 6h planifiées"
+- Section "Tâches" groupée avant la timeline
+- Timeline avec padding cohérent, supprimer les +40 workaround
+- Couleur NOW line = `colors.nowLine`
+
+### Session 5 — Polish Semaine, Blocs, Réglages
+
+**`app/(tabs)/week.tsx`** :
+- Section headers cohérents
+- Padding header unifié (16)
+
+**`app/(tabs)/blocks.tsx`** :
+- Vérifier LifeBlockCard + EditBlockModal en light mode
+
+**`app/(tabs)/settings.tsx`** :
+- Déjà bien, vérifier juste le fond du SegmentedControl
+
+### Session 6 — Vérification light mode + cleanup
+
+- Tester tous les écrans en light mode
+- Morning Ritual, Evening Wrap, Focus en light
+- Désinstaller `uuid`, `@types/uuid`, `expo-linear-gradient`
+- Supprimer les `Colors` legacy imports
+
+---
+
+## Store Zustand — référence rapide
+
+| Store | Clé | Usage dans le redesign |
+|---|---|---|
+| `themeStore` | `flowday-theme` | Déjà utilisé via `useTheme()` |
+| `lifeBlocksStore` | `flowday-lifeblocks` | Accueil (prochain bloc), Planning (blocs timeline) |
+| `taskStore` | `flowday-tasks` | Accueil (tâches prioritaires), Planning (tâches du jour) |
+| `templateStore` | `flowday-templates` | Accueil (prochain bloc), Planning (timeline) |
+| `dayScoreStore` | `flowday-dayscores` | Accueil (score, streaks), Planning (score header) |
+| `ritualStore` | `flowday-rituals` | Accueil (intention, bannière) |
+| `focusStore` | `flowday-focus` | Planning (FAB focus) |
+
+---
+
+## Navigation (routes)
+
+| Route | Écran | Fichier |
+|---|---|---|
+| `/` | Accueil | `app/(tabs)/index.tsx` |
+| `/planning` | Planning | `app/(tabs)/planning.tsx` |
+| `/week` | Semaine | `app/(tabs)/week.tsx` |
+| `/blocks` | Blocs | `app/(tabs)/blocks.tsx` |
+| `/settings` | Réglages | `app/(tabs)/settings.tsx` |
+| `/morning-ritual` | Morning Ritual | `app/morning-ritual.tsx` |
+| `/evening-wrap` | Evening Wrap | `app/evening-wrap.tsx` |
+| `/focus` | Focus | `app/focus.tsx` |
+
+---
+
+# PARTIE 1 — MVP v1.0 (NE PAS MODIFIER)
+
+> ⚠️ **ATTENTION AGENT IA** : Ce qui suit est la documentation du code existant.
+> **NE RIEN MODIFIER** dans cette section. Lis-la uniquement pour comprendre la structure.
+> Si tu travailles sur la Partie 2, tu n'as pas besoin de lire cette section.
+
+## Détail des features implémentées
+
+| Feature | État | Notes |
+|---|---|---|
+| **Life Blocks** | ✅ | 5 blocs seeded, CRUD, 12 couleurs, 20 emojis, archive, réordonner |
+| **Weekly Template** | ✅ | 1 template, éditeur 7 jours, validation anti-chevauchement |
+| **Daily Timeline** | ✅ | Scroll 06h-23h, ligne "MAINTENANT", blocs, créneaux libres, scroll auto |
+| **Tasks** | ✅ | CRUD, priorité, liées aux blocs, affichées dans la timeline |
+| **Day Score** | ✅ | Calcul complet : Blocs 40% + Tâches 30% + Pomodoros 20% + Rituals 10% |
+| **Morning Ritual** | ✅ | 5 étapes, auto-redirect, humeur, overview, priorités, intention |
+| **Evening Wrap** | ✅ | 4 étapes, tâches forcées (report/suppr), note, score final |
+| **Focus Mode** | ✅ | Pomodoro 25/5, plein écran noir, points session, pause/abandon |
+| **Thèmes** | ✅ | Dark + Light (switchable dans Réglages via Segmented Control natif) |
+
+### v1.5+ (non implémenté — ne pas coder maintenant)
+
+Time Defender, Streaks, Weekly Review, Momentum Score, Notifications, Widget, Intégrations, Paywall.
+
+## Design System — Apple UIKit Dark + Light
+
+### Palettes
+
+**Dark :** `#000000` (bg), `#1C1C1E` (cards), `#2C2C2E` (hover), `#38383A` (separator), texte `#FFFFFF` / `#EBEBF599`.
+
+**Light :** `#FFFFFF` (bg), `#F2F2F7` (cards), `#E5E5EA` (hover), `#C6C6C8` (separator), texte `#000000` / `#3C3C4399`.
+
+### 12 couleurs Life Blocks
+
+`#30D158` `#FF453A` `#FFD60A` `#BF5AF2` `#0A84FF` `#FF9F0A` `#FF375F` `#5E5CE6` `#40CBE0` `#AC8E68` `#8E8E93` `#FFFFFF`
 
 ### Tokens
 
-- **Spacing** : xs(4), sm(8), md(12), lg(16), xl(20), xxl(24), xxxl(32), huge(44)
-- **Radius** : sm(6), md(10), lg(13 — cellules groupées Apple), xl(20 — sheets), full(9999)
-- **Typography** : SF Pro natif iOS uniquement. LargeTitle(34), Title1(28), Title2(22), Title3(20), Headline(17/600), Body(17/400), Callout(16), Subheadline(15), Footnote(13), Caption1(12), Score(56), Timer(46)
+- **Spacing** : xs(4) sm(8) md(12) lg(16) xl(20) xxl(24) xxxl(32) huge(44)
+- **Radius** : sm(6) md(10) lg(13) xl(20) full(9999)
+- **Typo** : LargeTitle(34), Title1(28), Title2(22), Title3(20), Headline(17/600), Body(17/400), Callout(16), Subheadline(15), Footnote(13), Caption1(12), Score(56), Timer(46)
 
 ### Règles absolues
 
-- Fond principal `#000000`
-- Cartes/groupes `#1C1C1E`
-- Séparateurs 0.5px `#38383A` ou `#54545899`
-- Tab bar active : `#0A84FF`
-- Checkbox : cercle (jamais carré)
-- Touch targets minimum 44×44px
-- Séparateurs indentés (commencent après l'icône)
-- BorderRadius 13 pour groupes Apple, 10 pour blocs timeline
-- Transitions pressed : `backgroundColor` change uniquement
-- Zéro bordure en tirets, zéro gradient sauf progress bars, zéro shadow colorée, zéro placeholder visuel pour listes vides
+- Fond `#000000`, cartes `#1C1C1E`, séparateurs 0.5px
+- Tab bar active `#0A84FF`, checkbox = cercle (jamais carré)
+- Touch targets 44×44, séparateurs indentés
+- Radius 13 pour groupes, 10 pour blocs timeline
+- Zéro bordure en tirets, zéro gradient, zéro shadow colorée
 
----
-
-## Stores Zustand
-
-| Store             | Clé                  | Rôle                                           |
-| ----------------- | -------------------- | ---------------------------------------------- |
-| `themeStore`      | `flowday-theme`      | Thème actif (dark/light)                       |
-| `lifeBlocksStore` | `flowday-lifeblocks` | CRUD blocs, archive, réordonner                |
-| `templateStore`   | `flowday-templates`  | Templates + blocs 7j (CRUD, validation)        |
-| `taskStore`       | `flowday-tasks`      | Tâches (CRUD, toggle, filtrage par date/bloc)  |
-| `dayScoreStore`   | `flowday-dayscores`  | Scores journaliers (calcul auto 4 composantes) |
-| `ritualStore`     | `flowday-rituals`    | Logs rituals (morning/evening), configs        |
-| `focusStore`      | `flowday-focus`      | Sessions pomodoro, timer, compteur             |
-
-> Tous les stores utilisent `persist` + `AsyncStorage`.
-
----
-
-## Features Implémentées
-
-### v1.0 MVP (complet)
-
-| Feature             | État | Notes                                                                   |
-| ------------------- | ---- | ----------------------------------------------------------------------- |
-| **Life Blocks**     | ✅   | 5 blocs seeded, CRUD, 12 couleurs, 20 emojis, archive, réordonner       |
-| **Weekly Template** | ✅   | 1 template, éditeur 7 jours, validation anti-chevauchement              |
-| **Daily Timeline**  | ✅   | Scroll 06h-23h, ligne "MAINTENANT", blocs, créneaux libres, scroll auto |
-| **Tasks**           | ✅   | CRUD, priorité, liées aux blocs, affichées dans la timeline             |
-| **Day Score**       | ✅   | Calcul complet : Blocs 40% + Tâches 30% + Pomodoros 20% + Rituals 10%   |
-| **Morning Ritual**  | ✅   | 5 étapes, auto-redirect, humeur, overview, priorités, intention         |
-| **Evening Wrap**    | ✅   | 4 étapes, tâches forcées (report/suppr), note, score final              |
-| **Focus Mode**      | ✅   | Pomodoro 25/5, plein écran noir, points session, pause/abandon          |
-| **Thèmes**          | ✅   | Dark + Light (switchable dans Réglages via Segmented Control natif)    |
-
-### v1.5+ (non implémenté)
-
-- Time Defender (garde du temps)
-- Streaks par Life Block
-- Weekly Review (rapport semaine)
-- Momentum Score
-- Notifications intelligentes
-- Widget iOS (natif, incompatible Expo Go)
-- Intégrations (GitHub, Calendar, Linear)
-- Paywall Pro / RevenueCat
-
----
-
-## Modèle de Données
-
-### LifeBlock
+## Modèle de données
 
 ```typescript
-interface LifeBlock {
-  id: string;
-  name: string;
-  emoji: string;
-  color: LifeBlockColor; // 12 couleurs Apple
-  isArchived: boolean;
-  weeklyGoalMinutes: number;
-  order: number;
-  createdAt: string;
-  updatedAt: string;
-}
+interface LifeBlock { id, name, emoji, color, isArchived, weeklyGoalMinutes, order, createdAt, updatedAt }
+interface TemplateBlock { id, lifeBlockId, dayOfWeek(0-6), startTime, endTime, title?, notes?, isFlexible }
+interface Task { id, title, description?, completed, completedAt?, priority, lifeBlockId?, estimatedMinutes?, scheduledDate?, createdAt, dueDate? }
+interface DayScore { date, total, blocksPercent, tasksPercent, pomodorosPercent, ritualsPercent, pomodorosCompleted, pomodorosGoal(6), morningRitualDone, eveningWrapDone }
+interface RitualLog { date, type("morning"|"evening"), mood?, intention?, note?, completedAt }
 ```
 
-### TemplateBlock
-
-```typescript
-interface TemplateBlock {
-  id: string;
-  lifeBlockId: string;
-  dayOfWeek: 0 | 1 | 2 | 3 | 4 | 5 | 6; // 0 = lundi
-  startTime: string; // "09:00"
-  endTime: string; // "12:00"
-  title?: string;
-  notes?: string;
-  isFlexible: boolean;
-}
-```
-
-### Task
-
-```typescript
-interface Task {
-  id: string;
-  title: string;
-  description?: string;
-  completed: boolean;
-  completedAt?: string;
-  priority: "high" | "medium" | "low";
-  lifeBlockId?: string;
-  estimatedMinutes?: number;
-  scheduledDate?: string; // YYYY-MM-DD
-  createdAt: string;
-  dueDate?: string;
-}
-```
-
-### DayScore
-
-```typescript
-interface DayScore {
-  date: string; // YYYY-MM-DD
-  total: number; // 0-100 (calculé auto)
-  blocksPercent: number; // 0-100
-  tasksPercent: number; // 0-100
-  pomodorosPercent: number; // 0-100
-  ritualsPercent: number; // 0-100
-  pomodorosCompleted: number;
-  pomodorosGoal: number; // défaut 6
-  morningRitualDone: boolean;
-  eveningWrapDone: boolean;
-}
-```
-
-### RitualLog
-
-```typescript
-interface RitualLog {
-  date: string; // YYYY-MM-DD
-  type: "morning" | "evening";
-  mood?: "bad" | "meh" | "good";
-  intention?: string;
-  note?: string;
-  completedAt: string;
-}
-```
-
----
-
-## Calcul du Day Score
+## Calcul Day Score
 
 ```
-Day Score = moyenne pondérée de 4 composantes :
-
-1. Blocs respectés (40%)
-   Blocs avec au moins 1 tâche complétée / total blocs actifs
-
-2. Tâches complétées (30%)
-   Tâches cochées aujourd'hui / tâches prévues aujourd'hui
-   Plafonné à 100%
-
-3. Pomodoros complétés (20%)
-   Pomodoros finis / objectif (défaut 6)
-
-4. Ritual score (10%)
-   Morning Ritual fait = +5pts
-   Evening Wrap fait = +5pts
-
-Total = blocs×0.4 + tâches×0.3 + pomodoros×0.2 + rituals
+Blocs 40% + Tâches 30% + Pomodoros 20% + Rituals 10%
 ```
 
----
+## Points techniques importants
 
-## Points Techniques Importants
-
-### Générateur d'ID
-
-`uuid` a été remplacé par un générateur custom (`src/utils/id.ts`) car `crypto` n'existe pas dans React Native :
-
-```typescript
-export function generateId(): string {
-  return Date.now().toString(36) + Math.random().toString(36).substring(2, 9);
-}
-```
-
-### Persistance
-
-Tous les stores utilisent `zustand/middleware/persist` avec `AsyncStorage` (pas de MMKV car module natif incompatible Expo Go).
-
-### Date Formatting
-
-`date-fns` a été évité dans les écrans critiques à cause de bugs de locales dans Expo Go. Un formatage manuel est utilisé (`formatDateFr`).
-
-### Initialisation (Seeded Data)
-
-Les données par défaut sont créées via `useEffect` + `useRef` flag dans `_layout.tsx` pour éviter les appels pendant le rendu React.
-
-### Anti-patterns corrigés
-
-- ❌ Ne jamais appeler `setState` pendant le rendu (ex: `ensureTemplate()` dans `week.tsx`)
-- ❌ Ne jamais lire un store **immédiatement après un setState** → données obsolètes
-- ✅ Toujours utiliser `useEffect` pour observer les changements et recalculer
-
----
-
-## Navigation
-
-| Route             | Écran                        |
-| ----------------- | ---------------------------- |
-| `/`               | Aujourd'hui (Daily Timeline) |
-| `/week`           | Semaine (Template Editor)    |
-| `/blocks`         | Life Blocks                  |
-| `/settings`       | Réglages                     |
-| `/morning-ritual` | Morning Ritual               |
-| `/evening-wrap`   | Evening Wrap                 |
-| `/focus`          | Focus Mode                   |
-
----
+- **ID** : `generateId()` dans `src/utils/id.ts` (pas de `uuid`)
+- **Persistance** : `zustand/persist` + `AsyncStorage` (pas MMKV)
+- **Dates** : formatage manuel `formatDateFr` (pas `date-fns` dans les écrans critiques)
+- **Init** : `useEffect` + `useRef` dans `app/_layout.tsx`
+- **Anti-patterns** : jamais de `setState` pendant le rendu, jamais de lecture immédiate après `setState`
 
 ## Build
 
 ```bash
-npx expo start              # Dev
-npx expo export --platform ios  # Vérification bundle
+npx expo start
+npx expo export --platform ios
 ```
 
-**Bundle iOS** : ~3.1 MB (HBC)
-**Modules** : 1082
+**Bundle iOS** : ~3.1 MB (HBC), 1082 modules
 
 ---
 
-## Roadmap v1.5 (prochaines étapes)
-
-1. Time Defender (calcul capacité journalière + suggestions)
-2. Streaks par Life Block (jours consécutifs avec quota minimum)
-3. Weekly Review (rapport dimanche soir, insights algorithmiques)
-4. Momentum Score (tendance semaine)
-5. Notifications intelligentes (ritual rappel, streak danger)
-6. Bottom Sheet "ajouter tâche" (long press sur bloc timeline)
-7. Durée estimée des tâches (input "~1h30" avec parsing)
-
----
-
-_Document généré le 19 mai 2026. Dernière mise à jour : corrections bugs critiques (rendu, state, Day Score)._
+_Document généré le 19 mai 2026. Dernière mise à jour : refonte visuelle — 5 tabs, nouveaux écrans, polish UI._

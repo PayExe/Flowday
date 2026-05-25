@@ -5,7 +5,7 @@
 
 ---
 
-## Stack actuelle
+## Stack
 
 | Technologie | Version |
 |---|---|
@@ -17,203 +17,221 @@
 | Reanimated | ~4.1.1 |
 | @gorhom/bottom-sheet | ^5.2.14 |
 
-[Documentation technique complète → AGENTS.md](./AGENTS.md)
+---
+
+## État des lieux
+
+L'app MVP v1.0 est fonctionnelle (Life Blocks, Template, Timeline, Tasks, Day Score, Rituals, Focus, Thèmes).
+
+**Problèmes visuels actuels :**
+- Composants avec couleurs dark en dur → cassés en light mode
+- Tab bar fond `#1C1C1E` au lieu de `#000000`
+- Headers, padding, section headers incohérents
+- Typo tokens jamais utilisés (tout en dur)
+- Rayons de boutons différents selon les écrans
+- Timeline workaround `+40px`
+- Aucune page d'accueil (dashboard)
+- Structure pas claire ("Aujourd'hui" mélange timeline + tasks + score)
 
 ---
 
-## Statut d'implémentation
+## Nouvelle structure — 5 tabs
 
-### ✅ MVP v1.0 — Complet
+```
+┌──────────┬──────────┬──────────┬──────────┬──────────┐
+│ Accueil  │ Planning │ Semaine  │  Blocs   │ Réglages │
+│ Dashboard│ Timeline │ Template │ Life     │ Config   │
+│ (résumé) │ + Tâches │ semaine  │ Blocks   │          │
+└──────────┴──────────┴──────────┴──────────┴──────────┘
+```
 
-- Life Blocks (CRUD, 5 seeded, 12 couleurs, archive, réordonner)
-- Weekly Template (éditeur 7 jours, validation anti-chevauchement)
-- Daily Timeline (scroll 06h-23h, ligne "MAINTENANT", blocs, créneaux libres)
-- Tasks (CRUD, priorité, liées aux blocs)
-- Day Score (Blocs 40% + Tâches 30% + Pomodoros 20% + Rituals 10%)
-- Morning Ritual (5 étapes, humeur, overview, priorités, intention)
-- Evening Wrap (4 étapes, report/suppression tâches, note, score final)
-- Focus Mode (Pomodoro 25/5, plein écran, points session)
-- Thèmes Dark + Light (switchable dans Réglages)
+### Tab 1 — Accueil (nouveau)
+Dashboard avec :
+- **Day Score** (grand chiffre + label + 4 barres)
+- **Prochain bloc** (la prochaine activité de la journée)
+- **Streaks** (séquences en cours par Life Block)
+- **Tâches prioritaires** du jour (max 3)
+- **Bannière Morning Ritual** si pas fait
+- Vue sobre, pas de timeline, juste l'essentiel
 
-### 🔴 Bugs critiques à corriger
+### Tab 2 — Planning (ex "Aujourd'hui")
+Timeline verticale + tâches, recentré sur la **lecture de la journée** :
+- Timeline 06h-23h avec ligne MAINTENANT
+- Blocs colorés avec tâches embeddées
+- Ajout de tâche rapide
+- Créneaux libres
+- Header épuré (juste la date)
 
-| Bug | Description | Priorité |
+### Tab 3 — Semaine (actuel, à polir)
+Éditeur de template 7 jours :
+- Même structure, visuels améliorés
+- Section headers cohérents
+- Padding unifié
+
+### Tab 4 — Blocs (actuel, à polir)
+CRUD Life Blocks :
+- Cartes améliorées avec vraie progress bar
+- Drag & drop (à venir après)
+- Archivés en footer groupé
+
+### Tab 5 — Réglages (actuel, à polir)
+Thème, config rituals, à propos.
+
+---
+
+## Direction visuelle
+
+**Apple UIKit (Dark + Light)** — mais bien appliqué :
+
+| Règle | Actuellement | Cible |
 |---|---|---|
-| Light mode cassé | Morning Ritual, Evening Wrap, EditBlockModal, EditTemplateModal, Button, Card, IconButton, PrioritySelector/Badge — couleurs dark en dur → illisible en light | Haute |
-| Day Score % à 0 | `pomodorosPercent` et `ritualsPercent` jamais mis à jour par le store → toujours 0% dans l'affichage | Haute |
-| Focus double-count | `tick()` du store et `useEffect` UI peuvent compter un pomodoro deux fois | Haute |
-| Day Score scope | Blocs respectés compte tous les Life Blocks actifs au lieu de seulement ceux planifiés aujourd'hui | Moyenne |
-| `userInterfaceStyle` | `"light"` dans `app.json` → devrait être `"automatic"` pour suivre le système | Moyenne |
-
-### 🧹 Dead code à nettoyer
-
-- `uuid` + `@types/uuid` — remplacé par `generateId()` custom
-- `expo-linear-gradient` — jamais importé
+| Tab bar bg | `#1C1C1E` (secondary) | `#000000` (primary) |
+| Composants theme-aware | Certains non (Divider, etc.) | 100% via `useTheme()` |
+| Typo tokens | Pas utilisés | Partout via `typography.headline`, etc. |
+| Section headers | 3 implémentations différentes | 1 pattern unique |
+| Radius boutons | 10 ici, 13 là | Unifié : md(10) |
+| Padding header | 12 / 16 / incohérent | Unifié : 16 |
+| Séparateur indenté | Parfois, pas toujours | Partout (marginLeft 57) |
 
 ---
 
-## Plan de travail — 8 sessions
+## Plan de travail
 
-Chaque session correspond à un commit. Ordre recommandé : bugs d'abord, features ensuite.
+### Session 1 — Fondations
 
----
+**Objectif :** tout rendre theme-aware, corriger les composants cassés
 
-### Session 1 — Bugs critiques
-
-**Objectif :** rendre l'app utilisable en light mode + corriger le Day Score
-
-- [ ] Corriger les couleurs en dur dans :
-  - `app/morning-ritual.tsx`
-  - `app/evening-wrap.tsx`
-  - `src/components/lifeBlocks/EditBlockModal.tsx`
-  - `src/components/templates/EditTemplateBlockModal.tsx`
-  - `src/components/ui/Button.tsx`
-  - `src/components/ui/Card.tsx`
-  - `src/components/ui/IconButton.tsx`
-  - `src/components/shared/PrioritySelector.tsx`
-  - `src/components/shared/PriorityBadge.tsx`
-  - `src/components/shared/ProgressBar.tsx`
-- [ ] `app.json` → `"userInterfaceStyle": "automatic"`
-- [ ] Day Score : calculer et stocker `pomodorosPercent` et `ritualsPercent` dans le store
-- [ ] Day Score : filtrer les blocs respectés sur ceux planifiés aujourd'hui (template blocks du jour), pas tous les actifs
+Fichiers à modifier :
+- `src/components/ui/Divider.tsx` — passage à `useTheme()`
+- `src/components/ui/Card.tsx` — supprimer le StyleSheet hardcodé
+- `src/components/ui/Button.tsx` — vérifier
+- `src/components/ui/IconButton.tsx` — vérifier
+- `src/components/shared/PriorityBadge.tsx` — déjà bon ? check `colors` usage
+- `src/components/shared/ProgressBar.tsx` — déjà bon
+- `app.json` — `"userInterfaceStyle": "automatic"`
 
 ```bash
 git add .
-git commit -m "fix: light mode compatibility, day score percentages and scope"
+git commit -m "fix: make all components theme-aware, ui foundation"
 ```
 
 ---
 
-### Session 2 — Focus timer + Cleanup
+### Session 2 — Restructuration tabs
 
-**Objectif :** fiabiliser le focus mode et nettoyer les dépendances mortes
+**Objectif :** passer de 4 à 5 tabs
 
-- [ ] Déplacer la logique `completePomodoro` du `useEffect` UI vers le store `tick()`
-- [ ] Mutualiser `formatDuration` avec `timeToMinutes` (supprimer la duplication)
-- [ ] Désinstaller les packages inutilisés :
-  ```bash
-  npx expo uninstall uuid @types/uuid expo-linear-gradient
-  ```
+- Créer `app/(tabs)/index.tsx` (nouvel Accueil)
+- Renommer l'ancien Today en `app/(tabs)/planning.tsx`
+- Mettre à jour `app/(tabs)/_layout.tsx` : 5 tabs avec les bons Symboles
+- Vérifier que la navigation fonctionne
 
 ```bash
 git add .
-git commit -m "fix: focus timer double-count, deduplicate formatDuration, remove dead deps"
+git commit -m "feat: restructure tabs - home, planning, week, blocks, settings"
 ```
 
 ---
 
-### Session 3 — Theme transition + Polish
+### Session 3 — Page Accueil (Home)
 
-**Objectif :** animation fluide Dark ↔ Light et vérification complète light mode
+**Objectif :** créer le dashboard principal
 
-- [ ] Ajouter une animation `withTiming` sur les couleurs via `useAnimatedStyle`
-- [ ] Vérifier écran Today, Week, Blocks, Settings en light mode
-- [ ] Vérifier les séparateurs indentés partout (marginLeft sous l'icône)
-- [ ] Vérifier les touch targets 44×44 minimum
+Nouveau fichier : `app/(tabs)/index.tsx`
+
+Éléments :
+```
+┌─────────────────────────────┐
+│ Header : date + intention   │
+├─────────────────────────────┤
+│                             │
+│          74                 │  ← Day Score (grand)
+│     Bonne journée           │
+│                             │
+│  Blocs    ████████░░  80%   │
+│  Tâches   ██████░░░░  60%   │
+│  Focus    █████████░  90%   │
+│  Rituals  █████░░░░░  50%   │
+│                             │
+├─────────────────────────────┤
+│                             │
+│  Prochain bloc              │
+│  ┌─────────────────────┐    │
+│  │ 🏃 Sport · 14h-15h  │    │  ← card colorée
+│  │ Salle de sport       │    │
+│  └─────────────────────┘    │
+│                             │
+│  Streaks                    │
+│  🔥 Work · 5 jours         │
+│  💔 Sport · streak cassé   │
+│                             │
+│  Tâches du jour (3 max)    │
+│  ☐ Finir auth Supabase     │
+│  ☐ Review PR               │
+│                             │
+│  [Commencer la journée →]  │  ← si morning pas fait
+└─────────────────────────────┘
+```
 
 ```bash
 git add .
-git commit -m "feat: smooth theme transition with reanimated, full light mode polish"
+git commit -m "feat: home dashboard with score, next block, streaks, tasks"
 ```
 
 ---
 
-### Session 4 — Notifications
+### Session 4 — Redesign Planning (timeline)
 
-**Objectif :** rappels rituals et fin de pomodoro
+**Objectif :** une timeline claire, lisible, agréable
 
-- [ ] Installer `expo-notifications`
-  ```bash
-  npx expo install expo-notifications
-  ```
-- [ ] Notification Morning Ritual (heure configurable, défaut 8h00)
-- [ ] Notification Evening Wrap (heure configurable, défaut 20h00)
-- [ ] Notification fin de pomodoro (à la fin du timer focus)
-- [ ] Paramètres de notification dans l'écran Settings
+Fichier : `app/(tabs)/planning.tsx`
+
+Modifications :
+- Header : jour + date + charge (ex: "Mardi 26 mai · 6h planifiées")
+- Timeline : ligne MAINTENANT plus visible, blocs mieux espacés
+- Tasks : section groupée avant la timeline, plus aérée
+- Supprimer les `+40` et workaround de hauteur
+- Padding cohérent partout
+- FAB focus : garder mais check position par rapport à la tab bar
 
 ```bash
 git add .
-git commit -m "feat: ritual and pomodoro notifications"
+git commit -m "redesign: planning timeline with consistent spacing and layout"
 ```
 
 ---
 
-### Session 5 — Drag & drop + UX
+### Session 5 — Polish Semaine + Blocs + Réglages
 
-**Objectif :** interactions tactiles avancées
+**Objectif :** harmoniser tous les écrans avec le design system
 
-- [ ] Installer `react-native-draggable-flatlist`
-  ```bash
-  npx expo install react-native-draggable-flatlist
-  ```
-- [ ] Remplacer les boutons up/down par du drag & drop dans l'écran Life Blocks
-- [ ] Drag & drop pour réordonner les blocs dans le Template Editor
-- [ ] Swipe to archive sur un Life Block
-- [ ] Bottom sheet "ajouter une tâche" sur long-press d'un bloc timeline
-- [ ] Parsing durée estimée dans l'input tâche : `"~1h30"` → `90` minutes
+- **Semaine** (`week.tsx`) : section headers, padding, jours espacés
+- **Blocs** (`blocks.tsx`) : cartes plus propres, séparateurs indentés
+- **Réglages** (`settings.tsx`) : déjà bien, juste vérifier light mode
+- Vérifier que tous les écrans utilisent `typography` tokens
+- Vérifier tous les padding = multiples de 4
 
 ```bash
 git add .
-git commit -m "feat: drag-drop reorder, swipe archive, bottom sheet add task, duration parsing"
+git commit -m "polish: standardize week, blocks, settings screens"
 ```
 
 ---
 
-### Session 6 — Time Defender + Streaks
+### Session 6 — Vérification light mode + final
 
-**Objectif :** garde du temps et suivi des séquences
+**Objectif :** zéro bug visuel, prêt à montrer
 
-- [ ] Calcul capacité journalière = `(workBlockMinutes + flexBlockMinutes) * 0.85`
-- [ ] Suggestion de placement quand on ajoute une tâche avec durée estimée
-- [ ] Détection de surcharge (journée > 95% utilisée)
-- [ ] Nouveau store ou extension pour les streaks par Life Block
-- [ ] Interface `BlockStreak` : currentStreak, longestStreak, lastActiveDate, minimumMinutes
-- [ ] Affichage du streak dans `LifeBlockCard`
-
-```bash
-git add .
-git commit -m "feat: time defender capacity calculation and life block streaks"
-```
-
----
-
-### Session 7 — Weekly Review + Momentum Score
-
-**Objectif :** rapport de fin de semaine et tendance
-
-- [ ] Écran `/weekly-review` avec le rapport complet
-- [ ] Calcul du Momentum Score : `moyenne Day Scores × ratio tâches`
-- [ ] 4 règles d'insight algorithmique (journée < 40, bloc < 50%, corrélation matin, record/streak)
-- [ ] Auto-redirect le dimanche soir vers la review
-- [ ] Affichage momentum dans le header de l'écran Today
+- Tester tous les écrans en light mode
+- Vérifier Morning Ritual + Evening Wrap en light
+- Vérifier focus mode
+- Vérifier les modals (EditBlockModal, EditTemplateBlockModal)
+- `app.json` → `"userInterfaceStyle": "automatic"`
+- Désinstaller `uuid`, `@types/uuid`, `expo-linear-gradient`
 
 ```bash
 git add .
-git commit -m "feat: weekly review with insights and momentum score"
-```
-
----
-
-### Session 8 — Intégrations + Paywall (v2.0)
-
-**Objectif :** GitHub OAuth dans la timeline et préparation monétisation
-
-- [ ] Installer les packages OAuth
-  ```bash
-  npx expo install expo-auth-session expo-web-browser expo-crypto
-  ```
-- [ ] Authentification GitHub OAuth
-- [ ] Pull des commits du jour dans le bloc Work de la timeline
-- [ ] (Optionnel) Installer RevenueCat
-  ```bash
-  npx expo install @revenuecat/react-native-purchases
-  ```
-- [ ] (Optionnel) Templates multiples (limité en free, illimité en Pro)
-- [ ] (Optionnel) Paywall avec RevenueCat
-
-```bash
-git add .
-git commit -m "feat: github integration and pro paywall"
+git commit -m "fix: full light mode pass, remove dead deps"
 ```
 
 ---
@@ -221,8 +239,6 @@ git commit -m "feat: github integration and pro paywall"
 ## Pour lancer
 
 ```bash
-npx expo start       # Dev
-npx expo export --platform ios  # Vérification bundle
+npx expo start
+npx expo export --platform ios  # vérification bundle
 ```
-
-Bundle iOS ~3.1 MB (HBC) · Modules : 1082
