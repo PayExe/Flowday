@@ -19,17 +19,20 @@ interface DayScoreState {
 }
 
 function computeTotal(score: DayScore, pomodoroGoal: number): number {
-  const rituals =
+  const ritualsPoints =
     (score.morningRitualDone ? 5 : 0) + (score.eveningWrapDone ? 5 : 0);
-  const pomodoros = Math.min(
+  const pomodorosPercent = Math.min(
     (score.pomodorosCompleted / pomodoroGoal) * 100,
     100
   );
+  const ritualsPercent = ritualsPoints * 10;
+  score.pomodorosPercent = pomodorosPercent;
+  score.ritualsPercent = ritualsPercent;
   const total =
     score.blocksPercent * 0.4 +
     score.tasksPercent * 0.3 +
-    pomodoros * 0.2 +
-    rituals;
+    pomodorosPercent * 0.2 +
+    ritualsPoints;
   return Math.round(total);
 }
 

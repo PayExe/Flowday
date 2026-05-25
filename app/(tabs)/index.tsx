@@ -106,11 +106,13 @@ export default function TodayScreen() {
     const total = todayTasks.length;
     updateTasksPercent(today, completed, total);
 
-    const blocksWithCompletedTasks = activeBlocks.filter((block) =>
+    const plannedLifeBlockIds = Array.from(new Set(templateBlocks.map((b) => b.lifeBlockId)));
+    const plannedBlocks = activeBlocks.filter((b) => plannedLifeBlockIds.includes(b.id));
+    const blocksWithCompletedTasks = plannedBlocks.filter((block) =>
       todayTasks.some((t) => t.lifeBlockId === block.id && t.completed)
     );
-    updateBlockValidation(today, blocksWithCompletedTasks.length, activeBlocks.length);
-  }, [tasks, activeBlocks, todayTasks, updateTasksPercent, updateBlockValidation]);
+    updateBlockValidation(today, blocksWithCompletedTasks.length, plannedBlocks.length);
+  }, [tasks, activeBlocks, todayTasks, templateBlocks, updateTasksPercent, updateBlockValidation]);
 
   // ─── Calcul Day Score complet ──────────────────────────────
   const todayScore = useMemo(() => {
