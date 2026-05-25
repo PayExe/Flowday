@@ -2,10 +2,15 @@ import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { generateId } from '../../utils/id';
+import { useDayScoreStore } from '../../features/dayScore/store';
 import { FocusSession, FocusState } from '../../types/focus';
 
 const POMODORO_MINUTES = 25;
 const BREAK_MINUTES = 5;
+
+function todayISO(): string {
+  return new Date().toISOString().split('T')[0];
+}
 
 interface FocusStoreState {
   sessions: FocusSession[];
@@ -14,7 +19,6 @@ interface FocusStoreState {
   pauseFocus: () => void;
   resumeFocus: () => void;
   stopFocus: () => void;
-  completePomodoro: () => void;
   abandonPomodoro: () => void;
   tick: () => void;
   setDailyGoal: (goal: number) => void;
@@ -111,29 +115,6 @@ export const useFocusStore = create<FocusStoreState>()(
           };
         }),
 
-      completePomodoro: () =>
-        set((state) => {
-          const currentSession = state.sessions[state.sessions.length - 1];
-          if (currentSession && !currentSession.endedAt) {
-            const updatedSessions = [...state.sessions];
-            updatedSessions[updatedSessions.length - 1] = {
-              ...currentSession,
-              pomodorosCompleted: currentSession.pomodorosCompleted + 1,
-            };
-            return {
-              sessions: updatedSessions,
-              focusState: {
-                ...state.focusState,
-                isBreak: true,
-                timeRemaining: BREAK_MINUTES * 60,
-                sessionPomodoroCount: state.focusState.sessionPomodoroCount + 1,
-                dailyPomodoroCount: state.focusState.dailyPomodoroCount + 1,
-              },
-            };
-          }
-          return state;
-        }),
-
       abandonPomodoro: () =>
         set((state) => {
           const currentSession = state.sessions[state.sessions.length - 1];
@@ -162,8 +143,17 @@ export const useFocusStore = create<FocusStoreState>()(
           }
           const newTime = state.focusState.timeRemaining - 1;
           if (newTime === 0 && !state.focusState.isBreak) {
-            // Pomodoro finished, switch to break
+            const currentSession = state.sessions[state.sessions.length - 1];
+            const updatedSessions = currentSession && !currentSession.endedAt
+              ? state.sessions.map((s, i) =>
+                  i === state.sessions.length - 1
+                    ? { ...s, pomodorosCompleted: s.pomodorosCompleted + 1 }
+                    : s
+                )
+              : state.sessions;
+            useDayScoreStore.getState().incrementPomodoro(todayISO());
             return {
+              sessions: updatedSessions,
               focusState: {
                 ...state.focusState,
                 timeRemaining: BREAK_MINUTES * 60,
@@ -174,7 +164,6 @@ export const useFocusStore = create<FocusStoreState>()(
             };
           }
           if (newTime === 0 && state.focusState.isBreak) {
-            // Break finished, back to work
             return {
               focusState: {
                 ...state.focusState,

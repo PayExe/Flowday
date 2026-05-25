@@ -9,7 +9,6 @@ import {
 import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFocusStore } from '../src/features/focus/store';
-import { useDayScoreStore } from '../src/features/dayScore/store';
 import { useTheme } from '../src/theme';
 import { Symbol, SymbolNames } from '../src/components/ui/Symbol';
 
@@ -17,10 +16,6 @@ function formatTime(seconds: number): string {
   const m = Math.floor(seconds / 60);
   const s = seconds % 60;
   return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
-}
-
-function todayISO(): string {
-  return new Date().toISOString().split('T')[0];
 }
 
 export default function FocusScreen() {
@@ -32,14 +27,10 @@ export default function FocusScreen() {
   const pauseFocus = useFocusStore((state) => state.pauseFocus);
   const resumeFocus = useFocusStore((state) => state.resumeFocus);
   const stopFocus = useFocusStore((state) => state.stopFocus);
-  const completePomodoro = useFocusStore((state) => state.completePomodoro);
   const abandonPomodoro = useFocusStore((state) => state.abandonPomodoro);
-
-  const incrementPomodoro = useDayScoreStore((state) => state.incrementPomodoro);
 
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
 
-  // ─── Timer tick toutes les secondes ────────────────────────
   useEffect(() => {
     if (focusState.isActive && !focusState.isBreak) {
       intervalRef.current = setInterval(() => {
@@ -58,14 +49,6 @@ export default function FocusScreen() {
     };
   }, [focusState.isActive, focusState.isBreak, tick]);
 
-  // ─── Détection fin de pomodoro ────────────────────────────
-  useEffect(() => {
-    if (focusState.isActive && focusState.timeRemaining === 0 && !focusState.isBreak) {
-      completePomodoro();
-      incrementPomodoro(todayISO());
-    }
-  }, [focusState.timeRemaining, focusState.isActive, focusState.isBreak, completePomodoro, incrementPomodoro]);
-
   const handleAbandon = () => {
     abandonPomodoro();
     stopFocus();
@@ -77,11 +60,9 @@ export default function FocusScreen() {
     router.back();
   };
 
-  // ─── Points de session ────────────────────────────────────
   const maxDots = 8;
   const dots = Array.from({ length: maxDots }, (_, i) => i < focusState.sessionPomodoroCount);
 
-  // Si pas de focus actif, rediriger
   if (!focusState.currentTaskId) {
     return (
       <SafeAreaView style={[styles.container, { backgroundColor: colors.bg.primary }]} edges={['top']}>
@@ -99,7 +80,6 @@ export default function FocusScreen() {
     <SafeAreaView style={[styles.container, { backgroundColor: colors.bg.primary }]} edges={['top']}>
       <StatusBar hidden />
 
-      {/* Header minimal */}
       <View style={styles.header}>
         <Pressable
           onPress={handleStop}
@@ -116,22 +96,17 @@ export default function FocusScreen() {
         </Pressable>
       </View>
 
-      {/* Content */}
       <View style={styles.content}>
-        {/* Tâche en cours */}
         <Text style={[styles.taskTitle, { color: colors.text.primary }]} numberOfLines={2}>
           {focusState.currentTaskTitle}
         </Text>
 
-        {/* Timer */}
         <Text style={[styles.timer, { color: colors.text.primary }]}>{formatTime(focusState.timeRemaining)}</Text>
 
-        {/* Mode actuel */}
         <Text style={[styles.modeLabel, { color: colors.text.secondary }]}>
           {focusState.isBreak ? 'Pause · 5 min' : 'Focus · 25 min'}
         </Text>
 
-        {/* Points de session */}
         <View style={styles.dotsRow}>
           {dots.map((filled, i) => (
             <View
@@ -144,13 +119,11 @@ export default function FocusScreen() {
           ))}
         </View>
 
-        {/* Objectif quotidien */}
         <Text style={[styles.dailyGoal, { color: colors.text.secondary }]}>
           {focusState.dailyPomodoroCount} / {focusState.dailyPomodoroGoal} aujourd'hui
         </Text>
       </View>
 
-      {/* Controls */}
       <View style={styles.footer}>
         <Pressable
           style={({ pressed }) => ({
