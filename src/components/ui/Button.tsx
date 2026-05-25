@@ -41,7 +41,7 @@ export function Button({
       activeOpacity={0.8}
       {...props}
     >
-      <Text style={[styles.text, { fontWeight: typography.weights.semibold, fontSize: typography.sizes.base }, textStyles[variant]]}>
+      <Text style={[{ fontWeight: typography.weights.semibold, fontSize: typography.sizes.base }, textStyles[variant]]}>
         {children}
       </Text>
     </TouchableOpacity>
@@ -65,9 +65,5 @@ const styles = StyleSheet.create({
   lg: {
     paddingVertical: 16,
     paddingHorizontal: 24,
-  },
-  text: {
-    fontWeight: '600',
-    fontSize: 15,
   },
 });

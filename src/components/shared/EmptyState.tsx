@@ -13,8 +13,8 @@ export function EmptyState({ icon, title, subtitle }: EmptyStateProps) {
   return (
     <View style={styles.container}>
       <Ionicons name={icon} size={48} color={colors.text.tertiary} />
-      <Text style={[styles.title, { color: colors.text.primary }]}>{title}</Text>
-      <Text style={[styles.subtitle, { color: colors.text.secondary }]}>{subtitle}</Text>
+      <Text style={[styles.title, { color: colors.text.primary, fontSize: typography.sizes.lg, fontWeight: typography.weights.semibold }]}>{title}</Text>
+      <Text style={[styles.subtitle, { color: colors.text.secondary, fontSize: typography.sizes.sm }]}>{subtitle}</Text>
     </View>
   );
 }
@@ -28,12 +28,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
   },
   title: {
-    fontSize: 17,
-    fontWeight: '600',
     marginTop: 16,
   },
   subtitle: {
-    fontSize: 13,
     textAlign: 'center',
     paddingHorizontal: 20,
     marginTop: 8,
