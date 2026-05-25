@@ -1,5 +1,5 @@
 import { View, StyleSheet } from 'react-native';
-import { Colors, Radius } from '../../theme';
+import { useTheme } from '../../theme';
 
 interface ProgressBarProps {
   progress: number; // 0 to 1
@@ -7,9 +7,10 @@ interface ProgressBarProps {
 }
 
 export function ProgressBar({ progress, color }: ProgressBarProps) {
+  const { colors } = useTheme();
   return (
     <View style={styles.container}>
-      <View style={styles.background}>
+      <View style={[styles.background, { backgroundColor: colors.bg.hover }]}>
         <View
           style={[
             styles.fill,
@@ -27,7 +28,6 @@ const styles = StyleSheet.create({
   },
   background: {
     height: 4,
-    backgroundColor: Colors.bgInput,
     borderRadius: 2,
     overflow: 'hidden',
   },

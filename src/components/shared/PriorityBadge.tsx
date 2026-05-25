@@ -1,18 +1,16 @@
 import { View, Text, StyleSheet } from 'react-native';
-import { Colors, Spacing, Radius, Typography } from '../../theme';
+import { useTheme } from '../../theme';
 import { Priority } from '../../types/task';
 
-const PRIORITY_CONFIG = {
-  high: { color: Colors.danger, label: 'Haute' },
-  medium: { color: Colors.warning, label: 'Moyenne' },
-  low: { color: Colors.success, label: 'Basse' },
-};
+export function PriorityBadge({ priority }: { priority: Priority }) {
+  const { colors } = useTheme();
 
-interface PriorityBadgeProps {
-  priority: Priority;
-}
+  const PRIORITY_CONFIG = {
+    high: { color: colors.system.red, label: 'Haute' },
+    medium: { color: colors.system.orange, label: 'Moyenne' },
+    low: { color: colors.system.green, label: 'Basse' },
+  };
 
-export function PriorityBadge({ priority }: PriorityBadgeProps) {
   const config = PRIORITY_CONFIG[priority];
   return (
     <View style={[styles.badge, { backgroundColor: config.color + '18' }]}>
@@ -30,16 +28,16 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: 8,
     paddingVertical: 4,
-    borderRadius: Radius.sm,
-    gap: Spacing.xs,
+    borderRadius: 6,
+    gap: 4,
   },
   dot: {
     width: 6,
     height: 6,
-    borderRadius: Radius.full,
+    borderRadius: 9999,
   },
   text: {
-    fontSize: Typography.sizes.xs,
-    fontWeight: Typography.weights.semibold,
+    fontSize: 11,
+    fontWeight: '600',
   },
 });

@@ -1,19 +1,16 @@
 import { View, TouchableOpacity, StyleSheet } from 'react-native';
-import { Colors, Spacing, Radius } from '../../theme';
+import { useTheme } from '../../theme';
 import { Priority } from '../../types/task';
 
-const PRIORITY_CONFIG = {
-  high: { color: Colors.danger },
-  medium: { color: Colors.warning },
-  low: { color: Colors.success },
-};
+export function PrioritySelector({ selected, onSelect }: { selected: Priority; onSelect: (priority: Priority) => void }) {
+  const { colors } = useTheme();
 
-interface PrioritySelectorProps {
-  selected: Priority;
-  onSelect: (priority: Priority) => void;
-}
+  const PRIORITY_CONFIG = {
+    high: { color: colors.system.red },
+    medium: { color: colors.system.orange },
+    low: { color: colors.system.green },
+  };
 
-export function PrioritySelector({ selected, onSelect }: PrioritySelectorProps) {
   return (
     <View style={styles.container}>
       {(['high', 'medium', 'low'] as Priority[]).map((priority) => (
@@ -21,6 +18,7 @@ export function PrioritySelector({ selected, onSelect }: PrioritySelectorProps) 
           key={priority}
           style={[
             styles.button,
+            { borderColor: colors.border },
             selected === priority && {
               backgroundColor: PRIORITY_CONFIG[priority].color + '20',
               borderColor: PRIORITY_CONFIG[priority].color,
@@ -44,14 +42,13 @@ export function PrioritySelector({ selected, onSelect }: PrioritySelectorProps) 
 const styles = StyleSheet.create({
   container: {
     flexDirection: 'row',
-    gap: Spacing.sm,
+    gap: 8,
   },
   button: {
     width: 32,
     height: 32,
     borderRadius: 8,
     borderWidth: 1.5,
-    borderColor: Colors.border,
     alignItems: 'center',
     justifyContent: 'center',
   },

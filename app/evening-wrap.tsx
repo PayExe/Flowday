@@ -14,6 +14,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useTaskStore } from '../src/features/tasks/store';
 import { useDayScoreStore } from '../src/features/dayScore/store';
 import { useRitualStore } from '../src/features/rituals/store';
+import { useTheme } from '../src/theme';
 
 function todayISO(): string {
   return new Date().toISOString().split('T')[0];
@@ -44,6 +45,7 @@ function getScoreLabel(score: number): string {
 
 export default function EveningWrapScreen() {
   const router = useRouter();
+  const { colors } = useTheme();
   const [step, setStep] = useState(1);
   const [note, setNote] = useState('');
 
@@ -61,7 +63,6 @@ export default function EveningWrapScreen() {
   const todayTasks = useMemo(() => getTodayTasks(), [tasks, getTodayTasks]);
   const incompleteTasks = useMemo(() => todayTasks.filter((t) => !t.completed), [todayTasks]);
 
-  // ─── Calcul Day Score final ────────────────────────────────
   const dayScore = useMemo(() => {
     const score = scores.find((s) => s.date === today);
     return score?.total || 0;
@@ -78,7 +79,6 @@ export default function EveningWrapScreen() {
     };
   }, [scores, today]);
 
-  // ─── Gestion tâches non faites ─────────────────────────────
   const handleRescheduleTomorrow = (taskId: string) => {
     rescheduleTask(taskId, tomorrowISO());
   };
@@ -98,14 +98,12 @@ export default function EveningWrapScreen() {
     );
   };
 
-  // ─── Finalisation ──────────────────────────────────────────
   const handleFinish = () => {
     logEveningWrap({ note: note.trim() || undefined });
     setEveningWrapDone(today);
     router.replace('/');
   };
 
-  // ─── Vérifier si toutes les tâches non faites ont été traitées ─
   const allTasksHandled = incompleteTasks.length === 0;
 
   const nextStep = () => {
@@ -120,16 +118,15 @@ export default function EveningWrapScreen() {
     }
   };
 
-  // ─── Render Step 1 : Bilan visuel ──────────────────────────
   const renderStep1 = () => (
     <View style={styles.stepContent}>
-      <Text style={styles.stepTitle}>Bilan de la journée</Text>
+      <Text style={[styles.stepTitle, { color: colors.text.primary }]}>Bilan de la journée</Text>
 
       <View style={{ alignItems: 'center', marginTop: 32, marginBottom: 16 }}>
-        <Text style={{ fontSize: 72, fontWeight: '700', color: '#FFFFFF', letterSpacing: -2 }}>
+        <Text style={{ fontSize: 72, fontWeight: '700', color: colors.text.primary, letterSpacing: -2 }}>
           {dayScore}
         </Text>
-        <Text style={{ fontSize: 17, color: '#EBEBF599', marginTop: 4 }}>
+        <Text style={{ fontSize: 17, color: colors.text.secondary, marginTop: 4 }}>
           {getScoreLabel(dayScore)}
         </Text>
       </View>
@@ -137,19 +134,19 @@ export default function EveningWrapScreen() {
       {scoreDetail && (
         <View style={{ width: '100%', gap: 10, marginTop: 8 }}>
           {[
-            { label: 'Blocs', value: scoreDetail.blocks, color: '#0A84FF' },
-            { label: 'Tâches', value: scoreDetail.tasks, color: '#30D158' },
-            { label: 'Focus', value: scoreDetail.pomodoros, color: '#BF5AF2' },
-            { label: 'Rituels', value: scoreDetail.rituals, color: '#FF9F0A' },
+            { label: 'Blocs', value: scoreDetail.blocks, color: colors.system.blue },
+            { label: 'Tâches', value: scoreDetail.tasks, color: colors.system.green },
+            { label: 'Focus', value: scoreDetail.pomodoros, color: colors.system.purple },
+            { label: 'Rituels', value: scoreDetail.rituals, color: colors.system.orange },
           ].map(({ label, value, color }) => (
             <View key={label} style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
-              <Text style={{ fontSize: 13, color: '#EBEBF54D', width: 52, textAlign: 'right' }}>
+              <Text style={{ fontSize: 13, color: colors.text.quaternary, width: 52, textAlign: 'right' }}>
                 {label}
               </Text>
-              <View style={{ flex: 1, height: 3, backgroundColor: '#2C2C2E', borderRadius: 2, overflow: 'hidden' }}>
+              <View style={{ flex: 1, height: 3, backgroundColor: colors.bg.hover, borderRadius: 2, overflow: 'hidden' }}>
                 <View style={{ width: `${Math.min(Math.max(value, 0), 100)}%`, height: '100%', backgroundColor: color, borderRadius: 2 }} />
               </View>
-              <Text style={{ fontSize: 13, color: '#EBEBF54D', width: 36, textAlign: 'right' }}>
+              <Text style={{ fontSize: 13, color: colors.text.quaternary, width: 36, textAlign: 'right' }}>
                 {Math.round(value)}%
               </Text>
             </View>
@@ -159,11 +156,10 @@ export default function EveningWrapScreen() {
     </View>
   );
 
-  // ─── Render Step 2 : Tâches non faites ─────────────────────
   const renderStep2 = () => (
     <View style={styles.stepContent}>
-      <Text style={styles.stepTitle}>Tâches non faites</Text>
-      <Text style={styles.stepSubtitle}>
+      <Text style={[styles.stepTitle, { color: colors.text.primary }]}>Tâches non faites</Text>
+      <Text style={[styles.stepSubtitle, { color: colors.text.secondary }]}>
         {incompleteTasks.length === 0
           ? "Toutes les tâches sont cochées. Bravo !"
           : `${incompleteTasks.length} tâche${incompleteTasks.length > 1 ? 's' : ''} en attente`}
@@ -171,8 +167,8 @@ export default function EveningWrapScreen() {
 
       {incompleteTasks.length === 0 ? (
         <View style={{ alignItems: 'center', marginTop: 40 }}>
-          <Ionicons name="checkmark-done-circle-outline" size={64} color="#30D158" />
-          <Text style={{ fontSize: 17, color: '#30D158', marginTop: 16, fontWeight: '600' }}>
+          <Ionicons name="checkmark-done-circle-outline" size={64} color={colors.system.green} />
+          <Text style={{ fontSize: 17, color: colors.system.green, marginTop: 16, fontWeight: '600' }}>
             Journée complète !
           </Text>
         </View>
@@ -182,50 +178,50 @@ export default function EveningWrapScreen() {
             <View
               key={task.id}
               style={{
-                backgroundColor: '#1C1C1E',
+                backgroundColor: colors.bg.secondary,
                 borderRadius: 13,
                 padding: 16,
               }}
             >
-              <Text style={{ fontSize: 17, color: '#FFFFFF', fontWeight: '500', letterSpacing: -0.41, marginBottom: 12 }} numberOfLines={2}>
+              <Text style={{ fontSize: 17, color: colors.text.primary, fontWeight: '500', letterSpacing: -0.41, marginBottom: 12 }} numberOfLines={2}>
                 {task.title}
               </Text>
               <View style={{ flexDirection: 'row', gap: 8 }}>
                 <Pressable
                   style={({ pressed }) => ({
                     flex: 1,
-                    backgroundColor: pressed ? '#3A3A3C' : '#2C2C2E',
+                    backgroundColor: pressed ? colors.system.gray4 : colors.bg.hover,
                     borderRadius: 10,
                     paddingVertical: 10,
                     alignItems: 'center',
                   })}
                   onPress={() => handleRescheduleTomorrow(task.id)}
                 >
-                  <Text style={{ fontSize: 13, color: '#FFFFFF', fontWeight: '500' }}>Demain</Text>
+                  <Text style={{ fontSize: 13, color: colors.text.primary, fontWeight: '500' }}>Demain</Text>
                 </Pressable>
                 <Pressable
                   style={({ pressed }) => ({
                     flex: 1,
-                    backgroundColor: pressed ? '#3A3A3C' : '#2C2C2E',
+                    backgroundColor: pressed ? colors.system.gray4 : colors.bg.hover,
                     borderRadius: 10,
                     paddingVertical: 10,
                     alignItems: 'center',
                   })}
                   onPress={() => handleRescheduleWeek(task.id)}
                 >
-                  <Text style={{ fontSize: 13, color: '#FFFFFF', fontWeight: '500' }}>Cette semaine</Text>
+                  <Text style={{ fontSize: 13, color: colors.text.primary, fontWeight: '500' }}>Cette semaine</Text>
                 </Pressable>
                 <Pressable
                   style={({ pressed }) => ({
                     flex: 1,
-                    backgroundColor: pressed ? '#3A3A3C' : '#2C2C2E',
+                    backgroundColor: pressed ? colors.system.gray4 : colors.bg.hover,
                     borderRadius: 10,
                     paddingVertical: 10,
                     alignItems: 'center',
                   })}
                   onPress={() => handleDelete(task.id)}
                 >
-                  <Text style={{ fontSize: 13, color: '#FF453A', fontWeight: '500' }}>Supprimer</Text>
+                  <Text style={{ fontSize: 13, color: colors.system.red, fontWeight: '500' }}>Supprimer</Text>
                 </Pressable>
               </View>
             </View>
@@ -235,28 +231,27 @@ export default function EveningWrapScreen() {
     </View>
   );
 
-  // ─── Render Step 3 : Note du jour ──────────────────────────
   const renderStep3 = () => (
     <View style={styles.stepContent}>
-      <Text style={styles.stepTitle}>Note du jour</Text>
-      <Text style={styles.stepSubtitle}>Qu'est-ce qui s'est passé aujourd'hui ?</Text>
+      <Text style={[styles.stepTitle, { color: colors.text.primary }]}>Note du jour</Text>
+      <Text style={[styles.stepSubtitle, { color: colors.text.secondary }]}>Qu'est-ce qui s'est passé aujourd'hui ?</Text>
 
       <TextInput
         style={{
           marginTop: 32,
-          backgroundColor: '#1C1C1E',
+          backgroundColor: colors.bg.secondary,
           borderRadius: 13,
           paddingHorizontal: 16,
           paddingVertical: 14,
           fontSize: 17,
-          color: '#FFFFFF',
+          color: colors.text.primary,
           width: '100%',
           height: 120,
           textAlignVertical: 'top',
           letterSpacing: -0.41,
         }}
         placeholder="1-3 phrases max..."
-        placeholderTextColor="#3C3C4399"
+        placeholderTextColor={colors.text.placeholder}
         value={note}
         onChangeText={setNote}
         multiline
@@ -265,21 +260,20 @@ export default function EveningWrapScreen() {
       />
 
       <Pressable onPress={nextStep} style={{ marginTop: 12, padding: 12 }}>
-        <Text style={{ fontSize: 15, color: '#EBEBF599' }}>Passer →</Text>
+        <Text style={{ fontSize: 15, color: colors.text.secondary }}>Passer →</Text>
       </Pressable>
     </View>
   );
 
-  // ─── Render Step 4 : Score final ───────────────────────────
   const renderStep4 = () => (
     <View style={styles.stepContent}>
-      <Text style={styles.stepTitle}>Journée validée.</Text>
+      <Text style={[styles.stepTitle, { color: colors.text.primary }]}>Journée validée.</Text>
 
       <View style={{ alignItems: 'center', marginTop: 32, marginBottom: 16 }}>
-        <Text style={{ fontSize: 64, fontWeight: '700', color: '#0A84FF', letterSpacing: -2 }}>
+        <Text style={{ fontSize: 64, fontWeight: '700', color: colors.system.blue, letterSpacing: -2 }}>
           {dayScore}
         </Text>
-        <Text style={{ fontSize: 17, color: '#EBEBF599', marginTop: 4 }}>
+        <Text style={{ fontSize: 17, color: colors.text.secondary, marginTop: 4 }}>
           {getScoreLabel(dayScore)}
         </Text>
       </View>
@@ -287,25 +281,24 @@ export default function EveningWrapScreen() {
       {note.trim() && (
         <View
           style={{
-            backgroundColor: '#1C1C1E',
+            backgroundColor: colors.bg.secondary,
             borderRadius: 13,
             padding: 16,
             width: '100%',
             marginTop: 8,
           }}
         >
-          <Text style={{ fontSize: 11, color: '#EBEBF54D', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 6 }}>
+          <Text style={{ fontSize: 11, color: colors.text.quaternary, textTransform: 'uppercase', letterSpacing: 1, marginBottom: 6 }}>
             Ta note
           </Text>
-          <Text style={{ fontSize: 15, color: '#FFFFFF', fontStyle: 'italic' }}>{note.trim()}</Text>
+          <Text style={{ fontSize: 15, color: colors.text.primary, fontStyle: 'italic' }}>{note.trim()}</Text>
         </View>
       )}
 
-      <Text style={{ fontSize: 20, color: '#EBEBF599', marginTop: 32 }}>Bonne nuit 🌙</Text>
+      <Text style={{ fontSize: 20, color: colors.text.secondary, marginTop: 32 }}>Bonne nuit 🌙</Text>
     </View>
   );
 
-  // ─── Step indicator ────────────────────────────────────────
   const renderStepIndicator = () => (
     <View style={{ flexDirection: 'row', gap: 6 }}>
       {[1, 2, 3, 4].map((s) => (
@@ -315,7 +308,7 @@ export default function EveningWrapScreen() {
             width: s === step ? 24 : 8,
             height: 8,
             borderRadius: 4,
-            backgroundColor: s <= step ? '#0A84FF' : '#38383A',
+            backgroundColor: s <= step ? colors.system.blue : colors.separator.default,
           }}
         />
       ))}
@@ -323,14 +316,12 @@ export default function EveningWrapScreen() {
   );
 
   return (
-    <SafeAreaView style={styles.container} edges={['top']}>
-      {/* Header */}
+    <SafeAreaView style={[styles.container, { backgroundColor: colors.bg.primary }]} edges={['top']}>
       <View style={styles.header}>
-        <Text style={{ fontSize: 17, fontWeight: '700', color: '#FFFFFF' }}>Flowday</Text>
+        <Text style={{ fontSize: 17, fontWeight: '700', color: colors.text.primary }}>Flowday</Text>
         {renderStepIndicator()}
       </View>
 
-      {/* Content */}
       <ScrollView
         style={styles.scroll}
         contentContainerStyle={styles.scrollContent}
@@ -342,20 +333,19 @@ export default function EveningWrapScreen() {
         {step === 4 && renderStep4()}
       </ScrollView>
 
-      {/* Footer */}
-      <View style={styles.footer}>
+      <View style={[styles.footer, { borderTopColor: colors.separator.default }]}>
         {step > 1 && (
           <Pressable
             style={{ padding: 12 }}
             onPress={() => setStep(step - 1)}
           >
-            <Text style={{ fontSize: 17, color: '#EBEBF599' }}>← Retour</Text>
+            <Text style={{ fontSize: 17, color: colors.text.secondary }}>← Retour</Text>
           </Pressable>
         )}
 
         <Pressable
           style={({ pressed }) => ({
-            backgroundColor: pressed ? '#0A84FFCC' : '#0A84FF',
+            backgroundColor: pressed ? colors.system.blue + 'CC' : colors.system.blue,
             borderRadius: 13,
             paddingHorizontal: 24,
             paddingVertical: 14,
@@ -364,7 +354,7 @@ export default function EveningWrapScreen() {
           onPress={nextStep}
           disabled={step === 2 && !allTasksHandled}
         >
-          <Text style={{ fontSize: 17, fontWeight: '600', color: '#FFFFFF' }}>
+          <Text style={{ fontSize: 17, fontWeight: '600', color: colors.text.inverse }}>
             {step === 4 ? 'Bonne nuit →' : 'Suivant →'}
           </Text>
         </Pressable>
@@ -376,7 +366,6 @@ export default function EveningWrapScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#000000',
   },
   header: {
     flexDirection: 'row',
@@ -402,13 +391,11 @@ const styles = StyleSheet.create({
   stepTitle: {
     fontSize: 32,
     fontWeight: '700',
-    color: '#FFFFFF',
     textAlign: 'center',
     letterSpacing: -0.5,
   },
   stepSubtitle: {
     fontSize: 17,
-    color: '#EBEBF599',
     textAlign: 'center',
     marginTop: 8,
   },
@@ -419,6 +406,5 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 16,
     borderTopWidth: 0.5,
-    borderTopColor: '#38383A',
   },
 });

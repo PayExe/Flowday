@@ -1,6 +1,6 @@
 import { TouchableOpacity, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { Colors, Radius } from '../../theme';
+import { useTheme } from '../../theme';
 
 interface IconButtonProps {
   name: keyof typeof Ionicons.glyphMap;
@@ -13,17 +13,24 @@ interface IconButtonProps {
 export function IconButton({
   name,
   size = 22,
-  color = Colors.bgPrimary,
+  color,
   onPress,
   style,
 }: IconButtonProps) {
+  const { colors } = useTheme();
+  const iconColor = color ?? colors.text.inverse;
+
   return (
     <TouchableOpacity
-      style={[styles.button, style]}
+      style={[
+        styles.button,
+        { backgroundColor: colors.accentPrimary },
+        style,
+      ]}
       onPress={onPress}
       activeOpacity={0.8}
     >
-      <Ionicons name={name} size={size} color={color} />
+      <Ionicons name={name} size={size} color={iconColor} />
     </TouchableOpacity>
   );
 }
@@ -32,8 +39,7 @@ const styles = StyleSheet.create({
   button: {
     width: 44,
     height: 44,
-    borderRadius: Radius.md,
-    backgroundColor: Colors.accentPrimary,
+    borderRadius: 10,
     alignItems: 'center',
     justifyContent: 'center',
   },

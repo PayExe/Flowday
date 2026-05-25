@@ -12,6 +12,7 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { LifeBlock, LifeBlockColors, LifeBlockColor } from '../../types/lifeBlock';
+import { useTheme } from '../../theme';
 import { hapticSuccess } from '../../utils/haptics';
 
 interface EditBlockModalProps {
@@ -67,6 +68,7 @@ export function EditBlockModal({
   onArchive,
   onUnarchive,
 }: EditBlockModalProps) {
+  const { colors } = useTheme();
   const isEditing = block !== null;
 
   const [name, setName] = useState('');
@@ -110,45 +112,43 @@ export function EditBlockModal({
     >
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        style={styles.overlay}
+        style={[styles.overlay, { backgroundColor: colors.bg.primary + 'CC' }]}
       >
-        <View style={styles.modal}>
-          {/* Header */}
+        <View style={[styles.modal, { backgroundColor: colors.bg.elevated }]}>
           <View style={styles.header}>
-            <Text style={styles.title}>
+            <Text style={[styles.title, { color: colors.text.primary }]}>
               {isEditing ? 'Modifier le bloc' : 'Nouveau bloc'}
             </Text>
             <Pressable onPress={onClose} style={styles.closeBtn}>
-              <Ionicons name="close" size={24} color="#EBEBF599" />
+              <Ionicons name="close" size={24} color={colors.text.secondary} />
             </Pressable>
           </View>
 
           <ScrollView showsVerticalScrollIndicator={false}>
-            {/* Nom */}
             <View style={styles.section}>
-              <Text style={styles.label}>Nom</Text>
+              <Text style={[styles.label, { color: colors.text.secondary }]}>Nom</Text>
               <TextInput
-                style={styles.input}
+                style={[styles.input, { backgroundColor: colors.bg.input, color: colors.text.primary }]}
                 placeholder="Ex: Deep Work, Sport..."
-                placeholderTextColor="#3C3C4399"
+                placeholderTextColor={colors.text.placeholder}
                 value={name}
                 onChangeText={setName}
                 autoFocus={!isEditing}
               />
             </View>
 
-            {/* Emoji */}
             <View style={styles.section}>
-              <Text style={styles.label}>Emoji</Text>
+              <Text style={[styles.label, { color: colors.text.secondary }]}>Emoji</Text>
               <View style={styles.emojiGrid}>
                 {EMOJIS.map((emoji) => (
                   <Pressable
                     key={emoji}
                     style={[
                       styles.emojiItem,
+                      { borderColor: colors.separator.default },
                       selectedEmoji === emoji && {
-                        backgroundColor: '#2C2C2E',
-                        borderColor: '#0A84FF',
+                        backgroundColor: colors.bg.hover,
+                        borderColor: colors.system.blue,
                       },
                     ]}
                     onPress={() => setSelectedEmoji(emoji)}
@@ -159,9 +159,8 @@ export function EditBlockModal({
               </View>
             </View>
 
-            {/* Couleur */}
             <View style={styles.section}>
-              <Text style={styles.label}>Couleur</Text>
+              <Text style={[styles.label, { color: colors.text.secondary }]}>Couleur</Text>
               <View style={styles.colorGrid}>
                 {LifeBlockColors.map((color) => (
                   <Pressable
@@ -171,7 +170,7 @@ export function EditBlockModal({
                       { backgroundColor: color },
                       selectedColor === color && {
                         borderWidth: 3,
-                        borderColor: '#FFFFFF',
+                        borderColor: colors.text.inverse,
                       },
                     ]}
                     onPress={() => setSelectedColor(color)}
@@ -180,48 +179,46 @@ export function EditBlockModal({
               </View>
             </View>
 
-            {/* Objectif hebdo */}
             <View style={styles.section}>
-              <Text style={styles.label}>Objectif hebdomadaire</Text>
+              <Text style={[styles.label, { color: colors.text.secondary }]}>Objectif hebdomadaire</Text>
               <TextInput
-                style={styles.input}
+                style={[styles.input, { backgroundColor: colors.bg.input, color: colors.text.primary }]}
                 placeholder="Ex: 5h, 1h30, 90min..."
-                placeholderTextColor="#3C3C4399"
+                placeholderTextColor={colors.text.placeholder}
                 value={goalInput}
                 onChangeText={setGoalInput}
                 keyboardType="default"
               />
-              <Text style={styles.goalHint}>
+              <Text style={[styles.goalHint, { color: colors.text.quaternary }]}>
                 {goalInput ? formatGoal(parseGoalInput(goalInput)) + ' / semaine' : '...'}
               </Text>
             </View>
 
-            {/* Actions */}
             <View style={styles.actions}>
               <Pressable
                 style={[
                   styles.saveBtn,
-                  !name.trim() && { backgroundColor: '#2C2C2E' },
+                  { backgroundColor: name.trim() ? colors.system.blue : colors.bg.hover },
                 ]}
                 onPress={handleSave}
                 disabled={!name.trim()}
               >
-                <Text style={styles.saveBtnText}>
+                <Text style={[styles.saveBtnText, { color: colors.text.inverse }]}>
                   {isEditing ? 'Enregistrer' : 'Créer'}
                 </Text>
               </Pressable>
 
               {isEditing && block && !block.isArchived && onArchive && (
                 <Pressable style={styles.archiveBtn} onPress={onArchive}>
-                  <Ionicons name="archive-outline" size={18} color="#FF9F0A" />
-                  <Text style={[styles.archiveBtnText, { color: '#FF9F0A' }]}>Archiver</Text>
+                  <Ionicons name="archive-outline" size={18} color={colors.system.orange} />
+                  <Text style={[styles.archiveBtnText, { color: colors.system.orange }]}>Archiver</Text>
                 </Pressable>
               )}
 
               {isEditing && block && block.isArchived && onUnarchive && (
                 <Pressable style={styles.archiveBtn} onPress={onUnarchive}>
-                  <Ionicons name="refresh-outline" size={18} color="#30D158" />
-                  <Text style={[styles.archiveBtnText, { color: '#30D158' }]}>
+                  <Ionicons name="refresh-outline" size={18} color={colors.system.green} />
+                  <Text style={[styles.archiveBtnText, { color: colors.system.green }]}>
                     Restaurer
                   </Text>
                 </Pressable>
@@ -237,11 +234,9 @@ export function EditBlockModal({
 const styles = StyleSheet.create({
   overlay: {
     flex: 1,
-    backgroundColor: '#000000CC',
     justifyContent: 'flex-end',
   },
   modal: {
-    backgroundColor: '#1C1C1E',
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
     paddingHorizontal: 16,
@@ -257,7 +252,6 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 20,
     fontWeight: '700',
-    color: '#FFFFFF',
   },
   closeBtn: {
     padding: 8,
@@ -268,18 +262,15 @@ const styles = StyleSheet.create({
   label: {
     fontSize: 13,
     fontWeight: '400',
-    color: '#EBEBF599',
     textTransform: 'uppercase',
     letterSpacing: -0.08,
     marginBottom: 8,
   },
   input: {
-    backgroundColor: '#2C2C2E',
     borderRadius: 10,
     paddingHorizontal: 16,
     paddingVertical: 12,
     fontSize: 17,
-    color: '#FFFFFF',
     letterSpacing: -0.41,
   },
   emojiGrid: {
@@ -292,7 +283,6 @@ const styles = StyleSheet.create({
     height: 48,
     borderRadius: 10,
     borderWidth: 2,
-    borderColor: '#38383A',
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -313,7 +303,6 @@ const styles = StyleSheet.create({
   },
   goalHint: {
     fontSize: 13,
-    color: '#EBEBF54D',
     marginTop: 6,
   },
   actions: {
@@ -321,7 +310,6 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   saveBtn: {
-    backgroundColor: '#0A84FF',
     borderRadius: 13,
     paddingVertical: 14,
     alignItems: 'center',
@@ -329,7 +317,6 @@ const styles = StyleSheet.create({
   saveBtnText: {
     fontSize: 17,
     fontWeight: '600',
-    color: '#FFFFFF',
   },
   archiveBtn: {
     flexDirection: 'row',
@@ -341,6 +328,5 @@ const styles = StyleSheet.create({
   archiveBtnText: {
     fontSize: 17,
     fontWeight: '400',
-    color: '#FF9F0A',
   },
 });

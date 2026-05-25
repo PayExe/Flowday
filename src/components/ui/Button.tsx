@@ -1,5 +1,5 @@
 import { TouchableOpacity, Text, StyleSheet, TouchableOpacityProps } from 'react-native';
-import { Colors, Radius, Spacing, Typography } from '../../theme';
+import { useTheme } from '../../theme';
 
 interface ButtonProps extends TouchableOpacityProps {
   variant?: 'primary' | 'secondary' | 'ghost' | 'destructive';
@@ -14,18 +14,34 @@ export function Button({
   style,
   ...props
 }: ButtonProps) {
+  const { colors, typography } = useTheme();
+
+  const variantStyles = {
+    primary: { backgroundColor: colors.accentPrimary },
+    secondary: { backgroundColor: colors.bgSurface, borderWidth: 1, borderColor: colors.border },
+    ghost: { backgroundColor: 'transparent' },
+    destructive: { backgroundColor: colors.danger + '15' },
+  };
+
+  const textStyles = {
+    primary: { color: colors.textInverse },
+    secondary: { color: colors.textSecondary },
+    ghost: { color: colors.accentPrimary },
+    destructive: { color: colors.danger },
+  };
+
   return (
     <TouchableOpacity
       style={[
         styles.button,
         styles[size],
-        styles[variant],
+        variantStyles[variant],
         style,
       ]}
       activeOpacity={0.8}
       {...props}
     >
-      <Text style={[styles.text, styles[`${variant}Text`]]}>
+      <Text style={[styles.text, { fontWeight: typography.weights.semibold, fontSize: typography.sizes.base }, textStyles[variant]]}>
         {children}
       </Text>
     </TouchableOpacity>
@@ -36,48 +52,22 @@ const styles = StyleSheet.create({
   button: {
     alignItems: 'center',
     justifyContent: 'center',
-    borderRadius: Radius.md,
+    borderRadius: 10,
   },
   sm: {
-    paddingVertical: Spacing.sm,
-    paddingHorizontal: Spacing.md,
+    paddingVertical: 8,
+    paddingHorizontal: 12,
   },
   md: {
-    paddingVertical: Spacing.md,
-    paddingHorizontal: Spacing.xl,
+    paddingVertical: 12,
+    paddingHorizontal: 20,
   },
   lg: {
-    paddingVertical: Spacing.lg,
-    paddingHorizontal: Spacing.xxl,
-  },
-  primary: {
-    backgroundColor: Colors.accentPrimary,
-  },
-  secondary: {
-    backgroundColor: Colors.bgSurface,
-    borderWidth: 1,
-    borderColor: Colors.border,
-  },
-  ghost: {
-    backgroundColor: 'transparent',
-  },
-  destructive: {
-    backgroundColor: Colors.danger + '15',
+    paddingVertical: 16,
+    paddingHorizontal: 24,
   },
   text: {
-    fontWeight: Typography.weights.semibold,
-    fontSize: Typography.sizes.base,
-  },
-  primaryText: {
-    color: Colors.bgPrimary,
-  },
-  secondaryText: {
-    color: Colors.textSecondary,
-  },
-  ghostText: {
-    color: Colors.accentPrimary,
-  },
-  destructiveText: {
-    color: Colors.danger,
+    fontWeight: '600',
+    fontSize: 15,
   },
 });
