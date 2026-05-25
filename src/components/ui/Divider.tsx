@@ -1,5 +1,5 @@
-import { View, StyleSheet } from 'react-native';
-import { Colors } from '../../theme';
+import { View } from 'react-native';
+import { useTheme } from '../../theme';
 
 interface DividerProps {
   style?: any;
@@ -7,20 +7,14 @@ interface DividerProps {
 }
 
 export function Divider({ style, indent }: DividerProps) {
+  const { colors } = useTheme();
   return (
     <View
       style={[
-        styles.divider,
+        { height: 1, backgroundColor: colors.separator.hairline },
         indent !== undefined && { marginLeft: indent },
         style,
       ]}
     />
   );
 }
-
-const styles = StyleSheet.create({
-  divider: {
-    height: 1,
-    backgroundColor: Colors.border,
-  },
-});
