@@ -1,4 +1,4 @@
-import { View, StyleSheet, ViewProps } from 'react-native';
+import { View, ViewProps } from 'react-native';
 import { useTheme } from '../../theme';
 
 interface CardProps extends ViewProps {
@@ -10,7 +10,6 @@ export function Card({ children, style, ...props }: CardProps) {
   return (
     <View
       style={[
-        styles.card,
         {
           backgroundColor: colors.bgSurface,
           borderRadius: 13,
@@ -27,14 +26,3 @@ export function Card({ children, style, ...props }: CardProps) {
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  card: {
-    backgroundColor: '#1C1C1E',
-    borderRadius: 13,
-    padding: 16,
-    marginBottom: 12,
-    borderWidth: 1,
-    borderColor: '#38383A',
-  },
-});
