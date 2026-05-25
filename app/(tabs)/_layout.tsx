@@ -10,7 +10,7 @@ export default function TabsLayout() {
       screenOptions={{
         headerShown: false,
         tabBarStyle: {
-          backgroundColor: colors.bg.secondary,
+          backgroundColor: colors.bg.primary,
           borderTopColor: colors.separator.default,
           borderTopWidth: 0.5,
           height: 80,
@@ -25,10 +25,24 @@ export default function TabsLayout() {
       <Tabs.Screen
         name="index"
         options={{
-          title: "Aujourd'hui",
+          title: 'Accueil',
           tabBarIcon: ({ color, focused }) => (
             <Symbol
               name={focused ? SymbolNames.home : 'house.fill'}
+              size={24}
+              color={color}
+              weight={focused ? 'semibold' : 'regular'}
+            />
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="planning"
+        options={{
+          title: 'Planning',
+          tabBarIcon: ({ color, focused }) => (
+            <Symbol
+              name={focused ? 'calendar.fill' : SymbolNames.calendar}
               size={24}
               color={color}
               weight={focused ? 'semibold' : 'regular'}
@@ -42,7 +56,7 @@ export default function TabsLayout() {
           title: 'Semaine',
           tabBarIcon: ({ color, focused }) => (
             <Symbol
-              name={focused ? SymbolNames.calendar : SymbolNames.calendar}
+              name={focused ? 'calendar.badge.clock.fill' : 'calendar.badge.clock'}
               size={24}
               color={color}
               weight={focused ? 'semibold' : 'regular'}
@@ -56,7 +70,7 @@ export default function TabsLayout() {
           title: 'Blocs',
           tabBarIcon: ({ color, focused }) => (
             <Symbol
-              name={focused ? SymbolNames.blocks : SymbolNames.blocks}
+              name={focused ? 'square.grid.2x2.fill' : 'square.grid.2x2'}
               size={24}
               color={color}
               weight={focused ? 'semibold' : 'regular'}
@@ -70,7 +84,7 @@ export default function TabsLayout() {
           title: 'Réglages',
           tabBarIcon: ({ color, focused }) => (
             <Symbol
-              name={focused ? SymbolNames.settings : SymbolNames.settings}
+              name={focused ? SymbolNames.settings : 'gearshape'}
               size={24}
               color={color}
               weight={focused ? 'semibold' : 'regular'}
