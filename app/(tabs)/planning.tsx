@@ -218,8 +218,8 @@ export default function PlanningScreen() {
     return (
       <SafeAreaView style={[styles.container, { backgroundColor: colors.bg.primary }]} edges={['top']}>
         <View style={styles.header}>
-          <Text style={[styles.headerTitle, { color: colors.text.primary }]}>Planning</Text>
-          <Text style={[styles.dateLabel, { color: colors.text.secondary }]}>{formatDateFr(new Date())}</Text>
+          <Text style={[typography.screenTitle, { color: colors.text.primary }]}>Planning</Text>
+          <Text style={[typography.subheadline, { color: colors.text.secondary }]}>{formatDateFr(new Date())}</Text>
         </View>
         <EmptyState
           icon="calendar-outline"
@@ -234,8 +234,8 @@ export default function PlanningScreen() {
     return (
       <SafeAreaView style={[styles.container, { backgroundColor: colors.bg.primary }]} edges={['top']}>
         <View style={styles.header}>
-          <Text style={[styles.headerTitle, { color: colors.text.primary }]}>Planning</Text>
-          <Text style={[styles.dateLabel, { color: colors.text.secondary }]}>{formatDateFr(new Date())}</Text>
+          <Text style={[typography.screenTitle, { color: colors.text.primary }]}>Planning</Text>
+          <Text style={[typography.subheadline, { color: colors.text.secondary }]}>{formatDateFr(new Date())}</Text>
         </View>
         <EmptyState
           icon="cube-outline"
@@ -285,7 +285,7 @@ export default function PlanningScreen() {
             onPress={() => router.push('/morning-ritual')}
           >
             <Symbol name={SymbolNames.sun} size={18} color={colors.system.orange} style={{ marginRight: 10 }} />
-            <Text style={{ flex: 1, fontSize: 15, color: colors.text.primary, fontWeight: '500' }}>
+            <Text style={{ flex: 1, fontSize: typography.sizes.base, color: colors.text.primary, fontWeight: typography.weights.medium }}>
               Commencer la journée
             </Text>
             <Symbol name={SymbolNames.chevronRight} size={14} color={colors.text.tertiary} />
@@ -306,7 +306,7 @@ export default function PlanningScreen() {
               <TextInput
                 style={{
                   flex: 1,
-                  fontSize: 17,
+                  fontSize: typography.sizes.lg,
                   color: colors.text.primary,
                   letterSpacing: -0.41,
                   paddingVertical: 10,
@@ -342,7 +342,7 @@ export default function PlanningScreen() {
                 }}
                 onPress={() => setSelectedBlockId(undefined)}
               >
-                <Text style={{ fontSize: 13, color: selectedBlockId === undefined ? colors.text.primary : colors.text.secondary }}>
+                <Text style={{ fontSize: typography.sizes.sm, color: selectedBlockId === undefined ? colors.text.primary : colors.text.secondary }}>
                   Sans bloc
                 </Text>
               </Pressable>
@@ -364,7 +364,7 @@ export default function PlanningScreen() {
                   }
                 >
                   <View style={{ width: 6, height: 6, borderRadius: 3, backgroundColor: block.color }} />
-                  <Text style={{ fontSize: 13, color: selectedBlockId === block.id ? colors.text.primary : colors.text.secondary }}>
+                  <Text style={{ fontSize: typography.sizes.sm, color: selectedBlockId === block.id ? colors.text.primary : colors.text.secondary }}>
                     {block.name}
                   </Text>
                 </Pressable>
@@ -377,14 +377,10 @@ export default function PlanningScreen() {
         {todayTasks.length > 0 && (
           <View style={{ marginTop: 24 }}>
             <Text
-              style={{
-                fontSize: 13,
-                color: colors.text.secondary,
-                paddingHorizontal: 32,
-                paddingBottom: 8,
-                textTransform: 'uppercase',
-                letterSpacing: -0.08,
-              }}
+              style={[
+                typography.sectionHeader,
+                { paddingHorizontal: 32, paddingBottom: 8 },
+              ]}
             >
               Tâches
             </Text>
@@ -404,7 +400,7 @@ export default function PlanningScreen() {
                     onDelete={() => {}}
                   />
                   {index < todayTasks.length - 1 && (
-                    <View style={{ height: 0.5, backgroundColor: colors.separator.hairline, marginLeft: 50 }} />
+                    <View style={{ height: 0.5, backgroundColor: colors.separator.hairline, marginLeft: 57 }} />
                   )}
                 </View>
               ))}
@@ -414,15 +410,11 @@ export default function PlanningScreen() {
 
         {/* Timeline */}
         <View style={{ marginTop: 24, marginBottom: 40 }}>
-          <Text
-            style={{
-              fontSize: 13,
-              color: colors.text.secondary,
-              paddingHorizontal: 32,
-              paddingBottom: 8,
-              textTransform: 'uppercase',
-              letterSpacing: -0.08,
-            }}
+            <Text
+            style={[
+              typography.sectionHeader,
+              { paddingHorizontal: 32, paddingBottom: 8 },
+            ]}
           >
             Planning
           </Text>
@@ -519,7 +511,7 @@ export default function PlanningScreen() {
         }}
         onPress={() => router.push('/focus')}
       >
-        <Symbol name={SymbolNames.timer} size={24} color="#FFFFFF" />
+        <Symbol name={SymbolNames.timer} size={24} color={colors.text.inverse} />
       </Pressable>
     </SafeAreaView>
   );
@@ -540,15 +532,7 @@ const styles = StyleSheet.create({
     alignItems: 'flex-start',
     marginBottom: 4,
   },
-  headerTitle: {
-    fontSize: 34,
-    fontWeight: '700',
-    letterSpacing: 0.37,
-  },
-  dateLabel: {
-    fontSize: 15,
-    marginTop: 2,
-  },
+
   scroll: {
     flex: 1,
   },

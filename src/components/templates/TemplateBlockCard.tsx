@@ -1,7 +1,8 @@
-import { View, Text, Pressable, StyleSheet } from 'react-native';
+import { View, Text, Pressable } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { TemplateBlock } from '../../types/template';
 import { LifeBlock } from '../../types/lifeBlock';
+import { useTheme } from '../../theme';
 
 interface TemplateBlockCardProps {
   block: TemplateBlock;
@@ -24,6 +25,7 @@ function formatDuration(start: string, end: string): string {
 }
 
 export function TemplateBlockCard({ block, lifeBlock, onPress }: TemplateBlockCardProps) {
+  const { colors, typography } = useTheme();
   return (
     <Pressable
       onPress={onPress}
@@ -32,7 +34,7 @@ export function TemplateBlockCard({ block, lifeBlock, onPress }: TemplateBlockCa
         alignItems: 'center',
         paddingHorizontal: 16,
         paddingVertical: 11,
-        backgroundColor: pressed ? '#2C2C2E' : 'transparent',
+        backgroundColor: pressed ? colors.bg.hover : 'transparent',
         minHeight: 44,
       })}
     >
@@ -42,28 +44,28 @@ export function TemplateBlockCard({ block, lifeBlock, onPress }: TemplateBlockCa
           width: 29,
           height: 29,
           borderRadius: 7,
-          backgroundColor: lifeBlock?.color || '#8E8E93',
+          backgroundColor: lifeBlock?.color || colors.system.gray,
           alignItems: 'center',
           justifyContent: 'center',
           marginRight: 12,
         }}
       >
-        <Text style={{ fontSize: 14 }}>{lifeBlock?.emoji || '⬜'}</Text>
+        <Text style={{ fontSize: typography.sizes.base }}>{lifeBlock?.emoji || '⬜'}</Text>
       </View>
 
       <View style={{ flex: 1 }}>
-        <Text style={{ fontSize: 17, color: '#FFFFFF', letterSpacing: -0.41 }}>
+        <Text style={{ fontSize: typography.sizes.lg, color: colors.text.primary, letterSpacing: -0.41 }}>
           {block.title || lifeBlock?.name || 'Bloc'}
         </Text>
-        <Text style={{ fontSize: 13, color: '#EBEBF599', marginTop: 1 }}>
+        <Text style={{ fontSize: typography.sizes.sm, color: colors.text.secondary, marginTop: 1 }}>
           {block.startTime} – {block.endTime} · {formatDuration(block.startTime, block.endTime)}
         </Text>
       </View>
 
       {block.isFlexible && (
-        <Text style={{ fontSize: 12, color: '#EBEBF54D', marginRight: 4 }}>Flex</Text>
+        <Text style={{ fontSize: typography.sizes.xs, color: colors.text.quaternary, marginRight: 4 }}>Flex</Text>
       )}
-      <Ionicons name="chevron-forward" size={14} color="#EBEBF54D" />
+      <Ionicons name="chevron-forward" size={14} color={colors.text.quaternary} />
     </Pressable>
   );
 }

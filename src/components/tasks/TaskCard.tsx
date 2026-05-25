@@ -53,7 +53,7 @@ export function TaskCard({ task, onToggle, onDelete }: TaskCardProps) {
         }}
       >
         {done && (
-          <Symbol name={SymbolNames.checkmark} size={13} color="#FFFFFF" />
+          <Symbol name={SymbolNames.checkmark} size={13} color={colors.text.inverse} />
         )}
       </Pressable>
 
