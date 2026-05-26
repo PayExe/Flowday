@@ -32,7 +32,7 @@ function getBlockTimeSpent(
 // ─── Screen ──────────────────────────────────────────────────
 
 export default function BlocksScreen() {
-  const { colors } = useTheme();
+  const { colors, typography } = useTheme();
   const [modalVisible, setModalVisible] = useState(false);
   const [editingBlock, setEditingBlock] = useState<LifeBlock | null>(null);
 
@@ -165,7 +165,7 @@ export default function BlocksScreen() {
         ListFooterComponent={
           archivedBlocks.length > 0 ? (
             <View style={{ marginTop: 24 }}>
-              <Text style={[styles.sectionHeader, { color: colors.text.secondary }]}>
+              <Text style={[typography.sectionHeader, { paddingHorizontal: 32, paddingTop: 28, paddingBottom: 8 }]}>
                 Archivés
               </Text>
               <View
@@ -203,14 +203,14 @@ export default function BlocksScreen() {
                       >
                         <Text style={{ fontSize: 16 }}>{block.emoji}</Text>
                       </View>
-                      <Text style={{ flex: 1, fontSize: 17, color: colors.text.primary, letterSpacing: -0.41 }}>
+                      <Text style={{ flex: 1, fontSize: typography.sizes.lg, color: colors.text.primary, letterSpacing: -0.41 }}>
                         {block.name}
                       </Text>
                       <Pressable
                         onPress={() => unarchiveBlock(block.id)}
                         hitSlop={8}
                       >
-                        <Text style={{ fontSize: 15, color: colors.system.blue }}>Restaurer</Text>
+                        <Text style={{ fontSize: typography.sizes.base, color: colors.system.blue }}>Restaurer</Text>
                       </Pressable>
                     </Pressable>
                     {index < archivedBlocks.length - 1 && (
@@ -256,12 +256,5 @@ const styles = StyleSheet.create({
     paddingTop: 8,
     paddingBottom: 32,
   },
-  sectionHeader: {
-    fontSize: 13,
-    paddingHorizontal: 32,
-    paddingTop: 28,
-    paddingBottom: 8,
-    textTransform: 'uppercase',
-    letterSpacing: -0.08,
-  },
+
 });
