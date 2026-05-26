@@ -56,7 +56,7 @@ export default function TabsLayout() {
           title: 'Semaine',
           tabBarIcon: ({ color, focused }) => (
             <Symbol
-              name={focused ? SymbolNames.calendarBadgeClockFill : SymbolNames.calendarBadgeClock}
+              name={focused ? SymbolNames.clockFill : SymbolNames.clock}
               size={24}
               color={color}
               weight={focused ? 'semibold' : 'regular'}
