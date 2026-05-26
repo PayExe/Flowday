@@ -17,8 +17,16 @@ if (Platform.OS === 'ios') {
 const SF_TO_IONICON: Record<string, keyof typeof Ionicons.glyphMap> = {
   // Navigation & Tabs
   'house.fill': 'home',
+  'house': 'home-outline',
   'calendar': 'calendar-outline',
+  'calendar.fill': 'calendar',
+  'calendar.badge.clock': 'calendar-outline',
+  'calendar.badge.clock.fill': 'calendar',
   'square.stack.3d.up.fill': 'layers',
+  'square.grid.2x2': 'grid-outline',
+  'square.grid.2x2.fill': 'grid',
+  'gearshape': 'settings-outline',
+  'gearshape.fill': 'settings',
   'gearshape.fill': 'settings',
   'plus': 'add',
   'plus.circle.fill': 'add-circle',
@@ -218,9 +226,15 @@ export function Symbol({
  */
 export const SymbolNames = {
   home: 'house.fill',
+  homeOutline: 'house',
   calendar: 'calendar',
-  blocks: 'square.stack.3d.up.fill',
+  calendarFill: 'calendar.fill',
+  calendarBadgeClock: 'calendar.badge.clock',
+  calendarBadgeClockFill: 'calendar.badge.clock.fill',
+  blocks: 'square.grid.2x2',
+  blocksFill: 'square.grid.2x2.fill',
   settings: 'gearshape.fill',
+  settingsOutline: 'gearshape',
   add: 'plus',
   addCircle: 'plus.circle.fill',
   checkmark: 'checkmark',
