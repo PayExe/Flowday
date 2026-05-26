@@ -1154,3 +1154,1039 @@ Si tu dois overrider la couleur parce qu'elle n'est pas standard :
 
 Quand tu as corrigé un fichier, teste-le immédiatement (`npx expo start`) avant
 de passer au suivant. Ne fais jamais 10 fichiers d'un coup sans tester.
+
+---
+
+# 11 — TUTORIELS : Construire chaque type d'écran
+
+> Ces tutoriels t'apprennent à construire de zéro les 5 types d'écrans
+> qu'utilise Flowday. Chaque tuto est indépendant. Commence par le premier.
+
+---
+
+## TUTO 1 — Écran Dashboard (Accueil)
+
+> Modèle : `app/(tabs)/index.tsx`
+
+Un dashboard, c'est un **ScrollView vertical** avec des **sections empilées**.
+Chaque section = un titre (sectionHeader) + un contenu (groupe Apple ou carte).
+
+### Structure squelette
+
+```typescript
+import { View, Text, ScrollView } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { useTheme } from '../../src/theme';
+
+export default function MonDashboard() {
+  const { colors, typography } = useTheme();
+
+  return (
+    <SafeAreaView style={{ flex: 1, backgroundColor: colors.bg.primary }} edges={['top']}>
+      <ScrollView showsVerticalScrollIndicator={false}>
+
+        {/* ── HEADER ── */}
+        <View style={{ paddingHorizontal: 16, paddingTop: 16, paddingBottom: 8 }}>
+          <Text style={typography.screenTitle}>Mon App</Text>
+          <Text style={[typography.subheadline, { marginTop: 2 }]}>
+            mardi 26 mai
+          </Text>
+        </View>
+
+        {/* ── SECTION 1 : Carte simple ── */}
+        <View style={{ marginBottom: 24 }}>
+          <Text style={[typography.sectionHeader, { paddingHorizontal: 32, paddingBottom: 8 }]}>
+            Prochain bloc
+          </Text>
+          <View style={{
+            backgroundColor: colors.bg.secondary,
+            borderRadius: 13,
+            marginHorizontal: 16,
+            padding: 16,
+          }}>
+            <Text style={typography.headline}>🏃 Sport · 14h-15h</Text>
+            <Text style={[typography.footnote, { marginTop: 2 }]}>Salle de sport</Text>
+          </View>
+        </View>
+
+        {/* ── SECTION 2 : Groupe Apple (liste groupée) ── */}
+        <View style={{ marginBottom: 24 }}>
+          <Text style={[typography.sectionHeader, { paddingHorizontal: 32, paddingBottom: 8 }]}>
+            Tâches prioritaires
+          </Text>
+          <View style={{
+            backgroundColor: colors.bg.secondary,
+            borderRadius: 13,
+            marginHorizontal: 16,
+            overflow: 'hidden',
+          }}>
+            {/* Item 1 */}
+            <View style={{ paddingHorizontal: 16, paddingVertical: 12 }}>
+              <Text style={typography.body}>Faire une review de PR</Text>
+            </View>
+            {/* Séparateur indenté */}
+            <View style={{ height: 0.5, backgroundColor: colors.separator.hairline, marginLeft: 57 }} />
+            {/* Item 2 */}
+            <View style={{ paddingHorizontal: 16, paddingVertical: 12 }}>
+              <Text style={typography.body}>Terminer l'auth Supabase</Text>
+            </View>
+          </View>
+        </View>
+
+        {/* ── SECTION 3 : Bannière cliquable ── */}
+        <View style={{ marginBottom: 24, marginHorizontal: 16 }}>
+          <Pressable style={({ pressed }) => ({
+            flexDirection: 'row',
+            alignItems: 'center',
+            backgroundColor: pressed ? colors.bg.hover : colors.bg.secondary,
+            borderRadius: 13,
+            paddingHorizontal: 16,
+            paddingVertical: 14,
+            borderLeftWidth: 3,
+            borderLeftColor: colors.system.orange,
+          })}>
+            <Text style={{ fontSize: 20, marginRight: 10 }}>🌅</Text>
+            <View style={{ flex: 1 }}>
+              <Text style={typography.headline}>Commencer la journée</Text>
+              <Text style={[typography.footnote, { marginTop: 2 }]}>Morning Ritual · 5 étapes</Text>
+            </View>
+            <Text style={{ color: colors.text.tertiary }}>›</Text>
+          </Pressable>
+        </View>
+
+        {/* Marge basse pour le scroll */}
+        <View style={{ height: 40 }} />
+      </ScrollView>
+    </SafeAreaView>
+  );
+}
+```
+
+### Ce qu'il faut retenir
+
+| Pattern | Code signature |
+|---|---|
+| Header d'écran | `typography.screenTitle` + `typography.subheadline`, padding 16 |
+| Titre de section | `typography.sectionHeader` + paddingHorizontal: 32 + paddingBottom: 8 |
+| Groupe Apple | `borderRadius: 13`, `overflow: 'hidden'`, `colors.bg.secondary` |
+| Séparateur entre items | `height: 0.5`, `colors.separator.hairline`, `marginLeft: 57` |
+| Carte simple | Mêmes propriétés que groupe, mais `padding: 16` direct |
+| Bannière action | `borderLeftWidth: 3` + couleur système, `Pressable` englobant |
+| Fond de l'écran | `SafeAreaView` avec `colors.bg.primary` |
+| Marge de fin de scroll | `<View style={{ height: 40 }} />` tout en bas |
+
+### Exercice : crée ta propre page "Stats" avec
+
+- Header : "Stats" + date
+- Section 1 : une carte avec un gros chiffre (score) et un label
+- Section 2 : un groupe Apple avec 3 items (streaks, sessions, tâches)
+- Section 3 : une bannière verte avec un message
+
+---
+
+## TUTO 2 — Écran Réglages (Settings)
+
+> Modèle : `app/(tabs)/settings.tsx`
+
+Un écran de réglages iOS, c'est une **liste de groupes** (les fameuses cellules
+d'inset groupé d'Apple). Chaque groupe a un fond grisé, des rangées cliquables,
+et un séparateur indenté entre chaque rangée.
+
+### Structure squelette
+
+```typescript
+import { View, Text, Pressable, ScrollView, Switch } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { useTheme } from '../../src/theme';
+
+export default function MonSettings() {
+  const { colors, typography } = useTheme();
+  const [notifications, setNotifications] = useState(false);
+
+  return (
+    <SafeAreaView style={{ flex: 1, backgroundColor: colors.bg.primary }} edges={['top']}>
+      <ScrollView showsVerticalScrollIndicator={false}>
+
+        {/* Header */}
+        <View style={{ paddingHorizontal: 16, paddingTop: 16, paddingBottom: 8 }}>
+          <Text style={typography.screenTitle}>Réglages</Text>
+        </View>
+
+        {/* ── GROUPE 1 ── */}
+        <View style={{ marginBottom: 24 }}>
+          <Text style={[typography.sectionHeader, { paddingHorizontal: 32, paddingBottom: 8 }]}>
+            Général
+          </Text>
+          <View style={{
+            backgroundColor: colors.bg.secondary,
+            borderRadius: 13,
+            marginHorizontal: 16,
+            overflow: 'hidden',
+          }}>
+            {/* Rangée 1 */}
+            <View style={{ paddingHorizontal: 16, paddingVertical: 12 }}>
+              <Text style={typography.body}>Thème</Text>
+            </View>
+
+            <View style={{ height: 0.5, backgroundColor: colors.separator.hairline, marginLeft: 57 }} />
+
+            {/* Rangée 2 */}
+            <View style={{
+              flexDirection: 'row',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              paddingHorizontal: 16,
+              paddingVertical: 12,
+            }}>
+              <Text style={typography.body}>Notifications</Text>
+              <Switch value={notifications} onValueChange={setNotifications} />
+            </View>
+          </View>
+        </View>
+
+        {/* ── GROUPE 2 ── */}
+        <View style={{ marginBottom: 24 }}>
+          <Text style={[typography.sectionHeader, { paddingHorizontal: 32, paddingBottom: 8 }]}>
+            Infos
+          </Text>
+          <View style={{
+            backgroundColor: colors.bg.secondary,
+            borderRadius: 13,
+            marginHorizontal: 16,
+            overflow: 'hidden',
+          }}>
+            <View style={{
+              flexDirection: 'row',
+              justifyContent: 'space-between',
+              paddingHorizontal: 16,
+              paddingVertical: 12,
+            }}>
+              <Text style={typography.body}>Version</Text>
+              <Text style={[typography.body, { color: colors.text.secondary }]}>1.0.0</Text>
+            </View>
+          </View>
+        </View>
+
+      </ScrollView>
+    </SafeAreaView>
+  );
+}
+```
+
+### Pattern iOS exact pour une cellule de réglages
+
+```typescript
+// Cellule cliquable avec chevron
+<Pressable
+  style={({ pressed }) => ({
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    backgroundColor: pressed ? colors.bg.hover : 'transparent',
+  })}
+  onPress={() => {}}
+>
+  <Text style={typography.body}>Libellé</Text>
+  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+    <Text style={[typography.body, { color: colors.text.secondary }]}>Valeur</Text>
+    <Text style={{ color: colors.text.tertiary }}>›</Text>
+  </View>
+</Pressable>
+```
+
+### Ce qu'il faut retenir
+
+| Élément | Code |
+|---|---|
+| Fond du groupe | `colors.bg.secondary` + `borderRadius: 13` |
+| Cellule simple | `paddingVertical: 12`, `paddingHorizontal: 16` |
+| Cellule avec switch/chevron | `flexDirection: 'row', justifyContent: 'space-between'` |
+| Pressed state | `({ pressed }) => ({ backgroundColor: pressed ? colors.bg.hover : 'transparent' })` |
+| Valeur secondaire | `colors.text.secondary` (à droite du libellé) |
+| Footer de groupe | `<Text style={[typography.footnote, { paddingHorizontal: 32, marginTop: 8 }]}>` |
+
+### Exercice : ajoute un 3e groupe "Compte" avec
+
+- Une cellule "Email" avec valeur secondaire
+- Une cellule "Déconnexion" en rouge (`colors.system.red`)
+- Un texte de footer explicatif sous le groupe
+
+---
+
+## TUTO 3 — Écran de Liste (Blocs, Tâches)
+
+> Modèles : `app/(tabs)/blocks.tsx`, `app/(tabs)/week.tsx`
+
+Une liste d'entités (blocs, templates...) = un groupe Apple + des **cartes**.
+Chaque carte est un composant réutilisable.
+
+### Le composant "Carte" type
+
+```typescript
+// Fichier : MonItemCard.tsx
+import { View, Text } from 'react-native';
+import { useTheme } from '../../theme';
+
+interface MonItemCardProps {
+  emoji: string;
+  name: string;
+  subtitle: string;
+  color: string;
+}
+
+export function MonItemCard({ emoji, name, subtitle, color }: MonItemCardProps) {
+  const { colors, typography } = useTheme();
+
+  return (
+    <View style={{
+      flexDirection: 'row',
+      alignItems: 'center',
+      paddingHorizontal: 16,
+      paddingVertical: 14,
+      gap: 12,
+    }}>
+      {/* Pastille de couleur */}
+      <View style={{
+        width: 36,
+        height: 36,
+        borderRadius: 9,
+        backgroundColor: color,
+        alignItems: 'center',
+        justifyContent: 'center',
+      }}>
+        <Text style={{ fontSize: 18 }}>{emoji}</Text>
+      </View>
+
+      {/* Contenu texte */}
+      <View style={{ flex: 1 }}>
+        <Text style={typography.headline}>{name}</Text>
+        <Text style={[typography.footnote, { marginTop: 2 }]}>{subtitle}</Text>
+      </View>
+
+      {/* Chevron */}
+      <Text style={{ color: colors.text.tertiary, fontSize: 16 }}>›</Text>
+    </View>
+  );
+}
+```
+
+### L'écran qui utilise la carte
+
+```typescript
+export default function MaListe() {
+  const { colors, typography } = useTheme();
+  const mesItems = [
+    { id: '1', emoji: '🏃', name: 'Sport', subtitle: '3h/semaine', color: '#30D158' },
+    { id: '2', emoji: '💻', name: 'Work', subtitle: '35h/semaine', color: '#0A84FF' },
+    { id: '3', emoji: '📚', name: 'Lecture', subtitle: '2h/semaine', color: '#BF5AF2' },
+  ];
+
+  return (
+    <SafeAreaView style={{ flex: 1, backgroundColor: colors.bg.primary }} edges={['top']}>
+      <View style={{ paddingHorizontal: 16, paddingTop: 16, paddingBottom: 8 }}>
+        <Text style={typography.screenTitle}>Mes Blocs</Text>
+      </View>
+
+      <ScrollView showsVerticalScrollIndicator={false}>
+        <View style={{
+          backgroundColor: colors.bg.secondary,
+          borderRadius: 13,
+          marginHorizontal: 16,
+          overflow: 'hidden',
+        }}>
+          {mesItems.map((item, index) => (
+            <View key={item.id}>
+              <MonItemCard {...item} />
+              {index < mesItems.length - 1 && (
+                <View style={{
+                  height: 0.5,
+                  backgroundColor: colors.separator.hairline,
+                  marginLeft: 57,
+                }} />
+              )}
+            </View>
+          ))}
+        </View>
+
+        {/* Section "Archivés" séparée */}
+        <View style={{ marginTop: 24 }}>
+          <Text style={[typography.sectionHeader, { paddingHorizontal: 32, paddingBottom: 8 }]}>
+            Archivés
+          </Text>
+          <View style={{
+            backgroundColor: colors.bg.secondary,
+            borderRadius: 13,
+            marginHorizontal: 16,
+            overflow: 'hidden',
+          }}>
+            {/* Cartes archivées ici */}
+          </View>
+        </View>
+
+        <View style={{ height: 40 }} />
+      </ScrollView>
+    </SafeAreaView>
+  );
+}
+```
+
+### Ce qu'il faut retenir
+
+| Concept | Code |
+|---|---|
+| Extraire une carte en composant | `export function MaCarte({ ... }: Props) { ... }` |
+| Pastille colorée | `width: 36, height: 36, borderRadius: 9, backgroundColor: color` |
+| Séparateur indenté entre cartes | `marginLeft: 57` (57 = padding 16 + pastille 36 + gap 12 - ajustement) |
+| Deux groupes séparés (actif/archivé) | Deux `<View>` avec `marginTop: 24` entre eux |
+| Bouton "Ajouter" | En bas de l'écran ou en header, icône `+` |
+
+### Exercice : crée une liste de "Projets"
+
+- Un composant `ProjectCard` (emoji, nom, deadline, couleur)
+- Une liste groupée de 4 projets
+- Un bouton "Nouveau projet" en bas
+
+---
+
+## TUTO 4 — Écran Timeline / Planning
+
+> Modèle : `app/(tabs)/planning.tsx`
+
+Une timeline verticale, c'est un **ScrollView avec des éléments positionnés en
+absolu** (position: absolute, top, height) calibrés sur une grille horaire.
+
+### Version simplifiée (sans position absolute)
+
+Pour apprendre, commence par une version simple : chaque bloc est un rectangle
+de hauteur proportionnelle à sa durée, empilé dans une View normale.
+
+```typescript
+const HOUR_HEIGHT = 60; // 1 heure = 60 pixels
+const START_HOUR = 6;
+
+interface Bloc {
+  startTime: string; // "09:00"
+  endTime: string;   // "12:00"
+  title: string;
+  color: string;
+}
+
+function TimelineSimple({ blocs }: { blocs: Bloc[] }) {
+  const { colors, typography } = useTheme();
+
+  const sorted = [...blocs].sort((a, b) => a.startTime.localeCompare(b.startTime));
+
+  return (
+    <View>
+      {sorted.map((bloc, i) => {
+        const [sh, sm] = bloc.startTime.split(':').map(Number);
+        const [eh, em] = bloc.endTime.split(':').map(Number);
+        const dureeMinutes = (eh * 60 + em) - (sh * 60 + sm);
+        const height = (dureeMinutes / 60) * HOUR_HEIGHT;
+
+        return (
+          <View key={i} style={{
+            flexDirection: 'row',
+            marginBottom: 4,
+          }}>
+            {/* Heure à gauche */}
+            <View style={{ width: 52, alignItems: 'flex-end', paddingRight: 10, paddingTop: 8 }}>
+              <Text style={{ fontSize: typography.sizes.xs, color: colors.text.quaternary }}>
+                {bloc.startTime}
+              </Text>
+            </View>
+
+            {/* Bloc coloré */}
+            <View style={{
+              flex: 1,
+              height,
+              backgroundColor: colors.bg.secondary,
+              borderLeftWidth: 3,
+              borderLeftColor: bloc.color,
+              borderRadius: 10,
+              padding: 10,
+              marginRight: 16,
+            }}>
+              <Text style={typography.headline}>{bloc.title}</Text>
+              <Text style={typography.footnote}>
+                {bloc.startTime} – {bloc.endTime}
+              </Text>
+            </View>
+          </View>
+        );
+      })}
+    </View>
+  );
+}
+```
+
+### L'écran Planning complet
+
+```typescript
+export default function MonPlanning() {
+  const { colors, typography } = useTheme();
+  const [taches, setTaches] = useState([...]);
+  const [nouvelleTache, setNouvelleTache] = useState('');
+
+  const blocsDuJour = [
+    { startTime: '09:00', endTime: '12:00', title: 'Deep Work', color: '#0A84FF' },
+    { startTime: '12:00', endTime: '13:00', title: 'Déjeuner', color: '#FF9F0A' },
+    { startTime: '14:00', endTime: '18:00', title: 'Work', color: '#0A84FF' },
+    { startTime: '19:00', endTime: '20:00', title: 'Sport', color: '#30D158' },
+  ];
+
+  return (
+    <SafeAreaView style={{ flex: 1, backgroundColor: colors.bg.primary }} edges={['top']}>
+      <ScrollView showsVerticalScrollIndicator={false}>
+        {/* Header */}
+        <View style={{ paddingHorizontal: 16, paddingTop: 16, paddingBottom: 8 }}>
+          <Text style={typography.screenTitle}>Planning</Text>
+          <Text style={typography.subheadline}>mardi 26 mai</Text>
+        </View>
+
+        {/* Section : Ajout rapide de tâche */}
+        <View style={{ marginHorizontal: 16, marginBottom: 24 }}>
+          <View style={{
+            backgroundColor: colors.bg.secondary,
+            borderRadius: 13,
+            overflow: 'hidden',
+          }}>
+            <View style={{ flexDirection: 'row', alignItems: 'center', paddingHorizontal: 12, paddingVertical: 4 }}>
+              <Text style={{ fontSize: 22, color: colors.system.blue }}>+</Text>
+              <TextInput
+                style={{
+                  flex: 1,
+                  fontSize: typography.sizes.lg,
+                  color: colors.text.primary,
+                  paddingVertical: 10,
+                  marginLeft: 4,
+                }}
+                placeholder="Nouvelle tâche..."
+                placeholderTextColor={colors.text.placeholder}
+                value={nouvelleTache}
+                onChangeText={setNouvelleTache}
+              />
+            </View>
+          </View>
+        </View>
+
+        {/* Section : Tâches du jour */}
+        {taches.length > 0 && (
+          <View style={{ marginBottom: 24 }}>
+            <Text style={[typography.sectionHeader, { paddingHorizontal: 32, paddingBottom: 8 }]}>
+              Tâches
+            </Text>
+            <View style={{
+              backgroundColor: colors.bg.secondary,
+              borderRadius: 13,
+              marginHorizontal: 16,
+              overflow: 'hidden',
+            }}>
+              {taches.map((t, i) => (
+                <View key={t.id}>
+                  <View style={{ paddingHorizontal: 16, paddingVertical: 10 }}>
+                    <Text style={[
+                      typography.body,
+                      t.done && { color: colors.text.quaternary, textDecorationLine: 'line-through' }
+                    ]}>
+                      {t.title}
+                    </Text>
+                  </View>
+                  {i < taches.length - 1 && (
+                    <View style={{ height: 0.5, backgroundColor: colors.separator.hairline, marginLeft: 57 }} />
+                  )}
+                </View>
+              ))}
+            </View>
+          </View>
+        )}
+
+        {/* Section : Timeline */}
+        <View style={{ marginBottom: 24 }}>
+          <Text style={[typography.sectionHeader, { paddingHorizontal: 32, paddingBottom: 8 }]}>
+            Planning
+          </Text>
+          <TimelineSimple blocs={blocsDuJour} />
+        </View>
+
+        <View style={{ height: 100 }} />
+      </ScrollView>
+    </SafeAreaView>
+  );
+}
+```
+
+### Ce qu'il faut retenir
+
+| Concept | Explication |
+|---|---|
+| `HOUR_HEIGHT = 60` | 1 heure = 60px de hauteur dans la timeline |
+| Hauteur d'un bloc | `(durée en minutes / 60) * HOUR_HEIGHT` |
+| Input d'ajout rapide | Dans un groupe Apple, avec l'icône `+` à gauche |
+| Tâches en groupe | Comme un groupe Apple classique, avec checkbox |
+| `borderLeftWidth: 3` | La barre de couleur à gauche du bloc |
+| `marginLeft: 57` | Le séparateur indenté (toujours le même) |
+
+### Exercice : crée ta propre timeline
+
+- 4 blocs du matin (06h-12h)
+- Affiche les heures à gauche de chaque bloc
+- Ajoute une section "Tâches du matin" au-dessus
+
+---
+
+## TUTO 5 — Écran à étapes (Ritual, Onboarding)
+
+> Modèles : `app/morning-ritual.tsx`, `app/evening-wrap.tsx`
+
+Un écran à étapes, c'est un **état local** (`useState`) qui dit à quelle étape
+on est, et un **rendu conditionnel** : chaque étape affiche un contenu différent.
+
+### Version simple (3 étapes)
+
+```typescript
+import { useState } from 'react';
+import { View, Text, Pressable, TextInput } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { useTheme } from '../../src/theme';
+
+export default function MonRitual() {
+  const { colors, typography } = useTheme();
+  const [etape, setEtape] = useState(0); // 0, 1, 2
+  const [humeur, setHumeur] = useState<string | null>(null);
+  const [intention, setIntention] = useState('');
+
+  const TOTAL_ETAPES = 3;
+
+  const suivant = () => {
+    if (etape < TOTAL_ETAPES - 1) setEtape(etape + 1);
+    else terminer();
+  };
+
+  const terminer = () => {
+    // Sauvegarde dans le store
+    console.log('Terminé !', { humeur, intention });
+  };
+
+  const progres = ((etape + 1) / TOTAL_ETAPES) * 100;
+
+  return (
+    <SafeAreaView style={{ flex: 1, backgroundColor: colors.bg.primary }}>
+      {/* Barre de progression */}
+      <View style={{ height: 3, backgroundColor: colors.bg.hover }}>
+        <View style={{
+          width: `${progres}%`,
+          height: '100%',
+          backgroundColor: colors.system.blue,
+        }} />
+      </View>
+
+      {/* Contenu de l'étape */}
+      <View style={{ flex: 1, padding: 16 }}>
+        <Text style={[typography.footnote, { marginBottom: 8 }]}>
+          Étape {etape + 1} sur {TOTAL_ETAPES}
+        </Text>
+
+        {/* ── ÉTAPE 0 ── */}
+        {etape === 0 && (
+          <View>
+            <Text style={typography.title2}>Comment te sens-tu ?</Text>
+            <View style={{ flexDirection: 'row', gap: 16, marginTop: 20 }}>
+              {['😔', '😐', '😊'].map((emoji) => (
+                <Pressable
+                  key={emoji}
+                  onPress={() => setHumeur(emoji)}
+                  style={{
+                    width: 64,
+                    height: 64,
+                    borderRadius: 32,
+                    backgroundColor: humeur === emoji ? colors.system.blue : colors.bg.secondary,
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                  }}
+                >
+                  <Text style={{ fontSize: 28 }}>{emoji}</Text>
+                </Pressable>
+              ))}
+            </View>
+          </View>
+        )}
+
+        {/* ── ÉTAPE 1 ── */}
+        {etape === 1 && (
+          <View>
+            <Text style={typography.title2}>Ton intention du jour</Text>
+            <TextInput
+              style={{
+                fontSize: typography.sizes.xl,
+                color: colors.text.primary,
+                marginTop: 20,
+                padding: 0,
+              }}
+              placeholder="Aujourd'hui, je veux..."
+              placeholderTextColor={colors.text.placeholder}
+              value={intention}
+              onChangeText={setIntention}
+              multiline
+            />
+          </View>
+        )}
+
+        {/* ── ÉTAPE 2 ── */}
+        {etape === 2 && (
+          <View>
+            <Text style={typography.title2}>Récapitulatif</Text>
+            <Text style={[typography.body, { marginTop: 16 }]}>
+              Ton humeur : {humeur}
+            </Text>
+            <Text style={[typography.body, { marginTop: 8 }]}>
+              Ton intention : {intention || 'Aucune'}
+            </Text>
+          </View>
+        )}
+      </View>
+
+      {/* Boutons en bas */}
+      <View style={{
+        flexDirection: 'row',
+        justifyContent: etape > 0 ? 'space-between' : 'flex-end',
+        paddingHorizontal: 16,
+        paddingBottom: 32,
+        paddingTop: 16,
+      }}>
+        {etape > 0 && (
+          <Pressable onPress={() => setEtape(etape - 1)}>
+            <Text style={[typography.body, { color: colors.text.secondary }]}>
+              Retour
+            </Text>
+          </Pressable>
+        )}
+        <Pressable
+          onPress={suivant}
+          style={{
+            backgroundColor: colors.system.blue,
+            paddingHorizontal: 24,
+            paddingVertical: 14,
+            borderRadius: 10,
+          }}
+        >
+          <Text style={[typography.headline, { color: colors.text.inverse }]}>
+            {etape === TOTAL_ETAPES - 1 ? 'Terminer' : 'Continuer'}
+          </Text>
+        </Pressable>
+      </View>
+    </SafeAreaView>
+  );
+}
+```
+
+### Ce qu'il faut retenir
+
+| Concept | Code |
+|---|---|
+| État de l'étape | `const [etape, setEtape] = useState(0)` |
+| Rendu conditionnel | `{etape === 0 && <View>...</View>}` |
+| Barre de progression | `width: '${(etape+1)/total*100}%'` |
+| Bouton suivant vs terminer | `etape === total - 1 ? 'Terminer' : 'Continuer'` |
+| Données collectées | `useState` pour chaque champ (humeur, intention, note...) |
+| Sauvegarde finale | Appeler `terminer()` → écrit dans le store Zustand |
+
+### Exercice : crée un onboarding 4 étapes
+
+- Étape 0 : "Bienvenue" avec un texte et un bouton
+- Étape 1 : Sélection d'emoji (parmi 6 emojis)
+- Étape 2 : Saisie du prénom (TextInput)
+- Étape 3 : Récapitulatif + bouton "C'est parti"
+- Barre de progression en haut
+
+---
+
+## TUTO 6 — Écran Focus / Plein écran
+
+> Modèle : `app/focus.tsx`
+
+Un écran focus, c'est un **écran minimaliste** avec un **compte à rebours**
+(`setInterval`) et des **boutons** pour pause/reprendre/abandonner.
+
+### Version ultra simple
+
+```typescript
+import { useState, useEffect, useRef } from 'react';
+import { View, Text, Pressable } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { useTheme } from '../../src/theme';
+
+const DUREE = 25 * 60; // 25 minutes en secondes
+
+export default function MonFocus() {
+  const { colors, typography } = useTheme();
+  const [secondes, setSecondes] = useState(DUREE);
+  const [enPause, setEnPause] = useState(false);
+  const [demarre, setDemarre] = useState(false);
+  const intervalRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Tick chaque seconde
+  useEffect(() => {
+    if (demarre && !enPause && secondes > 0) {
+      intervalRef.current = setInterval(() => {
+        setSecondes((s) => s - 1);
+      }, 1000);
+    }
+    return () => {
+      if (intervalRef.current) clearInterval(intervalRef.current);
+    };
+  }, [demarre, enPause]);
+
+  // Fin du timer
+  useEffect(() => {
+    if (secondes === 0 && demarre) {
+      // Timer terminé !
+    }
+  }, [secondes]);
+
+  const minutes = Math.floor(secondes / 60);
+  const secs = secondes % 60;
+  const temps = `${minutes.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+
+  return (
+    <SafeAreaView style={{
+      flex: 1,
+      backgroundColor: colors.bg.primary,
+      alignItems: 'center',
+      justifyContent: 'center',
+    }}>
+      {/* Timer */}
+      <Text style={{
+        fontSize: typography.sizes.timer,
+        color: colors.text.primary,
+        fontWeight: '300',
+        letterSpacing: -1,
+      }}>
+        {temps}
+      </Text>
+
+      {/* Label mode */}
+      <Text style={[typography.subheadline, { marginTop: 8 }]}>
+        {enPause ? 'Pause' : 'Focus'}
+      </Text>
+
+      {/* Boutons */}
+      <View style={{ flexDirection: 'row', gap: 20, marginTop: 40 }}>
+        {!demarre ? (
+          <Pressable
+            onPress={() => setDemarre(true)}
+            style={{
+              backgroundColor: colors.system.blue,
+              paddingHorizontal: 32,
+              paddingVertical: 14,
+              borderRadius: 10,
+            }}
+          >
+            <Text style={[typography.headline, { color: colors.text.inverse }]}>
+              Démarrer
+            </Text>
+          </Pressable>
+        ) : (
+          <>
+            <Pressable
+              onPress={() => setEnPause(!enPause)}
+              style={{
+                backgroundColor: colors.bg.secondary,
+                paddingHorizontal: 24,
+                paddingVertical: 14,
+                borderRadius: 10,
+              }}
+            >
+              <Text style={typography.headline}>
+                {enPause ? 'Reprendre' : 'Pause'}
+              </Text>
+            </Pressable>
+
+            <Pressable
+              onPress={() => { setDemarre(false); setSecondes(DUREE); }}
+              style={{
+                paddingHorizontal: 24,
+                paddingVertical: 14,
+                borderRadius: 10,
+              }}
+            >
+              <Text style={[typography.headline, { color: colors.system.red }]}>
+                Abandonner
+              </Text>
+            </Pressable>
+          </>
+        )}
+      </View>
+    </SafeAreaView>
+  );
+}
+```
+
+### Ce qu'il faut retenir
+
+| Concept | Explication |
+|---|---|
+| `useRef` pour l'intervalle | Évite de perdre la référence entre renders |
+| `useEffect` + `setInterval` | Le tick du timer. Cleanup avec `clearInterval` |
+| Écran plein écran | `flex: 1` + `alignItems: 'center'` + `justifyContent: 'center'` |
+| Fond noir profond | `colors.bg.primary` = `#000000` (dark) |
+| Timer en light | `fontWeight: '300'` + `letterSpacing: -1` = style Apple |
+| Bouton abandonner | Rouge, discret, pas de fond |
+
+### Exercice : améliore le focus
+
+- Ajoute une barre de progression circulaire (avec `View` + `borderRadius`)
+- Alterne automatiquement 25 min focus / 5 min pause
+- Affiche le nombre de pomodoros complétés en bas
+
+---
+
+## RÉSUMÉ DES 6 PATTERNS
+
+| N° | Type d'écran | Signatures clés | Fichier modèle |
+|---|---|---|---|
+| 1 | Dashboard | ScrollView + sections + groupes Apple + bannières | `app/(tabs)/index.tsx` |
+| 2 | Réglages | Groupes avec cellules + switch/chevron + footer | `app/(tabs)/settings.tsx` |
+| 3 | Liste | Groupes + cartes composant + séparateurs indentés | `blocks.tsx`, `week.tsx` |
+| 4 | Timeline | Grille horaire + blocs positionnés + tâches embed | `app/(tabs)/planning.tsx` |
+| 5 | Étapes | useState(etape) + rendu conditionnel + barre de progres | `morning-ritual.tsx` |
+| 6 | Focus | setInterval + état pause/reprise + plein écran | `focus.tsx` |
+
+---
+
+## LES BASES ABSOLUES DE REACT NATIVE
+
+> 5 minutes de lecture avant de coder. Si tu comprends ça, tu comprends tout Flowday.
+
+### 1. Un composant = une fonction qui retourne du JSX
+
+```typescript
+export default function MonEcran() {
+  return (
+    <View>
+      <Text>Hello</Text>
+    </View>
+  );
+}
+```
+
+- `export default` = ce composant est la page (route Expo Router)
+- `function Nom()` = le composant
+- `return (<View>...</View>)` = ce qui s'affiche. Toujours UN seul élément racine.
+
+### 2. Le state local : useState
+
+```typescript
+const [compteur, setCompteur] = useState(0);
+
+// Lire : compteur
+// Modifier : setCompteur(compteur + 1)
+// React re-rend le composant automatiquement quand le state change
+```
+
+### 3. Les hooks fondamentaux
+
+```typescript
+useState(valeurInitiale)     // State local
+useEffect(() => { ... }, []) // Code exécuté au montage du composant
+useMemo(() => calcul, [dep]) // Valeur recalculée seulement si "dep" change
+useRef(valeurInitiale)       // Valeur persistante sans re-render
+```
+
+### 4. Le style : TOUT en JS, 0 CSS
+
+```typescript
+// Style inline (dans le JSX)
+<View style={{ backgroundColor: 'red', padding: 16 }}>
+
+// Style via StyleSheet (généralement en bas du fichier)
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#000',
+  },
+});
+// Usage : <View style={styles.container}>
+
+// Combiner 2 styles
+<Text style={[styles.titre, { color: 'red' }]}>
+```
+
+### 5. Layout Flexbox (obligatoire à connaître)
+
+```typescript
+flexDirection: 'row'      // Horizontal
+flexDirection: 'column'   // Vertical (défaut)
+justifyContent: 'center'  // Alignement axe principal
+alignItems: 'center'      // Alignement axe secondaire
+gap: 12                   // Espace entre enfants (React Native moderne)
+flex: 1                   // Prend tout l'espace disponible
+```
+
+### 6. Le cycle de vie d'un composant
+
+```
+1. Le composant est créé → la fonction s'exécute
+2. Le JSX est retourné → React Native l'affiche
+3. useEffect(() => {...}, []) s'exécute (une seule fois)
+4. L'utilisateur interagit → setState → retour à l'étape 1 (re-render)
+5. Le composant est retiré → cleanup des useEffect
+```
+
+### 7. Props : passer des données à un composant enfant
+
+```typescript
+// Définition
+function MaCarte({ titre, couleur }: { titre: string; couleur: string }) {
+  return (
+    <View style={{ backgroundColor: couleur }}>
+      <Text>{titre}</Text>
+    </View>
+  );
+}
+
+// Usage
+<MaCarte titre="Sport" couleur="#30D158" />
+```
+
+### 8. .map() : afficher une liste
+
+```typescript
+const items = ['Pomme', 'Banane', 'Orange'];
+
+{items.map((item, index) => (
+  <Text key={index}>{item}</Text>
+))}
+
+// key={...} est OBLIGATOIRE. Utilise un id unique si possible.
+```
+
+### 9. Conditionnel : afficher/cacher
+
+```typescript
+// SI condition ALORS affiche
+{score > 80 && <Text>Excellent !</Text>}
+
+// SI condition ALORS A SINON B
+{estCharge ? <Text>Chargé</Text> : <Text>Vide</Text>}
+```
+
+### 10. Pressable : rendre cliquable
+
+```typescript
+<Pressable
+  onPress={() => console.log('cliqué !')}
+  style={({ pressed }) => ({
+    backgroundColor: pressed ? '#333' : '#111',  // Changement au toucher
+    padding: 16,
+  })}
+>
+  <Text>Appuie ici</Text>
+</Pressable>
+```
+
+Voilà. Avec ces 10 concepts + les 6 patterns d'écran ci-dessus, tu peux
+comprendre 100% du code de Flowday et créer n'importe quel écran. Le reste,
+c'est juste de la répétition et de la lecture de doc.
