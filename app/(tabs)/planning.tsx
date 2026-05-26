@@ -250,12 +250,10 @@ export default function PlanningScreen() {
     <SafeAreaView style={[styles.container, { backgroundColor: colors.bg.primary }]} edges={['top']}>
       {/* Header */}
       <View style={styles.header}>
-        <View style={styles.headerTop}>
-          <View>
-            <Text style={[styles.headerTitle, { color: colors.text.primary }]}>Planning</Text>
-            <Text style={[styles.dateLabel, { color: colors.text.secondary }]}>{formatDateFr(new Date())}</Text>
-          </View>
-        </View>
+        <Text style={[typography.screenTitle, { color: colors.text.primary }]}>{formatDateFr(new Date())}</Text>
+        <Text style={[typography.subheadline, { color: colors.text.secondary, marginTop: 2 }]}>
+          {formatDuration(plannedMinutes)} planifiées
+        </Text>
       </View>
 
       {/* Séparateur hairline */}
@@ -496,7 +494,7 @@ export default function PlanningScreen() {
         style={{
           position: 'absolute',
           right: 16,
-          bottom: 24,
+          bottom: 88,
           width: 56,
           height: 56,
           borderRadius: 28,
@@ -526,20 +524,15 @@ const styles = StyleSheet.create({
     paddingTop: 12,
     paddingBottom: 8,
   },
-  headerTop: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-start',
-    marginBottom: 4,
-  },
+
 
   scroll: {
     flex: 1,
   },
   timelineContainer: {
     position: 'relative',
-    height: (END_HOUR - START_HOUR + 1) * HOUR_HEIGHT + 40,
-    paddingBottom: 40,
+    height: (END_HOUR - START_HOUR + 1) * HOUR_HEIGHT,
+    marginHorizontal: 16,
   },
   itemAbsolute: {
     position: 'absolute',
