@@ -24,7 +24,7 @@ function timeToMinutes(time: string): number {
 }
 
 export default function WeekScreen() {
-  const { colors } = useTheme();
+  const { colors, typography } = useTheme();
   const [modalVisible, setModalVisible] = useState(false);
   const [editingBlock, setEditingBlock] = useState<TemplateBlock | null>(null);
   const [editingDay, setEditingDay] = useState(0);
@@ -105,7 +105,7 @@ export default function WeekScreen() {
     return (
       <SafeAreaView style={[styles.container, { backgroundColor: colors.bg.primary }]} edges={['top']}>
         <View style={styles.header}>
-          <Text style={[styles.headerTitle, { color: colors.text.primary }]}>Semaine</Text>
+            <Text style={[typography.screenTitle, { color: colors.text.primary }]}>Semaine</Text>
           <Text style={[styles.headerSubtitle, { color: colors.text.secondary }]}>
             Définis ton template hebdomadaire
           </Text>
@@ -132,7 +132,7 @@ export default function WeekScreen() {
           </View>
         </View>
         {totalPlannedMinutes > 0 && (
-          <Text style={[styles.totalTime, { color: colors.text.quaternary }]}>
+          <Text style={[typography.footnote, { color: colors.text.quaternary }]}>
             {formatDuration(totalPlannedMinutes)} planifiées cette semaine
           </Text>
         )}
@@ -150,7 +150,7 @@ export default function WeekScreen() {
           return (
             <View key={dayIndex} style={{ marginBottom: 24 }}>
               <View style={styles.dayHeader}>
-                <Text style={[styles.dayTitle, { color: colors.text.primary }]}>{dayLabel}</Text>
+                <Text style={[typography.sectionHeader, { color: colors.text.primary }]}>{dayLabel}</Text>
                 <Pressable
                   style={({ pressed }) => ({
                     width: 28,
@@ -234,10 +234,7 @@ const styles = StyleSheet.create({
     alignItems: 'flex-end',
   },
 
-  totalTime: {
-    fontSize: 13,
-    marginTop: 8,
-  },
+
   scroll: {
     flex: 1,
   },
@@ -248,9 +245,5 @@ const styles = StyleSheet.create({
     marginHorizontal: 16,
     marginBottom: 8,
   },
-  dayTitle: {
-    fontSize: 20,
-    fontWeight: '600',
-    letterSpacing: 0.38,
-  },
+
 });
