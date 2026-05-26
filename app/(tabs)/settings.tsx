@@ -55,12 +55,12 @@ export default function SettingsScreen() {
       >
         <Symbol name={icon} size={16} color={colors.text.inverse} />
       </View>
-      <Text style={{ flex: 1, fontSize: 17, color: colors.text.primary, letterSpacing: -0.41 }}>
+      <Text style={{ flex: 1, fontSize: typography.sizes.lg, color: colors.text.primary, letterSpacing: -0.41 }}>
         {label}
       </Text>
       {typeof value === 'string' ? (
         <>
-          <Text style={{ fontSize: 17, color: colors.text.secondary, marginRight: 6 }}>{value}</Text>
+          <Text style={{ fontSize: typography.sizes.lg, color: colors.text.secondary, marginRight: 6 }}>{value}</Text>
           {onPress && <Symbol name={SymbolNames.chevronRight} size={14} color={colors.text.tertiary} />}
         </>
       ) : (
@@ -82,7 +82,7 @@ export default function SettingsScreen() {
         {children}
       </View>
       {footer && (
-        <Text style={{ fontSize: 13, color: colors.text.secondary, paddingHorizontal: 32, paddingTop: 8 }}>
+        <Text style={{ fontSize: typography.sizes.sm, color: colors.text.secondary, paddingHorizontal: 32, paddingTop: 8 }}>
           {footer}
         </Text>
       )}
@@ -102,7 +102,7 @@ export default function SettingsScreen() {
 
       <ScrollView showsVerticalScrollIndicator={false}>
         {/* Thème — Segmented Control natif iOS */}
-        <Text style={[styles.sectionHeader, { color: colors.text.secondary }]}>Thème</Text>
+        <Text style={[typography.sectionHeader, { paddingHorizontal: 32, paddingTop: 28, paddingBottom: 8 }]}>Thème</Text>
         <View style={{ marginHorizontal: 16, marginBottom: 24 }}>
           <SegmentedControl
             values={themes.map((t) => t.label)}
@@ -119,7 +119,7 @@ export default function SettingsScreen() {
         </View>
 
         {/* Morning Ritual */}
-        <Text style={[styles.sectionHeader, { color: colors.text.secondary }]}>Morning Ritual</Text>
+        <Text style={[typography.sectionHeader, { paddingHorizontal: 32, paddingTop: 28, paddingBottom: 8 }]}>Morning Ritual</Text>
         {renderGroup(
           <>
             {renderCell(
@@ -148,7 +148,7 @@ export default function SettingsScreen() {
         )}
 
         {/* Evening Wrap */}
-        <Text style={[styles.sectionHeader, { color: colors.text.secondary }]}>Evening Wrap</Text>
+        <Text style={[typography.sectionHeader, { paddingHorizontal: 32, paddingTop: 28, paddingBottom: 8 }]}>Evening Wrap</Text>
         {renderGroup(
           <>
             {renderCell(
@@ -177,8 +177,8 @@ export default function SettingsScreen() {
 
         {/* About */}
         <View style={{ marginTop: 24, alignItems: 'center', paddingVertical: 32 }}>
-          <Text style={{ fontSize: 13, color: colors.text.tertiary }}>Flowday v1.0</Text>
-          <Text style={{ fontSize: 12, color: colors.text.quaternary, marginTop: 4 }}>Built with Expo</Text>
+          <Text style={{ fontSize: typography.sizes.sm, color: colors.text.tertiary }}>Flowday v1.0</Text>
+          <Text style={{ fontSize: typography.sizes.xs, color: colors.text.quaternary, marginTop: 4 }}>Built with Expo</Text>
         </View>
       </ScrollView>
     </SafeAreaView>
@@ -195,12 +195,5 @@ const styles = StyleSheet.create({
     paddingBottom: 8,
   },
 
-  sectionHeader: {
-    fontSize: 13,
-    paddingHorizontal: 32,
-    paddingTop: 28,
-    paddingBottom: 8,
-    textTransform: 'uppercase',
-    letterSpacing: -0.08,
-  },
+
 });
