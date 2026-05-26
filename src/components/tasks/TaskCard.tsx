@@ -21,7 +21,7 @@ function priorityColor(priority: string, colors: any): string {
 }
 
 export function TaskCard({ task, onToggle, onDelete }: TaskCardProps) {
-  const { colors } = useTheme();
+  const { colors, typography } = useTheme();
   const done = task.completed;
   const pColor = priorityColor(task.priority, colors);
 
@@ -61,7 +61,7 @@ export function TaskCard({ task, onToggle, onDelete }: TaskCardProps) {
       <View style={{ flex: 1 }}>
         <Text
           style={{
-            fontSize: 17,
+            fontSize: typography.sizes.lg,
             color: done ? colors.text.quaternary : colors.text.primary,
             letterSpacing: -0.41,
             textDecorationLine: done ? 'line-through' : 'none',
