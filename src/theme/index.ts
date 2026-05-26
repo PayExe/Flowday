@@ -52,5 +52,4 @@ export function useTheme() {
 // ─── Legacy static exports (compatibilité) ───────────────────
 // ⚠️  Ces imports sont figés en dark mode.
 //    Préférez useTheme() dans les nouveaux composants.
-export { ColorsDark as Colors };
 export const Typography = getTypography(true);

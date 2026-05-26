@@ -376,5 +376,4 @@ export function getTypography(isDark: boolean) {
 
 // ─── Legacy static exports (pour compatibilité non-hook) ─────
 // ⚠️  Ces valeurs sont en dark mode. Utilisez useTheme() pour le dynamique.
-export const Colors = ColorsDark;
 export const Typography = getTypography(true);
