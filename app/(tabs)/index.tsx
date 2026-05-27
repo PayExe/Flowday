@@ -57,6 +57,7 @@ export default function HomeScreen() {
   const tasks = useTaskStore((state) => state.tasks);
   const toggleTask = useTaskStore((state) => state.toggleTask);
   const deleteTask = useTaskStore((state) => state.deleteTask);
+  const addTask = useTaskStore((state) => state.addTask);
   const getIncompleteTodayTasks = useTaskStore((state) => state.getIncompleteTodayTasks);
 
   const incompleteTasks = useMemo(() => {
@@ -118,13 +119,47 @@ export default function HomeScreen() {
   // ─── Streaks ────────────────────────────────────────────────
   const streaks = useMemo(() => calculateStreaks(scores), [scores]);
 
+  const handleQuickAdd = () => {
+    Alert.prompt(
+      'Nouvelle tâche',
+      '',
+      (title) => {
+        if (title && title.trim()) {
+          addTask({
+            title: title.trim(),
+            completed: false,
+            priority: 'medium',
+            scheduledDate: todayISO(),
+          });
+        }
+      },
+      'plain-text',
+      '',
+    );
+  };
+
   // ─── Render ──────────────────────────────────────────────────
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.bg.primary }]} edges={['top']}>
       <ScrollView showsVerticalScrollIndicator={false}>
         {/* Header */}
         <View style={styles.header}>
-          <Text style={[typography.screenTitle, { color: colors.text.primary }]}>Accueil</Text>
+          <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+            <Text style={[typography.screenTitle, { color: colors.text.primary }]}>Accueil</Text>
+            <Pressable
+              style={{
+                width: 32,
+                height: 32,
+                borderRadius: 16,
+                backgroundColor: colors.system.blue,
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}
+              onPress={handleQuickAdd}
+            >
+              <Symbol name={SymbolNames.add} size={18} color={colors.text.inverse} />
+            </Pressable>
+          </View>
           <Text style={[typography.subheadline, { marginTop: 2 }]}>
             {formatDateFr(new Date())}
           </Text>

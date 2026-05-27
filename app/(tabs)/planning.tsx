@@ -6,6 +6,7 @@ import {
   ScrollView,
   StyleSheet,
   Pressable,
+  Animated,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
@@ -70,6 +71,8 @@ export default function PlanningScreen() {
   const [nowY, setNowY] = useState(currentMinutesSinceStart() * (HOUR_HEIGHT / 60));
   const [newTaskTitle, setNewTaskTitle] = useState('');
   const [selectedBlockId, setSelectedBlockId] = useState<string | undefined>(undefined);
+  const [showNowButton, setShowNowButton] = useState(false);
+  const fabOpacity = useRef(new Animated.Value(1)).current;
 
   const tasks = useTaskStore((state) => state.tasks);
   const addTask = useTaskStore((state) => state.addTask);
@@ -268,11 +271,43 @@ export default function PlanningScreen() {
       {/* Séparateur hairline */}
       <View style={{ height: 0.5, backgroundColor: colors.separator.default, marginHorizontal: 16 }} />
 
+      {/* Bouton "Maintenant" */}
+      {showNowButton && (
+        <Pressable
+          style={{
+            position: 'absolute',
+            top: 110,
+            alignSelf: 'center',
+            backgroundColor: colors.system.blue,
+            borderRadius: 20,
+            paddingHorizontal: 16,
+            paddingVertical: 8,
+            zIndex: 20,
+            shadowColor: '#000',
+            shadowOffset: { width: 0, height: 2 },
+            shadowOpacity: 0.2,
+            shadowRadius: 4,
+            elevation: 4,
+          }}
+          onPress={() => {
+            scrollRef.current?.scrollTo({ y: Math.max(0, nowY - 120), animated: true });
+            setShowNowButton(false);
+          }}
+        >
+          <Text style={{ fontSize: typography.sizes.base, fontWeight: typography.weights.medium, color: colors.text.inverse }}>↓ Maintenant</Text>
+        </Pressable>
+      )}
+
       {/* Timeline */}
       <ScrollView
         ref={scrollRef}
         style={styles.scroll}
         showsVerticalScrollIndicator={false}
+        scrollEventThrottle={32}
+        onScroll={(e) => {
+          const y = e.nativeEvent.contentOffset.y;
+          setShowNowButton(y > nowY + 200 || y < nowY - 200);
+        }}
       >
         {/* Banner Morning Ritual si matin et pas fait */}
         {!morningDone && (
@@ -416,7 +451,7 @@ export default function PlanningScreen() {
         )}
 
         {/* Timeline */}
-        <View style={{ marginTop: 24, marginBottom: 40 }}>
+        <View style={{ marginTop: 24, marginBottom: 120 }}>
             <Text
             style={[
               typography.sectionHeader,
