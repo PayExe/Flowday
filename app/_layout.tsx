@@ -19,6 +19,7 @@ export default function RootLayout() {
 
   const logs = useRitualStore((state) => state.logs);
   const morningConfig = useRitualStore((state) => state.morningConfig);
+  const eveningConfig = useRitualStore((state) => state.eveningConfig);
 
   const blocks = useLifeBlocksStore((state) => state.blocks);
   const initializeBlocks = useLifeBlocksStore((state) => state.initializeDefaults);
@@ -63,6 +64,32 @@ export default function RootLayout() {
     }, 100);
     return () => clearTimeout(timer);
   }, [hasDoneMorning, pathname, router, morningConfig.enabled]);
+
+  // Auto-redirect to evening wrap if past configured time and not done today
+  const eveningRedirected = useRef(false);
+  const hasDoneEvening = logs.some(
+    (log) => log.date === todayISO() && log.type === 'evening'
+  );
+
+  useEffect(() => {
+    if (eveningRedirected.current) return;
+    if (!eveningConfig.enabled) return;
+    if (hasDoneEvening) return;
+    if (pathname === '/evening-wrap') return;
+
+    const now = new Date();
+    const [h, m] = eveningConfig.time.split(':').map(Number);
+    const triggerMinutes = h * 60 + m;
+    const nowMinutes = now.getHours() * 60 + now.getMinutes();
+
+    if (nowMinutes < triggerMinutes) return;
+
+    eveningRedirected.current = true;
+    const timer = setTimeout(() => {
+      router.replace('/evening-wrap');
+    }, 100);
+    return () => clearTimeout(timer);
+  }, [hasDoneEvening, pathname, router, eveningConfig.enabled, eveningConfig.time]);
 
   return (
     <GestureHandlerRootView style={styles.container}>

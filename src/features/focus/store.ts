@@ -40,16 +40,23 @@ export const useFocusStore = create<FocusStoreState>()(
       },
 
       startFocus: (taskId, taskTitle) =>
-        set((state) => ({
-          focusState: {
-            ...state.focusState,
-            isActive: true,
-            currentTaskId: taskId,
-            currentTaskTitle: taskTitle,
-            timeRemaining: POMODORO_MINUTES * 60,
-            isBreak: false,
-            sessionPomodoroCount: 0,
-          },
+        set((state) => {
+          const today = todayISO();
+          const resetCount = state.focusState.lastResetDate !== today
+            ? 0
+            : state.focusState.dailyPomodoroCount;
+          return {
+            focusState: {
+              ...state.focusState,
+              isActive: true,
+              currentTaskId: taskId,
+              currentTaskTitle: taskTitle,
+              timeRemaining: POMODORO_MINUTES * 60,
+              isBreak: false,
+              sessionPomodoroCount: 0,
+              dailyPomodoroCount: resetCount,
+              lastResetDate: today,
+            },
           sessions: [
             ...state.sessions,
             {
@@ -62,7 +69,8 @@ export const useFocusStore = create<FocusStoreState>()(
               totalFocusMinutes: 0,
             },
           ],
-        })),
+          };
+        }),
 
       pauseFocus: () =>
         set((state) => ({

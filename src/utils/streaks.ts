@@ -11,13 +11,13 @@ export interface StreakResult {
  */
 export function calculateStreaks(
   scores: DayScore[],
-  threshold = 60
+  threshold = 60,
+  maxGapDays = 1
 ): StreakResult {
   if (scores.length === 0) {
     return { currentStreak: 0, bestStreak: 0 };
   }
 
-  // Trier par date croissante
   const sorted = [...scores].sort((a, b) => a.date.localeCompare(b.date));
 
   let currentStreak = 0;
@@ -31,23 +31,34 @@ export function calculateStreaks(
     const score = sorted[i];
     const isValid = score.total >= threshold;
 
-    if (isValid) {
-      tempStreak += 1;
-      if (tempStreak > bestStreak) {
-        bestStreak = tempStreak;
-      }
-    } else {
+    if (!isValid) {
       tempStreak = 0;
+      continue;
     }
 
-    // Déterminer si c'est le streak actuel (le dernier streak en date)
+    if (i > 0 && tempStreak > 0) {
+      const prev = sorted[i - 1];
+      if (prev.total >= threshold) {
+        const prevDate = new Date(prev.date);
+        const currDate = new Date(score.date);
+        const diffDays = Math.round(
+          (currDate.getTime() - prevDate.getTime()) / 86400000
+        );
+        if (diffDays > maxGapDays + 1) {
+          tempStreak = 0;
+        }
+      }
+    }
+
+    tempStreak += 1;
+    if (tempStreak > bestStreak) {
+      bestStreak = tempStreak;
+    }
+
     if (i === sorted.length - 1) {
-      if (isValid && (score.date === today || score.date === yesterday)) {
+      if (score.date === today || score.date === yesterday) {
         currentStreak = tempStreak;
-      } else if (!isValid) {
-        currentStreak = 0;
       } else {
-        // Dernier score valide mais pas aujourd'hui ni hier
         currentStreak = 0;
       }
     }

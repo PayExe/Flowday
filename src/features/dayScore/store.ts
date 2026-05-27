@@ -32,7 +32,7 @@ function computeTotal(score: DayScore, pomodoroGoal: number): number {
     score.blocksPercent * 0.4 +
     score.tasksPercent * 0.3 +
     pomodorosPercent * 0.2 +
-    ritualsPoints;
+    ritualsPercent * 0.1;
   return Math.round(total);
 }
 
