@@ -25,7 +25,7 @@ export function DayScoreHeader({
   pomodorosPercent = 0,
   ritualsPercent = 0,
 }: DayScoreHeaderProps) {
-  const { colors } = useTheme();
+  const { colors, typography } = useTheme();
   const label = getScoreLabel(score);
 
   const bars = [
@@ -39,20 +39,20 @@ export function DayScoreHeader({
     <View style={{ paddingHorizontal: 16, paddingBottom: 20 }}>
       {/* Score + label en ligne */}
       <View style={{ flexDirection: 'row', alignItems: 'baseline', gap: 10, marginBottom: 16 }}>
-        <Text style={{ fontSize: 56, fontWeight: '700', color: colors.text.primary, letterSpacing: -2 }}>
+        <Text style={{ fontSize: typography.sizes.score, fontWeight: '700', color: colors.text.primary, letterSpacing: -2 }}>
           {score}
         </Text>
-        <Text style={{ fontSize: 17, color: colors.text.secondary }}>{label}</Text>
+        <Text style={{ fontSize: typography.sizes.lg, color: colors.text.secondary }}>{label}</Text>
       </View>
 
       {/* 4 mini barres horizontales */}
       {bars.map(({ label: l, value, color }) => (
         <View key={l} style={{ flexDirection: 'row', alignItems: 'center', gap: 10, marginBottom: 8 }}>
-          <Text style={{ fontSize: 13, color: colors.text.quaternary, width: 52 }}>{l}</Text>
+          <Text style={{ fontSize: typography.sizes.sm, color: colors.text.quaternary, width: 52 }}>{l}</Text>
           <View style={{ flex: 1, height: 3, backgroundColor: colors.bg.hover, borderRadius: 2, overflow: 'hidden' }}>
             <View style={{ width: `${Math.max(0, Math.min(100, value))}%`, height: '100%', backgroundColor: color, borderRadius: 2 }} />
           </View>
-          <Text style={{ fontSize: 13, color: colors.text.quaternary, width: 36, textAlign: 'right' }}>{Math.round(value)}%</Text>
+          <Text style={{ fontSize: typography.sizes.sm, color: colors.text.quaternary, width: 36, textAlign: 'right' }}>{Math.round(value)}%</Text>
         </View>
       ))}
     </View>

@@ -52,7 +52,7 @@ export function EditTemplateBlockModal({
   onSave,
   onDelete,
 }: EditTemplateBlockModalProps) {
-  const { colors } = useTheme();
+  const { colors, typography } = useTheme();
   const isEditing = block !== null;
 
   const [selectedLifeBlockId, setSelectedLifeBlockId] = useState('');
@@ -214,7 +214,7 @@ export function EditTemplateBlockModal({
                     <Picker
                       selectedValue={startTime}
                       onValueChange={(itemValue) => setStartTime(itemValue)}
-                      itemStyle={{ color: colors.text.primary, fontSize: 17 }}
+                      itemStyle={{ color: colors.text.primary, fontSize: typography.sizes.lg }}
                     >
                       {TIME_OPTIONS.map((t) => (
                         <Picker.Item key={t} label={t} value={t} />
@@ -229,7 +229,7 @@ export function EditTemplateBlockModal({
                     <Picker
                       selectedValue={endTime}
                       onValueChange={(itemValue) => setEndTime(itemValue)}
-                      itemStyle={{ color: colors.text.primary, fontSize: 17 }}
+                      itemStyle={{ color: colors.text.primary, fontSize: typography.sizes.lg }}
                     >
                       {TIME_OPTIONS.map((t) => (
                         <Picker.Item key={t} label={t} value={t} />
@@ -268,7 +268,7 @@ export function EditTemplateBlockModal({
                     thumbColor={colors.text.inverse}
                   ios_backgroundColor={colors.separator.default}
                 />
-                <Text style={{ fontSize: 17, color: colors.text.primary, letterSpacing: -0.41, marginLeft: 10 }}>
+                <Text style={{ fontSize: typography.sizes.lg, color: colors.text.primary, letterSpacing: -0.41, marginLeft: 10 }}>
                   Créneau flexible
                 </Text>
               </Pressable>

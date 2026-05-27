@@ -45,7 +45,7 @@ function getScoreLabel(score: number): string {
 
 export default function EveningWrapScreen() {
   const router = useRouter();
-  const { colors } = useTheme();
+  const { colors, typography } = useTheme();
   const [step, setStep] = useState(1);
   const [note, setNote] = useState('');
 
@@ -126,7 +126,7 @@ export default function EveningWrapScreen() {
         <Text style={{ fontSize: 72, fontWeight: '700', color: colors.text.primary, letterSpacing: -2 }}>
           {dayScore}
         </Text>
-        <Text style={{ fontSize: 17, color: colors.text.secondary, marginTop: 4 }}>
+        <Text style={{ fontSize: typography.sizes.lg, color: colors.text.secondary, marginTop: 4 }}>
           {getScoreLabel(dayScore)}
         </Text>
       </View>
@@ -140,13 +140,13 @@ export default function EveningWrapScreen() {
             { label: 'Rituels', value: scoreDetail.rituals, color: colors.system.orange },
           ].map(({ label, value, color }) => (
             <View key={label} style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
-              <Text style={{ fontSize: 13, color: colors.text.quaternary, width: 52, textAlign: 'right' }}>
+              <Text style={{ fontSize: typography.sizes.sm, color: colors.text.quaternary, width: 52, textAlign: 'right' }}>
                 {label}
               </Text>
               <View style={{ flex: 1, height: 3, backgroundColor: colors.bg.hover, borderRadius: 2, overflow: 'hidden' }}>
                 <View style={{ width: `${Math.min(Math.max(value, 0), 100)}%`, height: '100%', backgroundColor: color, borderRadius: 2 }} />
               </View>
-              <Text style={{ fontSize: 13, color: colors.text.quaternary, width: 36, textAlign: 'right' }}>
+              <Text style={{ fontSize: typography.sizes.sm, color: colors.text.quaternary, width: 36, textAlign: 'right' }}>
                 {Math.round(value)}%
               </Text>
             </View>
@@ -168,7 +168,7 @@ export default function EveningWrapScreen() {
       {incompleteTasks.length === 0 ? (
         <View style={{ alignItems: 'center', marginTop: 40 }}>
           <Ionicons name="checkmark-done-circle-outline" size={64} color={colors.system.green} />
-          <Text style={{ fontSize: 17, color: colors.system.green, marginTop: 16, fontWeight: '600' }}>
+          <Text style={{ fontSize: typography.sizes.lg, color: colors.system.green, marginTop: 16, fontWeight: '600' }}>
             Journée complète !
           </Text>
         </View>
@@ -183,7 +183,7 @@ export default function EveningWrapScreen() {
                 padding: 16,
               }}
             >
-              <Text style={{ fontSize: 17, color: colors.text.primary, fontWeight: '500', letterSpacing: -0.41, marginBottom: 12 }} numberOfLines={2}>
+              <Text style={{ fontSize: typography.sizes.lg, color: colors.text.primary, fontWeight: '500', letterSpacing: -0.41, marginBottom: 12 }} numberOfLines={2}>
                 {task.title}
               </Text>
               <View style={{ flexDirection: 'row', gap: 8 }}>
@@ -197,7 +197,7 @@ export default function EveningWrapScreen() {
                   })}
                   onPress={() => handleRescheduleTomorrow(task.id)}
                 >
-                  <Text style={{ fontSize: 13, color: colors.text.primary, fontWeight: '500' }}>Demain</Text>
+                  <Text style={{ fontSize: typography.sizes.sm, color: colors.text.primary, fontWeight: '500' }}>Demain</Text>
                 </Pressable>
                 <Pressable
                   style={({ pressed }) => ({
@@ -209,7 +209,7 @@ export default function EveningWrapScreen() {
                   })}
                   onPress={() => handleRescheduleWeek(task.id)}
                 >
-                  <Text style={{ fontSize: 13, color: colors.text.primary, fontWeight: '500' }}>Cette semaine</Text>
+                  <Text style={{ fontSize: typography.sizes.sm, color: colors.text.primary, fontWeight: '500' }}>Cette semaine</Text>
                 </Pressable>
                 <Pressable
                   style={({ pressed }) => ({
@@ -221,7 +221,7 @@ export default function EveningWrapScreen() {
                   })}
                   onPress={() => handleDelete(task.id)}
                 >
-                  <Text style={{ fontSize: 13, color: colors.system.red, fontWeight: '500' }}>Supprimer</Text>
+                  <Text style={{ fontSize: typography.sizes.sm, color: colors.system.red, fontWeight: '500' }}>Supprimer</Text>
                 </Pressable>
               </View>
             </View>
@@ -243,7 +243,7 @@ export default function EveningWrapScreen() {
           borderRadius: 13,
           paddingHorizontal: 16,
           paddingVertical: 14,
-          fontSize: 17,
+          fontSize: typography.sizes.lg,
           color: colors.text.primary,
           width: '100%',
           height: 120,
@@ -260,7 +260,7 @@ export default function EveningWrapScreen() {
       />
 
       <Pressable onPress={nextStep} style={{ marginTop: 12, padding: 12 }}>
-        <Text style={{ fontSize: 15, color: colors.text.secondary }}>Passer →</Text>
+        <Text style={{ fontSize: typography.sizes.base, color: colors.text.secondary }}>Passer →</Text>
       </Pressable>
     </View>
   );
@@ -273,7 +273,7 @@ export default function EveningWrapScreen() {
         <Text style={{ fontSize: 64, fontWeight: '700', color: colors.system.blue, letterSpacing: -2 }}>
           {dayScore}
         </Text>
-        <Text style={{ fontSize: 17, color: colors.text.secondary, marginTop: 4 }}>
+        <Text style={{ fontSize: typography.sizes.lg, color: colors.text.secondary, marginTop: 4 }}>
           {getScoreLabel(dayScore)}
         </Text>
       </View>
@@ -288,14 +288,14 @@ export default function EveningWrapScreen() {
             marginTop: 8,
           }}
         >
-          <Text style={{ fontSize: 11, color: colors.text.quaternary, textTransform: 'uppercase', letterSpacing: 1, marginBottom: 6 }}>
+          <Text style={{ fontSize: typography.sizes.xs, color: colors.text.quaternary, textTransform: 'uppercase', letterSpacing: 1, marginBottom: 6 }}>
             Ta note
           </Text>
-          <Text style={{ fontSize: 15, color: colors.text.primary, fontStyle: 'italic' }}>{note.trim()}</Text>
+          <Text style={{ fontSize: typography.sizes.base, color: colors.text.primary, fontStyle: 'italic' }}>{note.trim()}</Text>
         </View>
       )}
 
-      <Text style={{ fontSize: 20, color: colors.text.secondary, marginTop: 32 }}>Bonne nuit 🌙</Text>
+      <Text style={{ fontSize: typography.sizes.xl, color: colors.text.secondary, marginTop: 32 }}>Bonne nuit 🌙</Text>
     </View>
   );
 
@@ -318,7 +318,7 @@ export default function EveningWrapScreen() {
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.bg.primary }]} edges={['top']}>
       <View style={styles.header}>
-        <Text style={{ fontSize: 17, fontWeight: '700', color: colors.text.primary }}>Flowday</Text>
+        <Text style={{ fontSize: typography.sizes.lg, fontWeight: '700', color: colors.text.primary }}>Flowday</Text>
         {renderStepIndicator()}
       </View>
 
@@ -339,7 +339,7 @@ export default function EveningWrapScreen() {
             style={{ padding: 12 }}
             onPress={() => setStep(step - 1)}
           >
-            <Text style={{ fontSize: 17, color: colors.text.secondary }}>← Retour</Text>
+            <Text style={{ fontSize: typography.sizes.lg, color: colors.text.secondary }}>← Retour</Text>
           </Pressable>
         )}
 
@@ -354,7 +354,7 @@ export default function EveningWrapScreen() {
           onPress={nextStep}
           disabled={step === 2 && !allTasksHandled}
         >
-          <Text style={{ fontSize: 17, fontWeight: '600', color: colors.text.inverse }}>
+          <Text style={{ fontSize: typography.sizes.lg, fontWeight: '600', color: colors.text.inverse }}>
             {step === 4 ? 'Bonne nuit →' : 'Suivant →'}
           </Text>
         </Pressable>

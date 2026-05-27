@@ -68,7 +68,7 @@ export function EditBlockModal({
   onArchive,
   onUnarchive,
 }: EditBlockModalProps) {
-  const { colors } = useTheme();
+  const { colors, typography } = useTheme();
   const isEditing = block !== null;
 
   const [name, setName] = useState('');

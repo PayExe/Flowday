@@ -3,7 +3,7 @@ import { useTheme } from '../../theme';
 import { Priority } from '../../types/task';
 
 export function PriorityBadge({ priority }: { priority: Priority }) {
-  const { colors } = useTheme();
+  const { colors, typography } = useTheme();
 
   const PRIORITY_CONFIG = {
     high: { color: colors.system.red, label: 'Haute' },
@@ -15,7 +15,7 @@ export function PriorityBadge({ priority }: { priority: Priority }) {
   return (
     <View style={[styles.badge, { backgroundColor: config.color + '18' }]}>
       <View style={[styles.dot, { backgroundColor: config.color }]} />
-      <Text style={[styles.text, { color: config.color }]}>
+      <Text style={{ color: config.color, fontSize: typography.sizes.xs, fontWeight: '600' }}>
         {config.label}
       </Text>
     </View>
