@@ -139,21 +139,35 @@ export function EditBlockModal({
 
             <View style={styles.section}>
               <Text style={[styles.label, { color: colors.text.secondary }]}>Emoji</Text>
-              <View style={styles.emojiGrid}>
+              <TextInput
+                style={{
+                  backgroundColor: colors.bg.input,
+                  borderRadius: 10,
+                  fontSize: typography.sizes.xxxl,
+                  color: colors.text.primary,
+                  textAlign: 'center',
+                  paddingVertical: 12,
+                }}
+                value={selectedEmoji}
+                onChangeText={(text) => setSelectedEmoji(text.slice(0, 2))}
+                maxLength={2}
+                keyboardType="default"
+              />
+              <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginTop: 10, justifyContent: 'center' }}>
                 {EMOJIS.map((emoji) => (
                   <Pressable
                     key={emoji}
-                    style={[
-                      styles.emojiItem,
-                      { borderColor: colors.separator.default },
-                      selectedEmoji === emoji && {
-                        backgroundColor: colors.bg.hover,
-                        borderColor: colors.system.blue,
-                      },
-                    ]}
+                    style={{
+                      width: 38,
+                      height: 38,
+                      borderRadius: 9,
+                      backgroundColor: selectedEmoji === emoji ? colors.bg.hover : 'transparent',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                    }}
                     onPress={() => setSelectedEmoji(emoji)}
                   >
-                    <Text style={styles.emojiText}>{emoji}</Text>
+                    <Text style={{ fontSize: typography.sizes.xxl }}>{emoji}</Text>
                   </Pressable>
                 ))}
               </View>
