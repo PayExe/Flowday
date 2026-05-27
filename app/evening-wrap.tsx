@@ -49,6 +49,8 @@ export default function EveningWrapScreen() {
   const [step, setStep] = useState(1);
   const [note, setNote] = useState('');
 
+  const [tasksSkipped, setTasksSkipped] = useState(false);
+
   const tasks = useTaskStore((state) => state.tasks);
   const deleteTask = useTaskStore((state) => state.deleteTask);
   const rescheduleTask = useTaskStore((state) => state.rescheduleTask);
@@ -104,7 +106,7 @@ export default function EveningWrapScreen() {
     router.replace('/');
   };
 
-  const allTasksHandled = incompleteTasks.length === 0;
+  const allTasksHandled = incompleteTasks.length === 0 || tasksSkipped;
 
   const nextStep = () => {
     if (step < 4) {
@@ -340,6 +342,15 @@ export default function EveningWrapScreen() {
             onPress={() => setStep(step - 1)}
           >
             <Text style={{ fontSize: typography.sizes.lg, color: colors.text.secondary }}>← Retour</Text>
+          </Pressable>
+        )}
+
+        {step === 2 && incompleteTasks.length > 0 && !tasksSkipped && (
+          <Pressable
+            style={{ padding: 12 }}
+            onPress={() => setTasksSkipped(true)}
+          >
+            <Text style={{ fontSize: typography.sizes.base, color: colors.system.orange }}>Ignorer les tâches</Text>
           </Pressable>
         )}
 

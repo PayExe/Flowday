@@ -314,6 +314,12 @@ export default function MorningRitualScreen() {
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.bg.primary }]} edges={['top']}>
       <View style={styles.header}>
+        <Pressable
+          style={{ padding: 8 }}
+          onPress={() => router.replace('/')}
+        >
+          <Text style={{ fontSize: typography.sizes.lg, color: colors.system.blue }}>Plus tard</Text>
+        </Pressable>
         <Text style={{ fontSize: typography.sizes.lg, fontWeight: '700', color: colors.text.primary }}>Flowday</Text>
         {renderStepIndicator()}
       </View>
