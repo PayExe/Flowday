@@ -11,7 +11,7 @@ export function Divider({ style, indent }: DividerProps) {
   return (
     <View
       style={[
-        { height: 1, backgroundColor: colors.separator.hairline },
+        { height: 0.5, backgroundColor: colors.separator.hairline },
         indent !== undefined && { marginLeft: indent },
         style,
       ]}
