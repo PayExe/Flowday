@@ -1,4 +1,4 @@
-import { View, Text, Pressable, StyleSheet, Switch, ScrollView } from 'react-native';
+import { View, Text, Pressable, StyleSheet, Switch, ScrollView, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import SegmentedControl from '@react-native-segmented-control/segmented-control';
 import { useThemeStore } from '../../src/features/theme/store';
@@ -140,7 +140,19 @@ export default function SettingsScreen() {
               colors.system.blue,
               'Heure',
               morningConfig.time,
-              undefined,
+              () => {
+                Alert.prompt(
+                  'Heure du Morning Ritual',
+                  'Format HH:MM (ex: 08:00)',
+                  (value) => {
+                    if (value && /^\d{2}:\d{2}$/.test(value)) {
+                      updateMorningConfig({ time: value });
+                    }
+                  },
+                  'plain-text',
+                  morningConfig.time,
+                );
+              },
               true
             )}
           </>,
@@ -169,7 +181,19 @@ export default function SettingsScreen() {
               colors.system.blue,
               'Heure',
               eveningConfig.time,
-              undefined,
+              () => {
+                Alert.prompt(
+                  'Heure de l\'Evening Wrap',
+                  'Format HH:MM (ex: 20:00)',
+                  (value) => {
+                    if (value && /^\d{2}:\d{2}$/.test(value)) {
+                      updateEveningConfig({ time: value });
+                    }
+                  },
+                  'plain-text',
+                  eveningConfig.time,
+                );
+              },
               true
             )}
           </>

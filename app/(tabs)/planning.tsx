@@ -9,6 +9,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
+import { Alert } from 'react-native';
 import { useTaskStore } from '../../src/features/tasks/store';
 import { useTemplateStore } from '../../src/features/templates/store';
 import { useLifeBlocksStore } from '../../src/features/lifeBlocks/store';
@@ -73,6 +74,7 @@ export default function PlanningScreen() {
   const tasks = useTaskStore((state) => state.tasks);
   const addTask = useTaskStore((state) => state.addTask);
   const toggleTask = useTaskStore((state) => state.toggleTask);
+  const deleteTask = useTaskStore((state) => state.deleteTask);
   const getTodayTasks = useTaskStore((state) => state.getTodayTasks);
   const getTodayTasksByLifeBlock = useTaskStore((state) => state.getTodayTasksByLifeBlock);
 
@@ -212,6 +214,13 @@ export default function PlanningScreen() {
     startFocus(taskId, taskTitle);
     router.push('/focus');
   }, [startFocus, router]);
+
+  const handleDeleteTask = useCallback((taskId: string) => {
+    Alert.alert('Supprimer la tâche ?', 'Cette action est irréversible.', [
+      { text: 'Annuler', style: 'cancel' },
+      { text: 'Supprimer', style: 'destructive', onPress: () => deleteTask(taskId) },
+    ]);
+  }, [deleteTask]);
 
   // ─── Render ────────────────────────────────────────────────
   if (!hasTemplate) {
@@ -395,7 +404,7 @@ export default function PlanningScreen() {
                   <TaskCard
                     task={task}
                     onToggle={handleToggleTask}
-                    onDelete={() => {}}
+                    onDelete={handleDeleteTask}
                   />
                   {index < todayTasks.length - 1 && (
                     <View style={{ height: 0.5, backgroundColor: colors.separator.hairline, marginLeft: 57 }} />

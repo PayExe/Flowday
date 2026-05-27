@@ -2,6 +2,7 @@ import { useMemo } from 'react';
 import { View, Text, Pressable, ScrollView, StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
+import { Alert } from 'react-native';
 import { useTaskStore } from '../../src/features/tasks/store';
 import { useTemplateStore } from '../../src/features/templates/store';
 import { useLifeBlocksStore } from '../../src/features/lifeBlocks/store';
@@ -55,6 +56,7 @@ export default function HomeScreen() {
 
   const tasks = useTaskStore((state) => state.tasks);
   const toggleTask = useTaskStore((state) => state.toggleTask);
+  const deleteTask = useTaskStore((state) => state.deleteTask);
   const getIncompleteTodayTasks = useTaskStore((state) => state.getIncompleteTodayTasks);
 
   const incompleteTasks = useMemo(() => {
@@ -64,6 +66,13 @@ export default function HomeScreen() {
   }, [tasks, getIncompleteTodayTasks]);
 
   // ─── Prochain bloc ──────────────────────────────────────────
+  const handleDeleteTask = (taskId: string) => {
+    Alert.alert('Supprimer la tâche ?', 'Cette action est irréversible.', [
+      { text: 'Annuler', style: 'cancel' },
+      { text: 'Supprimer', style: 'destructive', onPress: () => deleteTask(taskId) },
+    ]);
+  };
+
   const nextBlockInfo = useMemo(() => {
     const now = currentMinutes();
     const sorted = [...templateBlocks].sort((a, b) => a.startTime.localeCompare(b.startTime));
@@ -257,7 +266,7 @@ export default function HomeScreen() {
                   <TaskCard
                     task={task}
                     onToggle={() => toggleTask(task.id)}
-                    onDelete={() => {}}
+                    onDelete={handleDeleteTask}
                   />
                   {index < incompleteTasks.length - 1 && (
                     <View style={{ height: 0.5, backgroundColor: colors.separator.hairline, marginLeft: 57 }} />
