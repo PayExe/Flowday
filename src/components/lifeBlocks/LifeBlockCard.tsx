@@ -77,13 +77,14 @@ export function LifeBlockCard({
   };
 
   const cardContent = (
-    <View
+    <Animated.View
       style={{
         backgroundColor: colors.bg.secondary,
         borderRadius: 13,
         padding: 16,
         marginHorizontal: 16,
         marginBottom: 12,
+        transform: [{ translateY: panY }],
       }}
     >
       {/* Header */}
@@ -143,7 +144,7 @@ export function LifeBlockCard({
           objectif {formatMinutes(block.weeklyGoalMinutes)}
         </Text>
       </View>
-    </View>
+        </Animated.View>
   );
 
   return (
