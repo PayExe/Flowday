@@ -15,6 +15,7 @@ import { useTaskStore } from '../src/features/tasks/store';
 import { useDayScoreStore } from '../src/features/dayScore/store';
 import { useRitualStore } from '../src/features/rituals/store';
 import { useTheme } from '../src/theme';
+import { hapticLight, hapticWarning } from '../src/utils/haptics';
 
 function todayISO(): string {
   return new Date().toISOString().split('T')[0];
@@ -109,6 +110,7 @@ export default function EveningWrapScreen() {
   const allTasksHandled = incompleteTasks.length === 0 || tasksSkipped;
 
   const nextStep = () => {
+    hapticLight();
     if (step < 4) {
       if (step === 2 && !allTasksHandled) {
         Alert.alert('Tâches en attente', 'Tu dois décider de chaque tâche non faite.');
@@ -197,7 +199,7 @@ export default function EveningWrapScreen() {
                     paddingVertical: 10,
                     alignItems: 'center',
                   })}
-                  onPress={() => handleRescheduleTomorrow(task.id)}
+                  onPress={() => { hapticLight(); handleRescheduleTomorrow(task.id); }}
                 >
                   <Text style={{ fontSize: typography.sizes.sm, color: colors.text.primary, fontWeight: '500' }}>Demain</Text>
                 </Pressable>
@@ -209,7 +211,7 @@ export default function EveningWrapScreen() {
                     paddingVertical: 10,
                     alignItems: 'center',
                   })}
-                  onPress={() => handleRescheduleWeek(task.id)}
+                  onPress={() => { hapticLight(); handleRescheduleWeek(task.id); }}
                 >
                   <Text style={{ fontSize: typography.sizes.sm, color: colors.text.primary, fontWeight: '500' }}>Cette semaine</Text>
                 </Pressable>
@@ -221,7 +223,7 @@ export default function EveningWrapScreen() {
                     paddingVertical: 10,
                     alignItems: 'center',
                   })}
-                  onPress={() => handleDelete(task.id)}
+                  onPress={() => { hapticWarning(); handleDelete(task.id); }}
                 >
                   <Text style={{ fontSize: typography.sizes.sm, color: colors.system.red, fontWeight: '500' }}>Supprimer</Text>
                 </Pressable>

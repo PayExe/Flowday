@@ -10,6 +10,7 @@ import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFocusStore } from '../src/features/focus/store';
 import { useTheme } from '../src/theme';
+import { hapticLight, hapticWarning } from '../src/utils/haptics';
 import { Symbol, SymbolNames } from '../src/components/ui/Symbol';
 
 function formatTime(seconds: number): string {
@@ -50,6 +51,7 @@ export default function FocusScreen() {
   }, [focusState.isActive, focusState.isBreak, tick]);
 
   const handleAbandon = () => {
+    hapticWarning();
     abandonPomodoro();
     stopFocus();
     router.back();
@@ -135,7 +137,7 @@ export default function FocusScreen() {
             borderWidth: 1,
             borderColor: colors.separator.default,
           })}
-          onPress={focusState.isActive ? pauseFocus : resumeFocus}
+          onPress={() => { hapticLight(); focusState.isActive ? pauseFocus() : resumeFocus(); }}
         >
           <Text style={{ fontSize: typography.sizes.lg, fontWeight: '600', color: colors.text.primary }}>
             {focusState.isActive ? 'Pause' : 'Reprendre'}

@@ -15,6 +15,7 @@ import { useTemplateStore } from '../src/features/templates/store';
 import { useLifeBlocksStore } from '../src/features/lifeBlocks/store';
 import { useDayScoreStore } from '../src/features/dayScore/store';
 import { useTheme } from '../src/theme';
+import { hapticLight } from '../src/utils/haptics';
 import { Mood } from '../src/types/ritual';
 
 const MOODS: { value: Mood; label: string; emoji: string; color: string }[] = [
@@ -92,6 +93,7 @@ export default function MorningRitualScreen() {
   };
 
   const nextStep = () => {
+    hapticLight();
     if (step < 5) {
       setStep(step + 1);
     } else {
@@ -122,7 +124,7 @@ export default function MorningRitualScreen() {
                   backgroundColor: pressed ? colors.bg.hover : colors.bg.secondary,
                   minWidth: 90,
                 })}
-                onPress={() => setSelectedMood(m.value)}
+                onPress={() => { hapticLight(); setSelectedMood(m.value); }}
               >
                 <Text style={{ fontSize: 28, marginBottom: 8 }}>{m.emoji}</Text>
                 <Text

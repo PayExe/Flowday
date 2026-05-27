@@ -9,6 +9,7 @@ import { LifeBlockCard } from '../../src/components/lifeBlocks/LifeBlockCard';
 import { EditBlockModal } from '../../src/components/lifeBlocks/EditBlockModal';
 import { EmptyState } from '../../src/components/shared/EmptyState';
 import { useTheme } from '../../src/theme';
+import { hapticLight, hapticWarning } from '../../src/utils/haptics';
 import { Symbol, SymbolNames } from '../../src/components/ui/Symbol';
 
 // ─── Helpers ─────────────────────────────────────────────────
@@ -67,8 +68,10 @@ export default function BlocksScreen() {
       weeklyGoalMinutes: number;
     }) => {
       if (editingBlock) {
+        hapticLight();
         updateBlock(editingBlock.id, data);
       } else {
+        hapticLight();
         addBlock({
           ...data,
           isArchived: false,
@@ -81,6 +84,7 @@ export default function BlocksScreen() {
 
   const handleArchive = useCallback(() => {
     if (editingBlock) {
+      hapticWarning();
       archiveBlock(editingBlock.id);
       setModalVisible(false);
     }
@@ -88,6 +92,7 @@ export default function BlocksScreen() {
 
   const handleUnarchive = useCallback(() => {
     if (editingBlock) {
+      hapticLight();
       unarchiveBlock(editingBlock.id);
       setModalVisible(false);
     }

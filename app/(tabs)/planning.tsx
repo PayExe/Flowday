@@ -25,6 +25,7 @@ import { FreeSlot } from '../../src/components/timeline/FreeSlot';
 import { HourMarker, HOUR_HEIGHT, START_HOUR, END_HOUR } from '../../src/components/timeline/HourMarker';
 import { TaskCard } from '../../src/components/tasks/TaskCard';
 import { EmptyState } from '../../src/components/shared/EmptyState';
+import { hapticLight } from '../../src/utils/haptics';
 
 // ─── Helpers ─────────────────────────────────────────────────
 
@@ -146,6 +147,7 @@ export default function PlanningScreen() {
   // ─── Ajout de tâche ────────────────────────────────────────
   const handleAddTask = useCallback(() => {
     if (!newTaskTitle.trim()) return;
+    hapticLight();
     addTask({
       title: newTaskTitle.trim(),
       completed: false,
