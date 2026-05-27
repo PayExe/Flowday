@@ -1,8 +1,7 @@
-import { useMemo } from 'react';
-import { View, Text, Pressable, ScrollView, StyleSheet } from 'react-native';
+import { useMemo, useState } from 'react';
+import { View, Text, Pressable, ScrollView, StyleSheet, Modal, TextInput } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
-import { Alert } from 'react-native';
 import { useTaskStore } from '../../src/features/tasks/store';
 import { useTemplateStore } from '../../src/features/templates/store';
 import { useLifeBlocksStore } from '../../src/features/lifeBlocks/store';
@@ -60,6 +59,9 @@ export default function HomeScreen() {
   const addTask = useTaskStore((state) => state.addTask);
   const getIncompleteTodayTasks = useTaskStore((state) => state.getIncompleteTodayTasks);
 
+  const [quickAddVisible, setQuickAddVisible] = useState(false);
+  const [quickAddTitle, setQuickAddTitle] = useState('');
+
   const incompleteTasks = useMemo(() => {
     const all = getIncompleteTodayTasks();
     const priorityOrder = { high: 0, medium: 1, low: 2 };
@@ -68,10 +70,7 @@ export default function HomeScreen() {
 
   // ─── Prochain bloc ──────────────────────────────────────────
   const handleDeleteTask = (taskId: string) => {
-    Alert.alert('Supprimer la tâche ?', 'Cette action est irréversible.', [
-      { text: 'Annuler', style: 'cancel' },
-      { text: 'Supprimer', style: 'destructive', onPress: () => deleteTask(taskId) },
-    ]);
+    deleteTask(taskId);
   };
 
   const nextBlockInfo = useMemo(() => {
@@ -120,22 +119,21 @@ export default function HomeScreen() {
   const streaks = useMemo(() => calculateStreaks(scores), [scores]);
 
   const handleQuickAdd = () => {
-    Alert.prompt(
-      'Nouvelle tâche',
-      '',
-      (title) => {
-        if (title && title.trim()) {
-          addTask({
-            title: title.trim(),
-            completed: false,
-            priority: 'medium',
-            scheduledDate: todayISO(),
-          });
-        }
-      },
-      'plain-text',
-      '',
-    );
+    setQuickAddTitle('');
+    setQuickAddVisible(true);
+  };
+
+  const handleQuickAddSubmit = () => {
+    if (quickAddTitle.trim()) {
+      addTask({
+        title: quickAddTitle.trim(),
+        completed: false,
+        priority: 'medium',
+        scheduledDate: todayISO(),
+      });
+    }
+    setQuickAddVisible(false);
+    setQuickAddTitle('');
   };
 
   // ─── Render ──────────────────────────────────────────────────
@@ -344,6 +342,56 @@ export default function HomeScreen() {
 
         <View style={{ height: 40 }} />
       </ScrollView>
+
+      {/* Quick-add modal (cross-platform) */}
+      <Modal
+        visible={quickAddVisible}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setQuickAddVisible(false)}
+      >
+        <Pressable
+          style={styles.modalBackdrop}
+          onPress={() => setQuickAddVisible(false)}
+        >
+          <Pressable
+            style={[styles.modalContent, { backgroundColor: colors.bg.secondary }]}
+            onPress={(e) => e.stopPropagation()}
+          >
+            <Text style={[typography.headline, { color: colors.text.primary, marginBottom: 12 }]}>
+              Nouvelle tâche
+            </Text>
+            <TextInput
+              style={[styles.modalInput, {
+                backgroundColor: colors.bg.hover,
+                color: colors.text.primary,
+                borderColor: colors.separator.default,
+              }]}
+              placeholder="Titre de la tâche"
+              placeholderTextColor={colors.text.placeholder}
+              value={quickAddTitle}
+              onChangeText={setQuickAddTitle}
+              onSubmitEditing={handleQuickAddSubmit}
+              autoFocus
+              returnKeyType="done"
+            />
+            <View style={styles.modalActions}>
+              <Pressable
+                style={[styles.modalButton, { backgroundColor: 'transparent' }]}
+                onPress={() => setQuickAddVisible(false)}
+              >
+                <Text style={[typography.headline, { color: colors.system.blue }]}>Annuler</Text>
+              </Pressable>
+              <Pressable
+                style={[styles.modalButton, { backgroundColor: colors.system.blue, borderRadius: 10 }]}
+                onPress={handleQuickAddSubmit}
+              >
+                <Text style={[typography.headline, { color: colors.text.inverse }]}>Ajouter</Text>
+              </Pressable>
+            </View>
+          </Pressable>
+        </Pressable>
+      </Modal>
     </SafeAreaView>
   );
 }
@@ -356,5 +404,34 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingTop: 16,
     paddingBottom: 8,
+  },
+  modalBackdrop: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.4)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  modalContent: {
+    width: '80%',
+    borderRadius: 13,
+    padding: 20,
+  },
+  modalInput: {
+    fontSize: 17,
+    borderWidth: 0.5,
+    borderRadius: 10,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    marginBottom: 16,
+  },
+  modalActions: {
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+    gap: 8,
+  },
+  modalButton: {
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 10,
   },
 });

@@ -1,4 +1,5 @@
-import { View, Text, Pressable } from 'react-native';
+import { useRef } from 'react';
+import { View, Text, Pressable, Alert } from 'react-native';
 import { Swipeable } from 'react-native-gesture-handler';
 import { Task } from '../../types/task';
 import { hapticLight, hapticWarning } from '../../utils/haptics';
@@ -25,6 +26,32 @@ export function TaskCard({ task, onToggle, onDelete }: TaskCardProps) {
   const { colors, typography } = useTheme();
   const done = task.completed;
   const pColor = priorityColor(task.priority, colors);
+  const swipeableRef = useRef<Swipeable>(null);
+
+  const handleSwipeOpen = (direction: 'left' | 'right') => {
+    if (direction === 'left') {
+      hapticLight();
+      onToggle(task.id);
+      swipeableRef.current?.close();
+    } else if (direction === 'right') {
+      hapticWarning();
+      Alert.alert('Supprimer la tâche ?', 'Cette action est irréversible.', [
+        {
+          text: 'Annuler',
+          style: 'cancel',
+          onPress: () => swipeableRef.current?.close(),
+        },
+        {
+          text: 'Supprimer',
+          style: 'destructive',
+          onPress: () => {
+            onDelete(task.id);
+            swipeableRef.current?.close();
+          },
+        },
+      ]);
+    }
+  };
 
   const cardContent = (
     <View
@@ -81,6 +108,7 @@ export function TaskCard({ task, onToggle, onDelete }: TaskCardProps) {
 
   const swipeActions = (
     <Swipeable
+      ref={swipeableRef}
       friction={2}
       overshootFriction={8}
       renderLeftActions={(progress) => (
@@ -95,15 +123,7 @@ export function TaskCard({ task, onToggle, onDelete }: TaskCardProps) {
           <Symbol name={SymbolNames.checkmark} size={22} color={colors.text.inverse} />
         </View>
       )}
-      onSwipeableOpen={(direction) => {
-        if (direction === 'left') {
-          hapticLight();
-          onToggle(task.id);
-        } else if (direction === 'right') {
-          hapticWarning();
-          onDelete(task.id);
-        }
-      }}
+      onSwipeableOpen={handleSwipeOpen}
       renderRightActions={(progress) => (
         <View style={{
           width: 80,

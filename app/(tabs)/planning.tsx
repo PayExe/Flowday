@@ -6,11 +6,9 @@ import {
   ScrollView,
   StyleSheet,
   Pressable,
-  Animated,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
-import { Alert } from 'react-native';
 import { useTaskStore } from '../../src/features/tasks/store';
 import { useTemplateStore } from '../../src/features/templates/store';
 import { useLifeBlocksStore } from '../../src/features/lifeBlocks/store';
@@ -73,7 +71,6 @@ export default function PlanningScreen() {
   const [newTaskTitle, setNewTaskTitle] = useState('');
   const [selectedBlockId, setSelectedBlockId] = useState<string | undefined>(undefined);
   const [showNowButton, setShowNowButton] = useState(false);
-  const fabOpacity = useRef(new Animated.Value(1)).current;
 
   const tasks = useTaskStore((state) => state.tasks);
   const addTask = useTaskStore((state) => state.addTask);
@@ -221,10 +218,7 @@ export default function PlanningScreen() {
   }, [startFocus, router]);
 
   const handleDeleteTask = useCallback((taskId: string) => {
-    Alert.alert('Supprimer la tâche ?', 'Cette action est irréversible.', [
-      { text: 'Annuler', style: 'cancel' },
-      { text: 'Supprimer', style: 'destructive', onPress: () => deleteTask(taskId) },
-    ]);
+    deleteTask(taskId);
   }, [deleteTask]);
 
   // ─── Render ────────────────────────────────────────────────

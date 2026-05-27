@@ -12,7 +12,7 @@ export interface StreakResult {
 export function calculateStreaks(
   scores: DayScore[],
   threshold = 60,
-  maxGapDays = 1
+  maxGapDays = 0
 ): StreakResult {
   if (scores.length === 0) {
     return { currentStreak: 0, bestStreak: 0 };
