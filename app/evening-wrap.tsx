@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useRef, useEffect } from 'react';
 import {
   View,
   Text,
@@ -7,6 +7,7 @@ import {
   StyleSheet,
   ScrollView,
   Alert,
+  Animated,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -108,6 +109,18 @@ export default function EveningWrapScreen() {
   };
 
   const allTasksHandled = incompleteTasks.length === 0 || tasksSkipped;
+
+  const dotWidths = useRef([24, 8, 8, 8].map((w) => new Animated.Value(w))).current;
+
+  useEffect(() => {
+    dotWidths.forEach((dot, i) => {
+      Animated.spring(dot, {
+        toValue: i === step - 1 ? 24 : 8,
+        useNativeDriver: false,
+        friction: 8,
+      }).start();
+    });
+  }, [step]);
 
   const nextStep = () => {
     hapticLight();
@@ -306,10 +319,10 @@ export default function EveningWrapScreen() {
   const renderStepIndicator = () => (
     <View style={{ flexDirection: 'row', gap: 6 }}>
       {[1, 2, 3, 4].map((s) => (
-        <View
+        <Animated.View
           key={s}
           style={{
-            width: s === step ? 24 : 8,
+            width: dotWidths[s - 1],
             height: 8,
             borderRadius: 4,
             backgroundColor: s <= step ? colors.system.blue : colors.separator.default,

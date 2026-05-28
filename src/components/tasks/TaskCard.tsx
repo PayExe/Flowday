@@ -1,5 +1,5 @@
 import { useRef } from 'react';
-import { View, Text, Pressable, Alert } from 'react-native';
+import { View, Text, Pressable, Alert, Animated } from 'react-native';
 import { Swipeable } from 'react-native-gesture-handler';
 import { Task } from '../../types/task';
 import { hapticLight, hapticWarning } from '../../utils/haptics';
@@ -27,6 +27,16 @@ export function TaskCard({ task, onToggle, onDelete }: TaskCardProps) {
   const done = task.completed;
   const pColor = priorityColor(task.priority, colors);
   const swipeableRef = useRef<Swipeable>(null);
+  const checkboxScale = useRef(new Animated.Value(1)).current;
+
+  const handleCheckboxPress = () => {
+    hapticLight();
+    onToggle(task.id);
+    Animated.sequence([
+      Animated.spring(checkboxScale, { toValue: 1.3, useNativeDriver: true, speed: 20 }),
+      Animated.spring(checkboxScale, { toValue: 1, useNativeDriver: true, speed: 20 }),
+    ]).start();
+  };
 
   const handleSwipeOpen = (direction: 'left' | 'right') => {
     if (direction === 'left') {
@@ -66,9 +76,10 @@ export function TaskCard({ task, onToggle, onDelete }: TaskCardProps) {
     >
       {/* Cercle checkbox — Things 3 */}
       <Pressable
-        onPress={() => { hapticLight(); onToggle(task.id); }}
+        onPress={handleCheckboxPress}
         hitSlop={8}
-        style={{
+      >
+        <Animated.View style={{
           width: 22,
           height: 22,
           borderRadius: 11,
@@ -78,11 +89,12 @@ export function TaskCard({ task, onToggle, onDelete }: TaskCardProps) {
           alignItems: 'center',
           justifyContent: 'center',
           marginTop: 1,
-        }}
-      >
-        {done && (
-          <Symbol name={SymbolNames.checkmark} size={13} color={colors.text.inverse} />
-        )}
+          transform: [{ scale: checkboxScale }],
+        }}>
+          {done && (
+            <Symbol name={SymbolNames.checkmark} size={13} color={colors.text.inverse} />
+          )}
+        </Animated.View>
       </Pressable>
 
       {/* Contenu */}
