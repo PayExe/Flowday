@@ -1,5 +1,5 @@
-import { useMemo } from 'react';
-import { View, Text, Pressable, ScrollView, StyleSheet } from 'react-native';
+import { useMemo, useState } from 'react';
+import { View, Text, Pressable, ScrollView, StyleSheet, Modal, TextInput } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { useTaskStore } from '../../src/features/tasks/store';
@@ -55,7 +55,12 @@ export default function HomeScreen() {
 
   const tasks = useTaskStore((state) => state.tasks);
   const toggleTask = useTaskStore((state) => state.toggleTask);
+  const deleteTask = useTaskStore((state) => state.deleteTask);
+  const addTask = useTaskStore((state) => state.addTask);
   const getIncompleteTodayTasks = useTaskStore((state) => state.getIncompleteTodayTasks);
+
+  const [quickAddVisible, setQuickAddVisible] = useState(false);
+  const [quickAddTitle, setQuickAddTitle] = useState('');
 
   const incompleteTasks = useMemo(() => {
     const all = getIncompleteTodayTasks();
@@ -64,6 +69,10 @@ export default function HomeScreen() {
   }, [tasks, getIncompleteTodayTasks]);
 
   // ─── Prochain bloc ──────────────────────────────────────────
+  const handleDeleteTask = (taskId: string) => {
+    deleteTask(taskId);
+  };
+
   const nextBlockInfo = useMemo(() => {
     const now = currentMinutes();
     const sorted = [...templateBlocks].sort((a, b) => a.startTime.localeCompare(b.startTime));
@@ -109,13 +118,46 @@ export default function HomeScreen() {
   // ─── Streaks ────────────────────────────────────────────────
   const streaks = useMemo(() => calculateStreaks(scores), [scores]);
 
+  const handleQuickAdd = () => {
+    setQuickAddTitle('');
+    setQuickAddVisible(true);
+  };
+
+  const handleQuickAddSubmit = () => {
+    if (quickAddTitle.trim()) {
+      addTask({
+        title: quickAddTitle.trim(),
+        completed: false,
+        priority: 'medium',
+        scheduledDate: todayISO(),
+      });
+    }
+    setQuickAddVisible(false);
+    setQuickAddTitle('');
+  };
+
   // ─── Render ──────────────────────────────────────────────────
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.bg.primary }]} edges={['top']}>
       <ScrollView showsVerticalScrollIndicator={false}>
         {/* Header */}
         <View style={styles.header}>
-          <Text style={[typography.screenTitle, { color: colors.text.primary }]}>Accueil</Text>
+          <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+            <Text style={[typography.screenTitle, { color: colors.text.primary }]}>Accueil</Text>
+            <Pressable
+              style={{
+                width: 32,
+                height: 32,
+                borderRadius: 16,
+                backgroundColor: colors.system.blue,
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}
+              onPress={handleQuickAdd}
+            >
+              <Symbol name={SymbolNames.add} size={18} color={colors.text.inverse} />
+            </Pressable>
+          </View>
           <Text style={[typography.subheadline, { marginTop: 2 }]}>
             {formatDateFr(new Date())}
           </Text>
@@ -257,7 +299,7 @@ export default function HomeScreen() {
                   <TaskCard
                     task={task}
                     onToggle={() => toggleTask(task.id)}
-                    onDelete={() => {}}
+                    onDelete={handleDeleteTask}
                   />
                   {index < incompleteTasks.length - 1 && (
                     <View style={{ height: 0.5, backgroundColor: colors.separator.hairline, marginLeft: 57 }} />
@@ -300,6 +342,56 @@ export default function HomeScreen() {
 
         <View style={{ height: 40 }} />
       </ScrollView>
+
+      {/* Quick-add modal (cross-platform) */}
+      <Modal
+        visible={quickAddVisible}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setQuickAddVisible(false)}
+      >
+        <Pressable
+          style={styles.modalBackdrop}
+          onPress={() => setQuickAddVisible(false)}
+        >
+          <Pressable
+            style={[styles.modalContent, { backgroundColor: colors.bg.secondary }]}
+            onPress={(e) => e.stopPropagation()}
+          >
+            <Text style={[typography.headline, { color: colors.text.primary, marginBottom: 12 }]}>
+              Nouvelle tâche
+            </Text>
+            <TextInput
+              style={[styles.modalInput, {
+                backgroundColor: colors.bg.hover,
+                color: colors.text.primary,
+                borderColor: colors.separator.default,
+              }]}
+              placeholder="Titre de la tâche"
+              placeholderTextColor={colors.text.placeholder}
+              value={quickAddTitle}
+              onChangeText={setQuickAddTitle}
+              onSubmitEditing={handleQuickAddSubmit}
+              autoFocus
+              returnKeyType="done"
+            />
+            <View style={styles.modalActions}>
+              <Pressable
+                style={[styles.modalButton, { backgroundColor: 'transparent' }]}
+                onPress={() => setQuickAddVisible(false)}
+              >
+                <Text style={[typography.headline, { color: colors.system.blue }]}>Annuler</Text>
+              </Pressable>
+              <Pressable
+                style={[styles.modalButton, { backgroundColor: colors.system.blue, borderRadius: 10 }]}
+                onPress={handleQuickAddSubmit}
+              >
+                <Text style={[typography.headline, { color: colors.text.inverse }]}>Ajouter</Text>
+              </Pressable>
+            </View>
+          </Pressable>
+        </Pressable>
+      </Modal>
     </SafeAreaView>
   );
 }
@@ -312,5 +404,34 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingTop: 16,
     paddingBottom: 8,
+  },
+  modalBackdrop: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.4)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  modalContent: {
+    width: '80%',
+    borderRadius: 13,
+    padding: 20,
+  },
+  modalInput: {
+    fontSize: 17,
+    borderWidth: 0.5,
+    borderRadius: 10,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    marginBottom: 16,
+  },
+  modalActions: {
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+    gap: 8,
+  },
+  modalButton: {
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 10,
   },
 });

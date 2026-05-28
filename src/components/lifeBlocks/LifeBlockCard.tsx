@@ -1,4 +1,5 @@
-import { View, Text, Pressable, Alert } from 'react-native';
+import { useRef, useMemo } from 'react';
+import { View, Text, Pressable, Alert, PanResponder, Animated } from 'react-native';
 import { LifeBlock } from '../../types/lifeBlock';
 import { hapticWarning } from '../../utils/haptics';
 import { useTheme } from '../../theme';
@@ -38,6 +39,30 @@ export function LifeBlockCard({
 }: LifeBlockCardProps) {
   const { colors, typography } = useTheme();
   const progress = Math.min(progressPercent, 100);
+  const CARD_HEIGHT = 130;
+
+  const panY = useRef(new Animated.Value(0)).current;
+
+  const panResponder = useMemo(
+    () =>
+      PanResponder.create({
+        onStartShouldSetPanResponder: () => true,
+        onMoveShouldSetPanResponder: (_, g) => Math.abs(g.dy) > 8,
+        onPanResponderMove: (_, g) => {
+          panY.setValue(g.dy);
+        },
+        onPanResponderRelease: (_, g) => {
+          Animated.spring(panY, { toValue: 0, useNativeDriver: false }).start();
+          const threshold = CARD_HEIGHT / 3;
+          if (g.dy < -threshold && canMoveUp) {
+            onMoveUp();
+          } else if (g.dy > threshold && canMoveDown) {
+            onMoveDown();
+          }
+        },
+      }),
+    [canMoveUp, canMoveDown, onMoveUp, onMoveDown]
+  );
 
   const handleArchive = () => {
     hapticWarning();
@@ -52,13 +77,14 @@ export function LifeBlockCard({
   };
 
   const cardContent = (
-    <View
+    <Animated.View
       style={{
         backgroundColor: colors.bg.secondary,
         borderRadius: 13,
         padding: 16,
         marginHorizontal: 16,
         marginBottom: 12,
+        transform: [{ translateY: panY }],
       }}
     >
       {/* Header */}
@@ -88,22 +114,9 @@ export function LifeBlockCard({
 
         {/* Reorder + Archive */}
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 2 }}>
-          <Pressable
-            onPress={onMoveUp}
-            disabled={!canMoveUp}
-            hitSlop={6}
-            style={{ padding: 6, opacity: canMoveUp ? 1 : 0.2 }}
-          >
-            <Symbol name={SymbolNames.chevronUp} size={16} color={colors.text.secondary} />
-          </Pressable>
-          <Pressable
-            onPress={onMoveDown}
-            disabled={!canMoveDown}
-            hitSlop={6}
-            style={{ padding: 6, opacity: canMoveDown ? 1 : 0.2 }}
-          >
-            <Symbol name={SymbolNames.chevronDown} size={16} color={colors.text.secondary} />
-          </Pressable>
+          <View {...panResponder.panHandlers} style={{ padding: 6 }}>
+            <Symbol name={SymbolNames.menu} size={16} color={colors.text.tertiary} />
+          </View>
           <Pressable onPress={handleArchive} hitSlop={6} style={{ padding: 6 }}>
             <Symbol name={SymbolNames.archive} size={16} color={colors.text.tertiary} />
           </Pressable>
@@ -131,7 +144,7 @@ export function LifeBlockCard({
           objectif {formatMinutes(block.weeklyGoalMinutes)}
         </Text>
       </View>
-    </View>
+        </Animated.View>
   );
 
   return (

@@ -18,4 +18,5 @@ export interface FocusState {
   sessionPomodoroCount: number;
   dailyPomodoroCount: number;
   dailyPomodoroGoal: number;
+  lastResetDate?: string;
 }

@@ -1,4 +1,5 @@
-import { View, Text, Pressable, StyleSheet, Switch, ScrollView } from 'react-native';
+import { useState } from 'react';
+import { View, Text, Pressable, StyleSheet, Switch, ScrollView, Modal, TextInput } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import SegmentedControl from '@react-native-segmented-control/segmented-control';
 import { useThemeStore } from '../../src/features/theme/store';
@@ -16,6 +17,28 @@ export default function SettingsScreen() {
   const updateMorningConfig = useRitualStore((state) => state.updateMorningConfig);
   const eveningConfig = useRitualStore((state) => state.eveningConfig);
   const updateEveningConfig = useRitualStore((state) => state.updateEveningConfig);
+
+  const [timeModalVisible, setTimeModalVisible] = useState(false);
+  const [timeModalValue, setTimeModalValue] = useState('');
+  const [timeModalTarget, setTimeModalTarget] = useState<'morning' | 'evening'>('morning');
+
+  const openTimeModal = (target: 'morning' | 'evening') => {
+    const currentTime = target === 'morning' ? morningConfig.time : eveningConfig.time;
+    setTimeModalValue(currentTime);
+    setTimeModalTarget(target);
+    setTimeModalVisible(true);
+  };
+
+  const handleTimeModalSubmit = () => {
+    if (timeModalValue && /^\d{2}:\d{2}$/.test(timeModalValue)) {
+      if (timeModalTarget === 'morning') {
+        updateMorningConfig({ time: timeModalValue });
+      } else {
+        updateEveningConfig({ time: timeModalValue });
+      }
+    }
+    setTimeModalVisible(false);
+  };
 
   const themes: { name: ThemeName; label: string }[] = [
     { name: 'dark', label: 'Sombre' },
@@ -140,7 +163,7 @@ export default function SettingsScreen() {
               colors.system.blue,
               'Heure',
               morningConfig.time,
-              undefined,
+              () => openTimeModal('morning'),
               true
             )}
           </>,
@@ -169,7 +192,7 @@ export default function SettingsScreen() {
               colors.system.blue,
               'Heure',
               eveningConfig.time,
-              undefined,
+              () => openTimeModal('evening'),
               true
             )}
           </>
@@ -181,6 +204,61 @@ export default function SettingsScreen() {
           <Text style={{ fontSize: typography.sizes.xs, color: colors.text.quaternary, marginTop: 4 }}>Built with Expo</Text>
         </View>
       </ScrollView>
+
+      {/* Time edit modal (cross-platform) */}
+      <Modal
+        visible={timeModalVisible}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setTimeModalVisible(false)}
+      >
+        <Pressable
+          style={styles.modalBackdrop}
+          onPress={() => setTimeModalVisible(false)}
+        >
+          <Pressable
+            style={[styles.modalContent, { backgroundColor: colors.bg.secondary }]}
+            onPress={(e) => e.stopPropagation()}
+          >
+            <Text style={[typography.headline, { color: colors.text.primary, marginBottom: 12 }]}>
+              {timeModalTarget === 'morning' ? 'Heure du Morning Ritual' : 'Heure de l\'Evening Wrap'}
+            </Text>
+            <Text style={[typography.footnote, { color: colors.text.secondary, marginBottom: 8 }]}>
+              Format HH:MM (ex: 08:00)
+            </Text>
+            <TextInput
+              style={[styles.modalInput, {
+                backgroundColor: colors.bg.hover,
+                color: colors.text.primary,
+                borderColor: colors.separator.default,
+              }]}
+              placeholder="08:00"
+              placeholderTextColor={colors.text.placeholder}
+              value={timeModalValue}
+              onChangeText={setTimeModalValue}
+              onSubmitEditing={handleTimeModalSubmit}
+              autoFocus
+              returnKeyType="done"
+              keyboardType="numbers-and-punctuation"
+              maxLength={5}
+            />
+            <View style={styles.modalActions}>
+              <Pressable
+                style={[styles.modalButton, { backgroundColor: 'transparent' }]}
+                onPress={() => setTimeModalVisible(false)}
+              >
+                <Text style={[typography.headline, { color: colors.system.blue }]}>Annuler</Text>
+              </Pressable>
+              <Pressable
+                style={[styles.modalButton, { backgroundColor: colors.system.blue, borderRadius: 10 }]}
+                onPress={handleTimeModalSubmit}
+              >
+                <Text style={[typography.headline, { color: colors.text.inverse }]}>OK</Text>
+              </Pressable>
+            </View>
+          </Pressable>
+        </Pressable>
+      </Modal>
     </SafeAreaView>
   );
 }
@@ -194,6 +272,33 @@ const styles = StyleSheet.create({
     paddingTop: 16,
     paddingBottom: 8,
   },
-
-
+  modalBackdrop: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.4)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  modalContent: {
+    width: '80%',
+    borderRadius: 13,
+    padding: 20,
+  },
+  modalInput: {
+    fontSize: 17,
+    borderWidth: 0.5,
+    borderRadius: 10,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    marginBottom: 16,
+  },
+  modalActions: {
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+    gap: 8,
+  },
+  modalButton: {
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 10,
+  },
 });

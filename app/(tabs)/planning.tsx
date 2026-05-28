@@ -23,6 +23,7 @@ import { FreeSlot } from '../../src/components/timeline/FreeSlot';
 import { HourMarker, HOUR_HEIGHT, START_HOUR, END_HOUR } from '../../src/components/timeline/HourMarker';
 import { TaskCard } from '../../src/components/tasks/TaskCard';
 import { EmptyState } from '../../src/components/shared/EmptyState';
+import { hapticLight } from '../../src/utils/haptics';
 
 // ─── Helpers ─────────────────────────────────────────────────
 
@@ -69,10 +70,12 @@ export default function PlanningScreen() {
   const [nowY, setNowY] = useState(currentMinutesSinceStart() * (HOUR_HEIGHT / 60));
   const [newTaskTitle, setNewTaskTitle] = useState('');
   const [selectedBlockId, setSelectedBlockId] = useState<string | undefined>(undefined);
+  const [showNowButton, setShowNowButton] = useState(false);
 
   const tasks = useTaskStore((state) => state.tasks);
   const addTask = useTaskStore((state) => state.addTask);
   const toggleTask = useTaskStore((state) => state.toggleTask);
+  const deleteTask = useTaskStore((state) => state.deleteTask);
   const getTodayTasks = useTaskStore((state) => state.getTodayTasks);
   const getTodayTasksByLifeBlock = useTaskStore((state) => state.getTodayTasksByLifeBlock);
 
@@ -141,6 +144,7 @@ export default function PlanningScreen() {
   // ─── Ajout de tâche ────────────────────────────────────────
   const handleAddTask = useCallback(() => {
     if (!newTaskTitle.trim()) return;
+    hapticLight();
     addTask({
       title: newTaskTitle.trim(),
       completed: false,
@@ -213,6 +217,10 @@ export default function PlanningScreen() {
     router.push('/focus');
   }, [startFocus, router]);
 
+  const handleDeleteTask = useCallback((taskId: string) => {
+    deleteTask(taskId);
+  }, [deleteTask]);
+
   // ─── Render ────────────────────────────────────────────────
   if (!hasTemplate) {
     return (
@@ -259,11 +267,43 @@ export default function PlanningScreen() {
       {/* Séparateur hairline */}
       <View style={{ height: 0.5, backgroundColor: colors.separator.default, marginHorizontal: 16 }} />
 
+      {/* Bouton "Maintenant" */}
+      {showNowButton && (
+        <Pressable
+          style={{
+            position: 'absolute',
+            top: 110,
+            alignSelf: 'center',
+            backgroundColor: colors.system.blue,
+            borderRadius: 20,
+            paddingHorizontal: 16,
+            paddingVertical: 8,
+            zIndex: 20,
+            shadowColor: '#000',
+            shadowOffset: { width: 0, height: 2 },
+            shadowOpacity: 0.2,
+            shadowRadius: 4,
+            elevation: 4,
+          }}
+          onPress={() => {
+            scrollRef.current?.scrollTo({ y: Math.max(0, nowY - 120), animated: true });
+            setShowNowButton(false);
+          }}
+        >
+          <Text style={{ fontSize: typography.sizes.base, fontWeight: typography.weights.medium, color: colors.text.inverse }}>↓ Maintenant</Text>
+        </Pressable>
+      )}
+
       {/* Timeline */}
       <ScrollView
         ref={scrollRef}
         style={styles.scroll}
         showsVerticalScrollIndicator={false}
+        scrollEventThrottle={32}
+        onScroll={(e) => {
+          const y = e.nativeEvent.contentOffset.y;
+          setShowNowButton(y > nowY + 200 || y < nowY - 200);
+        }}
       >
         {/* Banner Morning Ritual si matin et pas fait */}
         {!morningDone && (
@@ -395,7 +435,7 @@ export default function PlanningScreen() {
                   <TaskCard
                     task={task}
                     onToggle={handleToggleTask}
-                    onDelete={() => {}}
+                    onDelete={handleDeleteTask}
                   />
                   {index < todayTasks.length - 1 && (
                     <View style={{ height: 0.5, backgroundColor: colors.separator.hairline, marginLeft: 57 }} />
@@ -407,7 +447,7 @@ export default function PlanningScreen() {
         )}
 
         {/* Timeline */}
-        <View style={{ marginTop: 24, marginBottom: 40 }}>
+        <View style={{ marginTop: 24, marginBottom: 120 }}>
             <Text
             style={[
               typography.sectionHeader,

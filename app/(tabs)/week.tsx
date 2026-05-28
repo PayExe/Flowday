@@ -14,6 +14,7 @@ import { TemplateBlockCard } from '../../src/components/templates/TemplateBlockC
 import { EditTemplateBlockModal } from '../../src/components/templates/EditTemplateBlockModal';
 import { EmptyState } from '../../src/components/shared/EmptyState';
 import { useTheme } from '../../src/theme';
+import { hapticLight } from '../../src/utils/haptics';
 import { Symbol, SymbolNames } from '../../src/components/ui/Symbol';
 
 const DAY_LABELS = ['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi', 'Dimanche'];
@@ -72,6 +73,7 @@ export default function WeekScreen() {
 
   const handleSave = useCallback(
     (data: Omit<TemplateBlock, 'id'>) => {
+      hapticLight();
       if (!template) return;
       if (editingBlock) {
         updateTemplateBlock(template.id, editingBlock.id, data);

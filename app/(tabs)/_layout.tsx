@@ -28,7 +28,7 @@ export default function TabsLayout() {
           title: 'Accueil',
           tabBarIcon: ({ color, focused }) => (
             <Symbol
-              name={focused ? SymbolNames.home : 'house.fill'}
+              name={focused ? SymbolNames.home : SymbolNames.homeOutline}
               size={24}
               color={color}
               weight={focused ? 'semibold' : 'regular'}
@@ -42,7 +42,7 @@ export default function TabsLayout() {
           title: 'Planning',
           tabBarIcon: ({ color, focused }) => (
             <Symbol
-              name={focused ? 'calendar.fill' : SymbolNames.calendar}
+              name={focused ? SymbolNames.calendarFill : SymbolNames.calendar}
               size={24}
               color={color}
               weight={focused ? 'semibold' : 'regular'}
@@ -56,7 +56,7 @@ export default function TabsLayout() {
           title: 'Semaine',
           tabBarIcon: ({ color, focused }) => (
             <Symbol
-              name={focused ? 'calendar.badge.clock.fill' : 'calendar.badge.clock'}
+              name={focused ? SymbolNames.clockFill : SymbolNames.clock}
               size={24}
               color={color}
               weight={focused ? 'semibold' : 'regular'}
@@ -70,7 +70,7 @@ export default function TabsLayout() {
           title: 'Blocs',
           tabBarIcon: ({ color, focused }) => (
             <Symbol
-              name={focused ? 'square.grid.2x2.fill' : 'square.grid.2x2'}
+              name={focused ? SymbolNames.blocksFill : SymbolNames.blocks}
               size={24}
               color={color}
               weight={focused ? 'semibold' : 'regular'}
@@ -84,7 +84,7 @@ export default function TabsLayout() {
           title: 'Réglages',
           tabBarIcon: ({ color, focused }) => (
             <Symbol
-              name={focused ? SymbolNames.settings : 'gearshape'}
+              name={focused ? SymbolNames.settings : SymbolNames.settingsOutline}
               size={24}
               color={color}
               weight={focused ? 'semibold' : 'regular'}

@@ -15,6 +15,7 @@ import { useTemplateStore } from '../src/features/templates/store';
 import { useLifeBlocksStore } from '../src/features/lifeBlocks/store';
 import { useDayScoreStore } from '../src/features/dayScore/store';
 import { useTheme } from '../src/theme';
+import { hapticLight } from '../src/utils/haptics';
 import { Mood } from '../src/types/ritual';
 
 const MOODS: { value: Mood; label: string; emoji: string; color: string }[] = [
@@ -35,7 +36,7 @@ function capitalize(str: string): string {
 
 export default function MorningRitualScreen() {
   const router = useRouter();
-  const { colors } = useTheme();
+  const { colors, typography } = useTheme();
   const [step, setStep] = useState(1);
   const [selectedMood, setSelectedMood] = useState<Mood | null>(null);
   const [intention, setIntention] = useState('');
@@ -92,6 +93,7 @@ export default function MorningRitualScreen() {
   };
 
   const nextStep = () => {
+    hapticLight();
     if (step < 5) {
       setStep(step + 1);
     } else {
@@ -106,7 +108,7 @@ export default function MorningRitualScreen() {
 
       {morningConfig.steps.mood && (
         <View style={{ marginTop: 40, alignItems: 'center', width: '100%' }}>
-          <Text style={{ fontSize: 15, color: colors.text.secondary, marginBottom: 20 }}>
+          <Text style={{ fontSize: typography.sizes.base, color: colors.text.secondary, marginBottom: 20 }}>
             Comment tu te sens ?
           </Text>
           <View style={{ flexDirection: 'row', gap: 12 }}>
@@ -122,12 +124,12 @@ export default function MorningRitualScreen() {
                   backgroundColor: pressed ? colors.bg.hover : colors.bg.secondary,
                   minWidth: 90,
                 })}
-                onPress={() => setSelectedMood(m.value)}
+                onPress={() => { hapticLight(); setSelectedMood(m.value); }}
               >
                 <Text style={{ fontSize: 28, marginBottom: 8 }}>{m.emoji}</Text>
                 <Text
                   style={{
-                    fontSize: 15,
+                    fontSize: typography.sizes.base,
                     color: selectedMood === m.value ? m.color : colors.text.secondary,
                     fontWeight: selectedMood === m.value ? '600' : '400',
                   }}
@@ -165,12 +167,12 @@ export default function MorningRitualScreen() {
               padding: 14,
             }}
           >
-            <Text style={{ fontSize: 20, marginRight: 12 }}>{b.lifeBlock?.emoji || '⬜'}</Text>
+            <Text style={{ fontSize: typography.sizes.xl, marginRight: 12 }}>{b.lifeBlock?.emoji || '⬜'}</Text>
             <View style={{ flex: 1 }}>
-              <Text style={{ fontSize: 17, fontWeight: '500', color: colors.text.primary, letterSpacing: -0.41 }}>
+              <Text style={{ fontSize: typography.sizes.lg, fontWeight: '500', color: colors.text.primary, letterSpacing: -0.41 }}>
                 {b.title || b.lifeBlock?.name || 'Bloc'}
               </Text>
-              <Text style={{ fontSize: 13, color: colors.text.secondary, marginTop: 2 }}>
+              <Text style={{ fontSize: typography.sizes.sm, color: colors.text.secondary, marginTop: 2 }}>
                 {b.startTime} – {b.endTime}
               </Text>
             </View>
@@ -211,13 +213,13 @@ export default function MorningRitualScreen() {
                   index === 0 ? colors.system.red : index === 1 ? colors.system.yellow : colors.system.green,
               }}
             />
-            <Text style={{ fontSize: 17, color: colors.text.primary, flex: 1, letterSpacing: -0.41 }} numberOfLines={2}>
+            <Text style={{ fontSize: typography.sizes.lg, color: colors.text.primary, flex: 1, letterSpacing: -0.41 }} numberOfLines={2}>
               {task.title}
             </Text>
           </View>
         ))}
         {topTasks.length === 0 && (
-          <Text style={{ fontSize: 13, color: colors.text.quaternary, textAlign: 'center', marginTop: 12 }}>
+          <Text style={{ fontSize: typography.sizes.sm, color: colors.text.quaternary, textAlign: 'center', marginTop: 12 }}>
             Ajoute des tâches dans l'onglet Aujourd'hui pour voir tes priorités ici.
           </Text>
         )}
@@ -237,7 +239,7 @@ export default function MorningRitualScreen() {
           borderRadius: 13,
           paddingHorizontal: 20,
           paddingVertical: 16,
-          fontSize: 20,
+          fontSize: typography.sizes.xl,
           fontWeight: '500',
           color: colors.text.primary,
           textAlign: 'center',
@@ -253,7 +255,7 @@ export default function MorningRitualScreen() {
       />
 
       <Pressable onPress={nextStep} style={{ marginTop: 16, padding: 12 }}>
-        <Text style={{ fontSize: 15, color: colors.text.secondary }}>Passer →</Text>
+        <Text style={{ fontSize: typography.sizes.base, color: colors.text.secondary }}>Passer →</Text>
       </Pressable>
     </View>
   );
@@ -314,7 +316,13 @@ export default function MorningRitualScreen() {
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.bg.primary }]} edges={['top']}>
       <View style={styles.header}>
-        <Text style={{ fontSize: 17, fontWeight: '700', color: colors.text.primary }}>Flowday</Text>
+        <Pressable
+          style={{ padding: 8 }}
+          onPress={() => router.replace('/')}
+        >
+          <Text style={{ fontSize: typography.sizes.lg, color: colors.system.blue }}>Plus tard</Text>
+        </Pressable>
+        <Text style={{ fontSize: typography.sizes.lg, fontWeight: '700', color: colors.text.primary }}>Flowday</Text>
         {renderStepIndicator()}
       </View>
 
@@ -336,7 +344,7 @@ export default function MorningRitualScreen() {
             style={{ padding: 12 }}
             onPress={() => setStep(step - 1)}
           >
-            <Text style={{ fontSize: 17, color: colors.text.secondary }}>← Retour</Text>
+            <Text style={{ fontSize: typography.sizes.lg, color: colors.text.secondary }}>← Retour</Text>
           </Pressable>
         )}
 
@@ -351,7 +359,7 @@ export default function MorningRitualScreen() {
           onPress={nextStep}
           disabled={!canProceed}
         >
-          <Text style={{ fontSize: 17, fontWeight: '600', color: colors.text.inverse }}>
+          <Text style={{ fontSize: typography.sizes.lg, fontWeight: '600', color: colors.text.inverse }}>
             {step === 5 ? 'Commencer la journée →' : 'Suivant →'}
           </Text>
         </Pressable>

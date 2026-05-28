@@ -10,6 +10,7 @@ import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFocusStore } from '../src/features/focus/store';
 import { useTheme } from '../src/theme';
+import { hapticLight, hapticWarning } from '../src/utils/haptics';
 import { Symbol, SymbolNames } from '../src/components/ui/Symbol';
 
 function formatTime(seconds: number): string {
@@ -20,7 +21,7 @@ function formatTime(seconds: number): string {
 
 export default function FocusScreen() {
   const router = useRouter();
-  const { colors } = useTheme();
+  const { colors, typography } = useTheme();
 
   const focusState = useFocusStore((state) => state.focusState);
   const tick = useFocusStore((state) => state.tick);
@@ -50,6 +51,7 @@ export default function FocusScreen() {
   }, [focusState.isActive, focusState.isBreak, tick]);
 
   const handleAbandon = () => {
+    hapticWarning();
     abandonPomodoro();
     stopFocus();
     router.back();
@@ -84,9 +86,9 @@ export default function FocusScreen() {
         <Pressable
           onPress={handleStop}
           style={({ pressed }) => ({
-            width: 36,
-            height: 36,
-            borderRadius: 10,
+            width: 44,
+            height: 44,
+            borderRadius: 12,
             backgroundColor: pressed ? colors.system.gray4 : colors.bg.secondary,
             alignItems: 'center',
             justifyContent: 'center',
@@ -135,15 +137,15 @@ export default function FocusScreen() {
             borderWidth: 1,
             borderColor: colors.separator.default,
           })}
-          onPress={focusState.isActive ? pauseFocus : resumeFocus}
+          onPress={() => { hapticLight(); focusState.isActive ? pauseFocus() : resumeFocus(); }}
         >
-          <Text style={{ fontSize: 17, fontWeight: '600', color: colors.text.primary }}>
+          <Text style={{ fontSize: typography.sizes.lg, fontWeight: '600', color: colors.text.primary }}>
             {focusState.isActive ? 'Pause' : 'Reprendre'}
           </Text>
         </Pressable>
 
         <Pressable onPress={handleAbandon} style={{ padding: 12 }}>
-          <Text style={{ fontSize: 15, color: colors.system.red }}>Abandonner</Text>
+          <Text style={{ fontSize: typography.sizes.base, color: colors.system.red }}>Abandonner</Text>
         </Pressable>
       </View>
     </SafeAreaView>

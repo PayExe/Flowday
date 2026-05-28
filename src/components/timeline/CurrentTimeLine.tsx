@@ -2,7 +2,7 @@ import { View, Text } from 'react-native';
 import { useTheme } from '../../theme';
 
 export function CurrentTimeLine() {
-  const { colors } = useTheme();
+  const { colors, typography } = useTheme();
   const now = new Date();
   const currentTime = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
 

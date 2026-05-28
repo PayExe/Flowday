@@ -1,4 +1,6 @@
-import { View, Text, Pressable } from 'react-native';
+import { useRef } from 'react';
+import { View, Text, Pressable, Alert } from 'react-native';
+import { Swipeable } from 'react-native-gesture-handler';
 import { Task } from '../../types/task';
 import { hapticLight, hapticWarning } from '../../utils/haptics';
 import { useTheme } from '../../theme';
@@ -24,6 +26,32 @@ export function TaskCard({ task, onToggle, onDelete }: TaskCardProps) {
   const { colors, typography } = useTheme();
   const done = task.completed;
   const pColor = priorityColor(task.priority, colors);
+  const swipeableRef = useRef<Swipeable>(null);
+
+  const handleSwipeOpen = (direction: 'left' | 'right') => {
+    if (direction === 'left') {
+      hapticLight();
+      onToggle(task.id);
+      swipeableRef.current?.close();
+    } else if (direction === 'right') {
+      hapticWarning();
+      Alert.alert('Supprimer la tâche ?', 'Cette action est irréversible.', [
+        {
+          text: 'Annuler',
+          style: 'cancel',
+          onPress: () => swipeableRef.current?.close(),
+        },
+        {
+          text: 'Supprimer',
+          style: 'destructive',
+          onPress: () => {
+            onDelete(task.id);
+            swipeableRef.current?.close();
+          },
+        },
+      ]);
+    }
+  };
 
   const cardContent = (
     <View
@@ -78,6 +106,41 @@ export function TaskCard({ task, onToggle, onDelete }: TaskCardProps) {
     </View>
   );
 
+  const swipeActions = (
+    <Swipeable
+      ref={swipeableRef}
+      friction={2}
+      overshootFriction={8}
+      renderLeftActions={(progress) => (
+        <View style={{
+          width: 80,
+          backgroundColor: colors.system.green,
+          borderRadius: 13,
+          marginLeft: 4,
+          alignItems: 'center',
+          justifyContent: 'center',
+        }}>
+          <Symbol name={SymbolNames.checkmark} size={22} color={colors.text.inverse} />
+        </View>
+      )}
+      onSwipeableOpen={handleSwipeOpen}
+      renderRightActions={(progress) => (
+        <View style={{
+          width: 80,
+          backgroundColor: colors.system.red,
+          borderRadius: 13,
+          marginRight: 4,
+          alignItems: 'center',
+          justifyContent: 'center',
+        }}>
+          <Symbol name={SymbolNames.trash} size={22} color={colors.text.inverse} />
+        </View>
+      )}
+    >
+      {cardContent}
+    </Swipeable>
+  );
+
   return (
     <ContextMenu
       actions={[
@@ -101,7 +164,7 @@ export function TaskCard({ task, onToggle, onDelete }: TaskCardProps) {
         }
       }}
     >
-      {cardContent}
+      {swipeActions}
     </ContextMenu>
   );
 }
