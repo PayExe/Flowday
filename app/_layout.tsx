@@ -95,7 +95,11 @@ export default function RootLayout() {
     <GestureHandlerRootView style={styles.container}>
       <BottomSheetModalProvider>
         <StatusBar style={themeName === 'dark' ? 'light' : 'dark'} />
-        <Stack screenOptions={{ headerShown: false }} />
+        <Stack screenOptions={{ headerShown: false, animation: 'slide_from_right' }}>
+          <Stack.Screen name="morning-ritual" options={{ animation: 'slide_from_bottom' }} />
+          <Stack.Screen name="evening-wrap" options={{ animation: 'slide_from_bottom' }} />
+          <Stack.Screen name="focus" options={{ animation: 'slide_from_bottom' }} />
+        </Stack>
       </BottomSheetModalProvider>
     </GestureHandlerRootView>
   );
