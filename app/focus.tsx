@@ -103,7 +103,18 @@ export default function FocusScreen() {
           {focusState.currentTaskTitle}
         </Text>
 
-        <Text style={[styles.timer, { color: colors.text.primary }]}>{formatTime(focusState.timeRemaining)}</Text>
+        <View style={{
+          width: 200,
+          height: 200,
+          borderRadius: 100,
+          borderWidth: 4,
+          borderColor: focusState.isBreak ? colors.system.green : colors.system.blue,
+          alignItems: 'center',
+          justifyContent: 'center',
+          marginBottom: 12,
+        }}>
+          <Text style={[styles.timer, { color: colors.text.primary }]}>{formatTime(focusState.timeRemaining)}</Text>
+        </View>
 
         <Text style={[styles.modeLabel, { color: colors.text.secondary }]}>
           {focusState.isBreak ? 'Pause · 5 min' : 'Focus · 25 min'}
