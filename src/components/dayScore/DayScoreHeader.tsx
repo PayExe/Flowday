@@ -1,3 +1,4 @@
+import { useState, useEffect } from 'react';
 import { View, Text } from 'react-native';
 import { useTheme } from '../../theme';
 
@@ -28,6 +29,28 @@ export function DayScoreHeader({
   const { colors, typography } = useTheme();
   const label = getScoreLabel(score);
 
+  const [displayScore, setDisplayScore] = useState(0);
+
+  useEffect(() => {
+    const duration = 800;
+    const startTime = Date.now();
+    const startValue = displayScore;
+    let frame: number;
+
+    const animate = () => {
+      const elapsed = Date.now() - startTime;
+      const progress = Math.min(elapsed / duration, 1);
+      const eased = 1 - Math.pow(1 - progress, 3);
+      setDisplayScore(Math.round(startValue + (score - startValue) * eased));
+      if (progress < 1) {
+        frame = requestAnimationFrame(animate);
+      }
+    };
+
+    frame = requestAnimationFrame(animate);
+    return () => cancelAnimationFrame(frame);
+  }, [score]);
+
   const bars = [
     { label: 'Blocs', value: blocksPercent, color: colors.system.blue },
     { label: 'Tâches', value: tasksPercent, color: colors.system.green },
@@ -40,7 +63,7 @@ export function DayScoreHeader({
       {/* Score + label en ligne */}
       <View style={{ flexDirection: 'row', alignItems: 'baseline', gap: 10, marginBottom: 16 }}>
         <Text style={{ fontSize: typography.sizes.score, fontWeight: '700', color: colors.text.primary, letterSpacing: -2 }}>
-          {score}
+          {displayScore}
         </Text>
         <Text style={{ fontSize: typography.sizes.lg, color: colors.text.secondary }}>{label}</Text>
       </View>

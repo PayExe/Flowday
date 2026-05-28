@@ -245,7 +245,7 @@ export default function HomeScreen() {
             }}
           >
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
-              <Text style={{ fontSize: 28 }}>🔥</Text>
+              <Symbol name={SymbolNames.flame} size={28} color={colors.system.orange} />
               <View style={{ flex: 1 }}>
                 <Text style={[typography.headline, { color: colors.text.primary }]}>
                   {streaks.currentStreak} jour{streaks.currentStreak !== 1 ? 's' : ''} consécutifs
