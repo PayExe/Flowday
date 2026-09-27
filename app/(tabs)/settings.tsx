@@ -118,13 +118,11 @@ export default function SettingsScreen() {
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.bg.primary }]} edges={['top']}>
-      {/* Header */}
       <View style={styles.header}>
         <Text style={[typography.screenTitle, { color: colors.text.primary }]}>Réglages</Text>
       </View>
 
       <ScrollView showsVerticalScrollIndicator={false}>
-        {/* Thème — Segmented Control natif iOS */}
         <Text style={[typography.sectionHeader, { paddingHorizontal: 32, paddingTop: 28, paddingBottom: 8 }]}>Thème</Text>
         <View style={{ marginHorizontal: 16, marginBottom: 24 }}>
           <SegmentedControl
@@ -141,7 +139,6 @@ export default function SettingsScreen() {
           />
         </View>
 
-        {/* Morning Ritual */}
         <Text style={[typography.sectionHeader, { paddingHorizontal: 32, paddingTop: 28, paddingBottom: 8 }]}>Morning Ritual</Text>
         {renderGroup(
           <>
@@ -170,7 +167,6 @@ export default function SettingsScreen() {
           "Le Morning Ritual s'ouvre automatiquement chaque matin."
         )}
 
-        {/* Evening Wrap */}
         <Text style={[typography.sectionHeader, { paddingHorizontal: 32, paddingTop: 28, paddingBottom: 8 }]}>Evening Wrap</Text>
         {renderGroup(
           <>
@@ -198,14 +194,12 @@ export default function SettingsScreen() {
           </>
         )}
 
-        {/* About */}
         <View style={{ marginTop: 24, alignItems: 'center', paddingVertical: 32 }}>
           <Text style={{ fontSize: typography.sizes.sm, color: colors.text.tertiary }}>Flowday v1.0</Text>
           <Text style={{ fontSize: typography.sizes.xs, color: colors.text.quaternary, marginTop: 4 }}>Built with Expo</Text>
         </View>
       </ScrollView>
 
-      {/* Time edit modal (cross-platform) */}
       <Modal
         visible={timeModalVisible}
         transparent

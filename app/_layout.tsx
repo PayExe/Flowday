@@ -33,7 +33,6 @@ export default function RootLayout() {
     (log) => log.date === todayISO() && log.type === 'morning'
   );
 
-  // Initialize default blocks once
   const didInitBlocks = useRef(false);
   useEffect(() => {
     if (didInitBlocks.current) return;
@@ -41,7 +40,6 @@ export default function RootLayout() {
     initializeBlocks();
   }, [initializeBlocks]);
 
-  // Initialize default template once after blocks exist
   const didInitTemplates = useRef(false);
   useEffect(() => {
     if (didInitTemplates.current) return;
@@ -54,7 +52,6 @@ export default function RootLayout() {
     initializeTemplates(activeBlockIds);
   }, [blocks, initializeTemplates]);
 
-  // Auto-redirect to morning ritual if not done today
   useEffect(() => {
     if (!morningConfig.enabled) return;
     if (hasDoneMorning) return;
@@ -65,7 +62,6 @@ export default function RootLayout() {
     return () => clearTimeout(timer);
   }, [hasDoneMorning, pathname, router, morningConfig.enabled]);
 
-  // Auto-redirect to evening wrap if past configured time and not done today
   const eveningRedirected = useRef(false);
   const hasDoneEvening = logs.some(
     (log) => log.date === todayISO() && log.type === 'evening'

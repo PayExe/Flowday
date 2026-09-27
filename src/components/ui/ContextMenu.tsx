@@ -16,23 +16,6 @@ export interface ContextMenuProps {
   style?: ViewStyle;
 }
 
-/**
- * ContextMenu — Menu natif iOS via ActionSheetIOS (100% Expo Go compatible)
- *
- * Sur iOS : utilise ActionSheetIOS (inclus dans React Native core)
- * Sur Android : fallback Alert avec une liste d'actions
- *
- * Usage :
- *   <ContextMenu
- *     actions={[
- *       { title: 'Modifier', systemIcon: 'pencil' },
- *       { title: 'Supprimer', systemIcon: 'trash', destructive: true },
- *     ]}
- *     onPress={(name) => console.log(name)}
- *   >
- *     <MyCard />
- *   </ContextMenu>
- */
 export function ContextMenu({
   children,
   actions,
@@ -53,10 +36,10 @@ export function ContextMenu({
           options: ['Annuler', ...options],
           cancelButtonIndex: 0,
           destructiveButtonIndex: destructiveIndices.length > 0 ? destructiveIndices.map((i) => i + 1) : undefined,
-          tintColor: '#0A84FF', // ActionSheetIOS tintColor est iOS natif, OK en dur
+          tintColor: '#0A84FF',
         },
         (buttonIndex) => {
-          if (buttonIndex === 0) return; // Annuler
+          if (buttonIndex === 0) return;
           const action = enabledActions[buttonIndex - 1];
           if (action) {
             onPress(action.title);
@@ -64,7 +47,6 @@ export function ContextMenu({
         }
       );
     } else {
-      // Android fallback — Alert avec boutons
       Alert.alert(
         'Actions',
         undefined,

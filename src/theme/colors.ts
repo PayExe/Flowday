@@ -1,11 +1,4 @@
-// ============================================================
-// THEME / DESIGN SYSTEM — Flowday v4
-// ============================================================
-// Style : Apple UIKit natif (iOS) — Dark + Light
-// Référence : Human Interface Guidelines iOS 17+
-// ============================================================
 
-// ─── Life Block Colors (12 couleurs Apple exactes) ───────────
 export const LifeBlockColors = [
   '#30D158', // vert
   '#FF453A', // rouge
@@ -23,9 +16,7 @@ export const LifeBlockColors = [
 
 export type LifeBlockColor = (typeof LifeBlockColors)[number];
 
-// ─── Palette Apple UIKit — DARK ──────────────────────────────
 export const ColorsDark = {
-  // === Fonds ===
   bg: {
     primary: '#000000',           // systemBackground dark
     secondary: '#1C1C1E',         // secondarySystemBackground dark
@@ -38,13 +29,11 @@ export const ColorsDark = {
     blockActive: '#2C2C2E',        // bloc actif timeline
   },
 
-  // === Séparateurs ===
   separator: {
     default: '#38383A',            // opaque separator Apple
     hairline: '#54545899',           // non-opaque separator Apple
   },
 
-  // === Textes ===
   text: {
     primary: '#FFFFFF',            // label
     secondary: '#EBEBF599',        // secondaryLabel (60%)
@@ -55,7 +44,6 @@ export const ColorsDark = {
     inverse: '#000000',            // text sur fond clair/accent
   },
 
-  // === Accents système Apple ===
   system: {
     blue: '#0A84FF',
     green: '#30D158',
@@ -74,7 +62,6 @@ export const ColorsDark = {
     gray6: '#1C1C1E',
   },
 
-  // === Legacy flat aliases (pour compatibilité) ===
   bgPrimary: '#000000',
   bgSurface: '#1C1C1E',
   bgInput: '#2C2C2E',
@@ -94,9 +81,7 @@ export const ColorsDark = {
   nowLine: '#FF453A',
 } as const;
 
-// ─── Palette Apple UIKit — LIGHT ─────────────────────────────
 export const ColorsLight = {
-  // === Fonds ===
   bg: {
     primary: '#FFFFFF',            // systemBackground light
     secondary: '#F2F2F7',          // secondarySystemBackground light
@@ -109,13 +94,11 @@ export const ColorsLight = {
     blockActive: '#E5E5EA',        // bloc actif timeline
   },
 
-  // === Séparateurs ===
   separator: {
     default: '#C6C6C8',            // opaque separator light
     hairline: '#3C3C4340',         // non-opaque separator light
   },
 
-  // === Textes ===
   text: {
     primary: '#000000',            // label
     secondary: '#3C3C4399',        // secondaryLabel (60% noir)
@@ -126,7 +109,6 @@ export const ColorsLight = {
     inverse: '#FFFFFF',            // text sur fond foncé/accent
   },
 
-  // === Accents système Apple ===
   system: {
     blue: '#007AFF',
     green: '#34C759',
@@ -145,7 +127,6 @@ export const ColorsLight = {
     gray6: '#F2F2F7',
   },
 
-  // === Legacy flat aliases ===
   bgPrimary: '#FFFFFF',
   bgSurface: '#F2F2F7',
   bgInput: '#FFFFFF',
@@ -165,9 +146,6 @@ export const ColorsLight = {
   nowLine: '#FF3B30',
 } as const;
 
-// ─── Type helpers ────────────────────────────────────────────
-// On définit ColorPalette comme type union permissif (pas readonly)
-// pour qu'il accepte à la fois dark et light.
 export interface ColorPalette {
   bg: {
     primary: string;
@@ -231,7 +209,6 @@ export interface ColorPalette {
 
 export type ThemeName = 'dark' | 'light';
 
-// ─── Spacing — Apple HIG ─────────────────────────────────────
 export const Spacing = {
   xs: 4,
   sm: 8,
@@ -245,7 +222,6 @@ export const Spacing = {
 
 export const Space = Spacing;
 
-// ─── Radius ──────────────────────────────────────────────────
 export const Radius = {
   sm: 6,
   md: 10,
@@ -255,7 +231,6 @@ export const Radius = {
   full: 9999,
 } as const;
 
-// ─── Typography helpers (dynamisables via hooks) ───────────────
 export function getTypography(isDark: boolean) {
   const textPrimary = isDark ? '#FFFFFF' : '#000000';
   const textSecondary = isDark ? '#EBEBF599' : '#3C3C4399';
@@ -374,6 +349,4 @@ export function getTypography(isDark: boolean) {
   } as const;
 }
 
-// ─── Legacy static exports (pour compatibilité non-hook) ─────
-// ⚠️  Ces valeurs sont en dark mode. Utilisez useTheme() pour le dynamique.
 export const Typography = getTypography(true);

@@ -13,7 +13,6 @@ import { DayScoreHeader } from '../../src/components/dayScore/DayScoreHeader';
 import { TaskCard } from '../../src/components/tasks/TaskCard';
 import { calculateStreaks } from '../../src/utils/streaks';
 
-// ─── Helpers ─────────────────────────────────────────────────
 
 function todayISO(): string {
   return new Date().toISOString().split('T')[0];
@@ -35,7 +34,6 @@ function currentMinutes(): number {
   return now.getHours() * 60 + now.getMinutes();
 }
 
-// ─── Screen ──────────────────────────────────────────────────
 
 export default function HomeScreen() {
   const router = useRouter();
@@ -68,7 +66,6 @@ export default function HomeScreen() {
     return all.sort((a, b) => priorityOrder[a.priority] - priorityOrder[b.priority]).slice(0, 3);
   }, [tasks, getIncompleteTodayTasks]);
 
-  // ─── Prochain bloc ──────────────────────────────────────────
   const handleDeleteTask = (taskId: string) => {
     deleteTask(taskId);
   };
@@ -77,7 +74,6 @@ export default function HomeScreen() {
     const now = currentMinutes();
     const sorted = [...templateBlocks].sort((a, b) => a.startTime.localeCompare(b.startTime));
 
-    // Bloc actuel
     const current = sorted.find((b) => {
       const start = timeToMinutes(b.startTime);
       const end = timeToMinutes(b.endTime);
@@ -97,7 +93,6 @@ export default function HomeScreen() {
       };
     }
 
-    // Prochain bloc futur
     const next = sorted.find((b) => timeToMinutes(b.startTime) > now);
     if (next) {
       const lifeBlock = getBlockById(next.lifeBlockId);
@@ -115,7 +110,6 @@ export default function HomeScreen() {
     return null;
   }, [templateBlocks, getBlockById]);
 
-  // ─── Streaks ────────────────────────────────────────────────
   const streaks = useMemo(() => calculateStreaks(scores), [scores]);
 
   const handleQuickAdd = () => {
@@ -136,11 +130,9 @@ export default function HomeScreen() {
     setQuickAddTitle('');
   };
 
-  // ─── Render ──────────────────────────────────────────────────
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.bg.primary }]} edges={['top']}>
       <ScrollView showsVerticalScrollIndicator={false}>
-        {/* Header */}
         <View style={styles.header}>
           <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
             <Text style={[typography.screenTitle, { color: colors.text.primary }]}>Accueil</Text>
@@ -168,7 +160,6 @@ export default function HomeScreen() {
           )}
         </View>
 
-        {/* Day Score */}
         <DayScoreHeader
           score={todayScore?.total || 0}
           blocksPercent={todayScore?.blocksPercent}
@@ -177,7 +168,6 @@ export default function HomeScreen() {
           ritualsPercent={todayScore?.ritualsPercent}
         />
 
-        {/* Prochain bloc */}
         {nextBlockInfo && (
           <View style={{ marginBottom: 24 }}>
             <Text style={[typography.sectionHeader, { paddingHorizontal: 32, paddingBottom: 8 }]}>
@@ -229,7 +219,6 @@ export default function HomeScreen() {
           </View>
         )}
 
-        {/* Streaks */}
         <View style={{ marginBottom: 24 }}>
           <Text style={[typography.sectionHeader, { paddingHorizontal: 32, paddingBottom: 8 }]}>
             Streaks
@@ -255,7 +244,6 @@ export default function HomeScreen() {
                 </Text>
               </View>
             </View>
-            {/* Barre de progression vers record */}
             {streaks.bestStreak > 0 && (
               <View style={{ marginTop: 10 }}>
                 <View
@@ -280,7 +268,6 @@ export default function HomeScreen() {
           </View>
         </View>
 
-        {/* Tâches prioritaires */}
         {incompleteTasks.length > 0 && (
           <View style={{ marginBottom: 24 }}>
             <Text style={[typography.sectionHeader, { paddingHorizontal: 32, paddingBottom: 8 }]}>
@@ -310,7 +297,6 @@ export default function HomeScreen() {
           </View>
         )}
 
-        {/* Bannière Morning Ritual */}
         {!morningDone && (
           <View style={{ marginBottom: 24, marginHorizontal: 16 }}>
             <Pressable
@@ -343,7 +329,6 @@ export default function HomeScreen() {
         <View style={{ height: 40 }} />
       </ScrollView>
 
-      {/* Quick-add modal (cross-platform) */}
       <Modal
         visible={quickAddVisible}
         transparent

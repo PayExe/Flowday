@@ -43,7 +43,6 @@ export default function WeekScreen() {
 
   const activeTemplate = templates.find((t) => t.id === activeTemplateId);
 
-  // Create default template if none exists (but NOT during render)
   const didInit = useRef(false);
   useEffect(() => {
     if (didInit.current) return;
@@ -90,7 +89,6 @@ export default function WeekScreen() {
     setModalVisible(false);
   }, [template, editingBlock, removeTemplateBlock]);
 
-  // Calcul temps total planifié dans la semaine
   const totalPlannedMinutes = useMemo(() => {
     if (!template) return 0;
     return template.blocks.reduce((sum, b) => {
@@ -108,7 +106,7 @@ export default function WeekScreen() {
       <SafeAreaView style={[styles.container, { backgroundColor: colors.bg.primary }]} edges={['top']}>
         <View style={styles.header}>
             <Text style={[typography.screenTitle, { color: colors.text.primary }]}>Semaine</Text>
-          <Text style={[styles.headerSubtitle, { color: colors.text.secondary }]}>
+          <Text style={[typography.subheadline, { color: colors.text.secondary }]}>
             Définis ton template hebdomadaire
           </Text>
         </View>
@@ -123,7 +121,6 @@ export default function WeekScreen() {
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.bg.primary }]} edges={['top']}>
-      {/* Header */}
       <View style={styles.header}>
         <View style={styles.headerTop}>
           <View>
@@ -140,7 +137,6 @@ export default function WeekScreen() {
         )}
       </View>
 
-      {/* Days */}
       <ScrollView style={styles.scroll} showsVerticalScrollIndicator={false}>
         {DAY_LABELS.map((dayLabel, dayIndex) => {
           const dayBlocks = template
@@ -204,7 +200,6 @@ export default function WeekScreen() {
         <View style={{ height: 40 }} />
       </ScrollView>
 
-      {/* Modal */}
       {template && (
         <EditTemplateBlockModal
           visible={modalVisible}

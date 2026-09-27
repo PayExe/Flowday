@@ -12,7 +12,6 @@ import { useTheme } from '../../src/theme';
 import { hapticLight, hapticWarning } from '../../src/utils/haptics';
 import { Symbol, SymbolNames } from '../../src/components/ui/Symbol';
 
-// ─── Helpers ─────────────────────────────────────────────────
 
 function timeToMinutes(time: string): number {
   const [h, m] = time.split(':').map(Number);
@@ -30,7 +29,6 @@ function getBlockTimeSpent(
   }, 0);
 }
 
-// ─── Screen ──────────────────────────────────────────────────
 
 export default function BlocksScreen() {
   const { colors, typography } = useTheme();
@@ -125,7 +123,6 @@ export default function BlocksScreen() {
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.bg.primary }]} edges={['top']}>
-      {/* Header */}
       <View style={styles.header}>
         <View style={styles.headerTop}>
           <View>
@@ -153,7 +150,6 @@ export default function BlocksScreen() {
         </View>
       </View>
 
-      {/* Active Blocks List */}
       <FlatList
         data={activeBlocks}
         keyExtractor={(item) => item.id}
@@ -229,7 +225,6 @@ export default function BlocksScreen() {
         }
       />
 
-      {/* Modal */}
       <EditBlockModal
         visible={modalVisible}
         block={editingBlock}

@@ -5,10 +5,6 @@ export interface StreakResult {
   bestStreak: number;
 }
 
-/**
- * Calcule les streaks à partir de l'historique des scores.
- * Un streak est une séquence de jours consécutifs avec un score >= threshold.
- */
 export function calculateStreaks(
   scores: DayScore[],
   threshold = 60,

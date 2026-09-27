@@ -74,7 +74,6 @@ export function TaskCard({ task, onToggle, onDelete }: TaskCardProps) {
         gap: 12,
       }}
     >
-      {/* Cercle checkbox — Things 3 */}
       <Pressable
         onPress={handleCheckboxPress}
         hitSlop={8}
@@ -97,7 +96,6 @@ export function TaskCard({ task, onToggle, onDelete }: TaskCardProps) {
         </Animated.View>
       </Pressable>
 
-      {/* Contenu */}
       <View style={{ flex: 1 }}>
         <Text
           style={{
@@ -111,7 +109,6 @@ export function TaskCard({ task, onToggle, onDelete }: TaskCardProps) {
         </Text>
       </View>
 
-      {/* Badge priorité (discret) */}
       {task.priority === 'high' && !done && (
         <Symbol name={SymbolNames.flag} size={14} color={colors.system.red} style={{ marginTop: 3 }} />
       )}

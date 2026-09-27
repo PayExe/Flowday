@@ -15,9 +15,6 @@ interface FlowdayBottomSheetProps extends Omit<BottomSheetModalProps, 'backdropC
   contentStyle?: ViewStyle;
 }
 
-/**
- * Backdrop flouté iOS avec expo-blur
- */
 function BlurBackdrop(props: BottomSheetBackdropProps) {
   const { isDark } = useTheme();
   return (
@@ -34,14 +31,6 @@ function BlurBackdrop(props: BottomSheetBackdropProps) {
   );
 }
 
-/**
- * FlowdayBottomSheet
- * Wrapper natif iOS-style avec :
- * - Backdrop flouté / dimmed
- * - Radius 20 (sheet Apple)
- * - Handle indicator
- * - Couleurs adaptées au thème
- */
 export const FlowdayBottomSheet = React.forwardRef<
   BottomSheetModal,
   FlowdayBottomSheetProps

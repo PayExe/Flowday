@@ -25,7 +25,6 @@ import { TaskCard } from '../../src/components/tasks/TaskCard';
 import { EmptyState } from '../../src/components/shared/EmptyState';
 import { hapticLight } from '../../src/utils/haptics';
 
-// ─── Helpers ─────────────────────────────────────────────────
 
 function todayISO(): string {
   return new Date().toISOString().split('T')[0];
@@ -61,7 +60,6 @@ interface TimelineItem {
   data?: any;
 }
 
-// ─── Screen ──────────────────────────────────────────────────
 
 export default function PlanningScreen() {
   const router = useRouter();
@@ -93,7 +91,6 @@ export default function PlanningScreen() {
 
   const hasDoneMorningToday = useRitualStore((state) => state.hasDoneMorningToday);
 
-  // ─── Données dérivées ──────────────────────────────────────
   const activeBlocks = useMemo(() => getActiveBlocks(), [getActiveBlocks]);
   const todayTasks = useMemo(() => getTodayTasks(), [tasks, getTodayTasks]);
   const templateBlocks = useMemo(() => getTodayBlocks(), [getTodayBlocks]);
@@ -101,7 +98,6 @@ export default function PlanningScreen() {
   const hasTemplate = getActiveTemplate() !== undefined;
   const morningDone = hasDoneMorningToday();
 
-  // ─── Auto-recalcul du Day Score quand tasks change ──────────
   useEffect(() => {
     const today = todayISO();
     const completed = todayTasks.filter((t) => t.completed).length;
@@ -116,14 +112,12 @@ export default function PlanningScreen() {
     updateBlockValidation(today, blocksWithCompletedTasks.length, plannedBlocks.length);
   }, [tasks, activeBlocks, todayTasks, templateBlocks, updateTasksPercent, updateBlockValidation]);
 
-  // ─── Calcul Day Score complet ──────────────────────────────
   const todayScore = useMemo(() => {
     return scores.find((s) => s.date === todayISO());
   }, [scores]);
 
   const dayScore = todayScore?.total || 0;
 
-  // ─── Scroll auto à l'ouverture ─────────────────────────────
   useEffect(() => {
     if (!hasTemplate || activeBlocks.length === 0) return;
     const y = currentMinutesSinceStart() * (HOUR_HEIGHT / 60) - 120;
@@ -133,7 +127,6 @@ export default function PlanningScreen() {
     return () => clearTimeout(timer);
   }, [hasTemplate, activeBlocks.length]);
 
-  // ─── Mise à jour ligne "MAINTENANT" toutes les 60s ─────────
   useEffect(() => {
     const interval = setInterval(() => {
       setNowY(currentMinutesSinceStart() * (HOUR_HEIGHT / 60));
@@ -141,7 +134,6 @@ export default function PlanningScreen() {
     return () => clearInterval(interval);
   }, []);
 
-  // ─── Ajout de tâche ────────────────────────────────────────
   const handleAddTask = useCallback(() => {
     if (!newTaskTitle.trim()) return;
     hapticLight();
@@ -156,7 +148,6 @@ export default function PlanningScreen() {
     setSelectedBlockId(undefined);
   }, [newTaskTitle, selectedBlockId, addTask]);
 
-  // ─── Génération des items de la timeline ───────────────────
   const timelineItems = useMemo(() => {
     const sorted = [...templateBlocks].sort((a, b) =>
       a.startTime.localeCompare(b.startTime)
@@ -199,19 +190,16 @@ export default function PlanningScreen() {
     return items;
   }, [templateBlocks]);
 
-  // ─── Journée chargée ────────────────────────────────────────
   const plannedMinutes = useMemo(() => {
     return templateBlocks.reduce((sum, b) => {
       return sum + (timeToMinutes(b.endTime) - timeToMinutes(b.startTime));
     }, 0);
   }, [templateBlocks]);
 
-  // ─── Toggle tâche ───────────────────────────────────────────
   const handleToggleTask = useCallback((taskId: string) => {
     toggleTask(taskId);
   }, [toggleTask]);
 
-  // ─── Focus tâche ────────────────────────────────────────────
   const handleFocusTask = useCallback((taskId: string, taskTitle: string) => {
     startFocus(taskId, taskTitle);
     router.push('/focus');
@@ -221,7 +209,6 @@ export default function PlanningScreen() {
     deleteTask(taskId);
   }, [deleteTask]);
 
-  // ─── Render ────────────────────────────────────────────────
   if (!hasTemplate) {
     return (
       <SafeAreaView style={[styles.container, { backgroundColor: colors.bg.primary }]} edges={['top']}>
@@ -256,7 +243,6 @@ export default function PlanningScreen() {
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.bg.primary }]} edges={['top']}>
-      {/* Header */}
       <View style={styles.header}>
         <Text style={[typography.screenTitle, { color: colors.text.primary }]}>{formatDateFr(new Date())}</Text>
         <Text style={[typography.subheadline, { color: colors.text.secondary, marginTop: 2 }]}>
@@ -264,10 +250,8 @@ export default function PlanningScreen() {
         </Text>
       </View>
 
-      {/* Séparateur hairline */}
       <View style={{ height: 0.5, backgroundColor: colors.separator.default, marginHorizontal: 16 }} />
 
-      {/* Bouton "Maintenant" */}
       {showNowButton && (
         <Pressable
           style={{
@@ -294,7 +278,6 @@ export default function PlanningScreen() {
         </Pressable>
       )}
 
-      {/* Timeline */}
       <ScrollView
         ref={scrollRef}
         style={styles.scroll}
@@ -305,7 +288,6 @@ export default function PlanningScreen() {
           setShowNowButton(y > nowY + 200 || y < nowY - 200);
         }}
       >
-        {/* Banner Morning Ritual si matin et pas fait */}
         {!morningDone && (
           <Pressable
             style={({ pressed }) => ({
@@ -330,7 +312,6 @@ export default function PlanningScreen() {
           </Pressable>
         )}
 
-        {/* Ajout rapide de tâche */}
         <View style={{ marginHorizontal: 16, marginTop: 16 }}>
           <View
             style={{
@@ -359,10 +340,8 @@ export default function PlanningScreen() {
               />
             </View>
 
-            {/* Séparateur indenté */}
             <View style={{ height: 0.5, backgroundColor: colors.separator.hairline, marginLeft: 44 }} />
 
-            {/* Sélection du bloc */}
             <ScrollView
               horizontal
               showsHorizontalScrollIndicator={false}
@@ -411,7 +390,6 @@ export default function PlanningScreen() {
           </View>
         </View>
 
-        {/* Tâches du jour */}
         {todayTasks.length > 0 && (
           <View style={{ marginTop: 24 }}>
             <Text
@@ -446,7 +424,6 @@ export default function PlanningScreen() {
           </View>
         )}
 
-        {/* Timeline */}
         <View style={{ marginTop: 24, marginBottom: 120 }}>
             <Text
             style={[
@@ -458,7 +435,6 @@ export default function PlanningScreen() {
           </Text>
 
           <View style={styles.timelineContainer}>
-            {/* Hour markers */}
             {Array.from({ length: END_HOUR - START_HOUR + 1 }, (_, i) => (
               <View
                 key={i}
@@ -468,7 +444,6 @@ export default function PlanningScreen() {
               </View>
             ))}
 
-            {/* Blocks + Free slots */}
             {timelineItems.map((item, index) => {
               const top = (item.startMinutes - START_HOUR * 60) * (HOUR_HEIGHT / 60);
               const height = (item.endMinutes - item.startMinutes) * (HOUR_HEIGHT / 60);
@@ -516,7 +491,6 @@ export default function PlanningScreen() {
               );
             })}
 
-            {/* Current time line */}
             <View
               style={[
                 styles.itemAbsolute,
@@ -529,7 +503,6 @@ export default function PlanningScreen() {
         </View>
       </ScrollView>
 
-      {/* FAB */}
       <Pressable
         style={{
           position: 'absolute',

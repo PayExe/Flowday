@@ -38,7 +38,6 @@ export function TemplateBlockCard({ block, lifeBlock, onPress }: TemplateBlockCa
         minHeight: 44,
       })}
     >
-      {/* Icône avec fond coloré */}
       <View
         style={{
           width: 29,

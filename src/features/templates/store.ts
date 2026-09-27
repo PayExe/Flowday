@@ -107,7 +107,6 @@ export const useTemplateStore = create<TemplateState>()(
 
       getTodayBlocks: () => {
         const today = new Date().getDay();
-        // JS getDay(): 0=dimanche, 1=lundi... on veut 0=lundi
         const dayOfWeek = today === 0 ? 6 : today - 1;
         return get().getBlocksForDay(dayOfWeek);
       },
@@ -120,7 +119,6 @@ export const useTemplateStore = create<TemplateState>()(
           const lunchBlockId = lifeBlockIds[2];
           const templateId = generateId();
           const defaultBlocks: TemplateBlock[] = [
-            // Lundi-Vendredi : Work 9h-12h
             ...[0, 1, 2, 3, 4].map((d) => ({
               id: generateId(),
               lifeBlockId: workBlockId,
@@ -130,7 +128,6 @@ export const useTemplateStore = create<TemplateState>()(
               title: 'Deep Work',
               isFlexible: false,
             })),
-            // Lundi-Vendredi : Lunch 12h-13h
             ...[0, 1, 2, 3, 4].map((d) => ({
               id: generateId(),
               lifeBlockId: lunchBlockId,
@@ -140,7 +137,6 @@ export const useTemplateStore = create<TemplateState>()(
               title: 'Déjeuner',
               isFlexible: true,
             })),
-            // Lundi-Vendredi : Work 14h-18h
             ...[0, 1, 2, 3, 4].map((d) => ({
               id: generateId(),
               lifeBlockId: workBlockId,
@@ -150,7 +146,6 @@ export const useTemplateStore = create<TemplateState>()(
               title: 'Work',
               isFlexible: false,
             })),
-            // Lundi, Mercredi, Vendredi : Sport 19h-20h
             ...[0, 2, 4].map((d) => ({
               id: generateId(),
               lifeBlockId: sportBlockId,

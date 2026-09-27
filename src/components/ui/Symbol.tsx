@@ -2,7 +2,6 @@ import React from 'react';
 import { Platform } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 
-// expo-symbols est uniquement disponible sur iOS
 let SymbolView: React.ComponentType<any> | null = null;
 if (Platform.OS === 'ios') {
   try {
@@ -13,9 +12,7 @@ if (Platform.OS === 'ios') {
   }
 }
 
-// Mapping SFSymbol -> Ionicons fallback (les plus proches visuellement)
 const SF_TO_IONICON: Record<string, keyof typeof Ionicons.glyphMap> = {
-  // Navigation & Tabs
   'house.fill': 'home',
   'house': 'home-outline',
   'calendar': 'calendar-outline',
@@ -176,15 +173,6 @@ export interface SymbolProps {
   style?: React.CSSProperties;
 }
 
-/**
- * Symbol — SFSymbol natif iOS avec fallback Ionicons
- *
- * Sur iOS : utilise expo-symbols (SFSymbols Apple natifs)
- * Sur Android / fallback : utilise Ionicons
- *
- * Usage :
- *   <Symbol name="checkmark.circle.fill" size={24} color="#0A84FF" />
- */
 export function Symbol({
   name,
   size = 24,
@@ -193,7 +181,6 @@ export function Symbol({
   type = 'monochrome',
   style,
 }: SymbolProps) {
-  // iOS avec expo-symbols disponible
   if (Platform.OS === 'ios' && SymbolView) {
     return (
       <SymbolView
@@ -207,7 +194,6 @@ export function Symbol({
     );
   }
 
-  // Fallback Ionicons
   const ioniconName = SF_TO_IONICON[name] || 'help-circle';
   return (
     <Ionicons
@@ -219,9 +205,6 @@ export function Symbol({
   );
 }
 
-/**
- * Raccourci pour les symboles les plus courants
- */
 export const SymbolNames = {
   home: 'house.fill',
   homeOutline: 'house',

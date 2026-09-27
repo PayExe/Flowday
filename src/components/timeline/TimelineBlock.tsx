@@ -49,12 +49,10 @@ export function TimelineBlock({
 
   return (
     <View style={{ flexDirection: 'row', marginBottom: 2 }}>
-      {/* Colonne heure */}
       <View style={{ width: 52, alignItems: 'flex-end', paddingRight: 10, paddingTop: 10 }}>
         <Text style={{ fontSize: typography.sizes.xs, color: colors.text.quaternary }}>{startTime}</Text>
       </View>
 
-      {/* Bloc */}
       <View
         style={[
           styles.block,
@@ -72,7 +70,6 @@ export function TimelineBlock({
           <Text style={{ fontSize: typography.sizes.xs, color: colors.text.quaternary }}>{duration}</Text>
         </View>
 
-        {/* Tâches du bloc */}
         {tasks.length > 0 && (
           <View style={{ marginTop: 8, gap: 4 }}>
             {tasks.slice(0, 3).map((task) => (

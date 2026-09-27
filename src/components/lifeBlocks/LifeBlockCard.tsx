@@ -87,9 +87,7 @@ export function LifeBlockCard({
         transform: [{ translateY: panY }],
       }}
     >
-      {/* Header */}
       <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12, marginBottom: 14 }}>
-        {/* Icône colorée */}
         <View
           style={{
             width: 40,
@@ -112,7 +110,6 @@ export function LifeBlockCard({
           </Text>
         </View>
 
-        {/* Reorder + Archive */}
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 2 }}>
           <View {...panResponder.panHandlers} style={{ padding: 6 }}>
             <Symbol name={SymbolNames.menu} size={16} color={colors.text.tertiary} />
@@ -123,7 +120,6 @@ export function LifeBlockCard({
         </View>
       </View>
 
-      {/* Progress bar */}
       <View style={{ height: 4, backgroundColor: colors.bg.hover, borderRadius: 2, overflow: 'hidden' }}>
         <View
           style={{
@@ -135,7 +131,6 @@ export function LifeBlockCard({
         />
       </View>
 
-      {/* Footer */}
       <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginTop: 8 }}>
         <Text style={{ fontSize: typography.sizes.xs, color: colors.text.quaternary }}>
           {formatMinutes(timeSpentMinutes)}

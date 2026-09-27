@@ -1,244 +1,51 @@
 # Flowday
 
-> Outil de design de vie pour développeurs et knowledge workers.
-> React Native + Expo SDK 54 · iOS & Android
+Flowday est une application mobile de planification personnelle construite avec React Native et Expo.
 
----
+> Projet de portfolio et d'apprentissage : ce dépôt montre mon parcours, mes essais et ma progression avec React Native. Il ne s'agit pas d'une application commerciale ni d'un produit fini.
 
-## Stack
+Ce projet est avant tout un projet d'apprentissage. Il m'a permis de pratiquer la navigation mobile, la gestion d'état, les composants réutilisables, les thèmes clair/sombre et la conception d'interfaces inspirées d'iOS.
 
-| Technologie | Version |
-|---|---|
-| React Native | 0.81.5 |
-| Expo SDK | ~54.0.33 |
-| Expo Router | ~6.0.23 |
-| Zustand | ^5.0.13 |
-| AsyncStorage | 2.2.0 |
-| Reanimated | ~4.1.1 |
-| @gorhom/bottom-sheet | ^5.2.14 |
 
----
+## Statut
 
-## État des lieux
+Flowday est une version expérimentale et incomplète. L'application contient encore des bugs et certaines parties peuvent changer ou ne pas fonctionner comme prévu.
 
-L'app MVP v1.0 est fonctionnelle (Life Blocks, Template, Timeline, Tasks, Day Score, Rituals, Focus, Thèmes).
+Je la partage comme une trace de mon apprentissage, pas comme une application prête pour la production. Les retours constructifs sont les bienvenus.
 
-**Problèmes visuels actuels :**
-- Composants avec couleurs dark en dur → cassés en light mode
-- Tab bar fond `#1C1C1E` au lieu de `#000000`
-- Headers, padding, section headers incohérents
-- Typo tokens jamais utilisés (tout en dur)
-- Rayons de boutons différents selon les écrans
-- Timeline workaround `+40px`
-- Aucune page d'accueil (dashboard)
-- Structure pas claire ("Aujourd'hui" mélange timeline + tasks + score)
 
----
+## Fonctionnalités
 
-## Nouvelle structure — 5 tabs
+- Organisation de la journée avec des blocs de vie
+- Planning hebdomadaire et timeline quotidienne
+- Tâches avec priorités et suivi d'avancement
+- Score de journée et séries de jours
+- Rituels du matin et du soir
+- Mode focus avec minuteur
+- Thème clair et thème sombre
+- Stockage local sur l'appareil
 
-```
-┌──────────┬──────────┬──────────┬──────────┬──────────┐
-│ Accueil  │ Planning │ Semaine  │  Blocs   │ Réglages │
-│ Dashboard│ Timeline │ Template │ Life     │ Config   │
-│ (résumé) │ + Tâches │ semaine  │ Blocks   │          │
-└──────────┴──────────┴──────────┴──────────┴──────────┘
-```
 
-### Tab 1 — Accueil (nouveau)
-Dashboard avec :
-- **Day Score** (grand chiffre + label + 4 barres)
-- **Prochain bloc** (la prochaine activité de la journée)
-- **Streaks** (séquences en cours par Life Block)
-- **Tâches prioritaires** du jour (max 3)
-- **Bannière Morning Ritual** si pas fait
-- Vue sobre, pas de timeline, juste l'essentiel
+## Technologies
 
-### Tab 2 — Planning (ex "Aujourd'hui")
-Timeline verticale + tâches, recentré sur la **lecture de la journée** :
-- Timeline 06h-23h avec ligne MAINTENANT
-- Blocs colorés avec tâches embeddées
-- Ajout de tâche rapide
-- Créneaux libres
-- Header épuré (juste la date)
+- React Native
+- Expo SDK 54
+- Expo Router
+- TypeScript
+- Zustand
+- AsyncStorage
+- Reanimated
 
-### Tab 3 — Semaine (actuel, à polir)
-Éditeur de template 7 jours :
-- Même structure, visuels améliorés
-- Section headers cohérents
-- Padding unifié
 
-### Tab 4 — Blocs (actuel, à polir)
-CRUD Life Blocks :
-- Cartes améliorées avec vraie progress bar
-- Drag & drop (à venir après)
-- Archivés en footer groupé
+## Ressources d'apprentissage
 
-### Tab 5 — Réglages (actuel, à polir)
-Thème, config rituals, à propos.
+Le projet a été construit progressivement en m'appuyant sur des tutoriels, de la documentation et beaucoup d'expérimentation :
 
----
+- [Tutoriel vidéo](https://youtu.be/m1-bc53EGh8?si=xLnjeSeY1BLpS7Zs)
+- [Documentation Expo](https://docs.expo.dev/)
 
-## Direction visuelle
+Les choix d'architecture et de design ne sont pas tous définitifs. Une partie de l'intérêt du projet est justement de voir son évolution au fil de l'apprentissage.
 
-**Apple UIKit (Dark + Light)** — mais bien appliqué :
+## Licence
 
-| Règle | Actuellement | Cible |
-|---|---|---|
-| Tab bar bg | `#1C1C1E` (secondary) | `#000000` (primary) |
-| Composants theme-aware | Certains non (Divider, etc.) | 100% via `useTheme()` |
-| Typo tokens | Pas utilisés | Partout via `typography.headline`, etc. |
-| Section headers | 3 implémentations différentes | 1 pattern unique |
-| Radius boutons | 10 ici, 13 là | Unifié : md(10) |
-| Padding header | 12 / 16 / incohérent | Unifié : 16 |
-| Séparateur indenté | Parfois, pas toujours | Partout (marginLeft 57) |
-
----
-
-## Plan de travail
-
-### Session 1 — Fondations
-
-**Objectif :** tout rendre theme-aware, corriger les composants cassés
-
-Fichiers à modifier :
-- `src/components/ui/Divider.tsx` — passage à `useTheme()`
-- `src/components/ui/Card.tsx` — supprimer le StyleSheet hardcodé
-- `src/components/ui/Button.tsx` — vérifier
-- `src/components/ui/IconButton.tsx` — vérifier
-- `src/components/shared/PriorityBadge.tsx` — déjà bon ? check `colors` usage
-- `src/components/shared/ProgressBar.tsx` — déjà bon
-- `app.json` — `"userInterfaceStyle": "automatic"`
-
-```bash
-git add .
-git commit -m "fix: make all components theme-aware, ui foundation"
-```
-
----
-
-### Session 2 — Restructuration tabs
-
-**Objectif :** passer de 4 à 5 tabs
-
-- Créer `app/(tabs)/index.tsx` (nouvel Accueil)
-- Renommer l'ancien Today en `app/(tabs)/planning.tsx`
-- Mettre à jour `app/(tabs)/_layout.tsx` : 5 tabs avec les bons Symboles
-- Vérifier que la navigation fonctionne
-
-```bash
-git add .
-git commit -m "feat: restructure tabs - home, planning, week, blocks, settings"
-```
-
----
-
-### Session 3 — Page Accueil (Home)
-
-**Objectif :** créer le dashboard principal
-
-Nouveau fichier : `app/(tabs)/index.tsx`
-
-Éléments :
-```
-┌─────────────────────────────┐
-│ Header : date + intention   │
-├─────────────────────────────┤
-│                             │
-│          74                 │  ← Day Score (grand)
-│     Bonne journée           │
-│                             │
-│  Blocs    ████████░░  80%   │
-│  Tâches   ██████░░░░  60%   │
-│  Focus    █████████░  90%   │
-│  Rituals  █████░░░░░  50%   │
-│                             │
-├─────────────────────────────┤
-│                             │
-│  Prochain bloc              │
-│  ┌─────────────────────┐    │
-│  │ 🏃 Sport · 14h-15h  │    │  ← card colorée
-│  │ Salle de sport       │    │
-│  └─────────────────────┘    │
-│                             │
-│  Streaks                    │
-│  🔥 Work · 5 jours         │
-│  💔 Sport · streak cassé   │
-│                             │
-│  Tâches du jour (3 max)    │
-│  ☐ Finir auth Supabase     │
-│  ☐ Review PR               │
-│                             │
-│  [Commencer la journée →]  │  ← si morning pas fait
-└─────────────────────────────┘
-```
-
-```bash
-git add .
-git commit -m "feat: home dashboard with score, next block, streaks, tasks"
-```
-
----
-
-### Session 4 — Redesign Planning (timeline)
-
-**Objectif :** une timeline claire, lisible, agréable
-
-Fichier : `app/(tabs)/planning.tsx`
-
-Modifications :
-- Header : jour + date + charge (ex: "Mardi 26 mai · 6h planifiées")
-- Timeline : ligne MAINTENANT plus visible, blocs mieux espacés
-- Tasks : section groupée avant la timeline, plus aérée
-- Supprimer les `+40` et workaround de hauteur
-- Padding cohérent partout
-- FAB focus : garder mais check position par rapport à la tab bar
-
-```bash
-git add .
-git commit -m "redesign: planning timeline with consistent spacing and layout"
-```
-
----
-
-### Session 5 — Polish Semaine + Blocs + Réglages
-
-**Objectif :** harmoniser tous les écrans avec le design system
-
-- **Semaine** (`week.tsx`) : section headers, padding, jours espacés
-- **Blocs** (`blocks.tsx`) : cartes plus propres, séparateurs indentés
-- **Réglages** (`settings.tsx`) : déjà bien, juste vérifier light mode
-- Vérifier que tous les écrans utilisent `typography` tokens
-- Vérifier tous les padding = multiples de 4
-
-```bash
-git add .
-git commit -m "polish: standardize week, blocks, settings screens"
-```
-
----
-
-### Session 6 — Vérification light mode + final
-
-**Objectif :** zéro bug visuel, prêt à montrer
-
-- Tester tous les écrans en light mode
-- Vérifier Morning Ritual + Evening Wrap en light
-- Vérifier focus mode
-- Vérifier les modals (EditBlockModal, EditTemplateBlockModal)
-- `app.json` → `"userInterfaceStyle": "automatic"`
-- Désinstaller `uuid`, `@types/uuid`, `expo-linear-gradient`
-
-```bash
-git add .
-git commit -m "fix: full light mode pass, remove dead deps"
-```
-
----
-
-## Pour lancer
-
-```bash
-npx expo start
-npx expo export --platform ios  # vérification bundle
-```
+Ce projet est distribué sous licence [MIT](LICENSE).

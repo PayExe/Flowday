@@ -60,7 +60,6 @@ export function DayScoreHeader({
 
   return (
     <View style={{ paddingHorizontal: 16, paddingBottom: 20 }}>
-      {/* Score + label en ligne */}
       <View style={{ flexDirection: 'row', alignItems: 'baseline', gap: 10, marginBottom: 16 }}>
         <Text style={{ fontSize: typography.sizes.score, fontWeight: '700', color: colors.text.primary, letterSpacing: -2 }}>
           {displayScore}
@@ -68,7 +67,6 @@ export function DayScoreHeader({
         <Text style={{ fontSize: typography.sizes.lg, color: colors.text.secondary }}>{label}</Text>
       </View>
 
-      {/* 4 mini barres horizontales */}
       {bars.map(({ label: l, value, color }) => (
         <View key={l} style={{ flexDirection: 'row', alignItems: 'center', gap: 10, marginBottom: 8 }}>
           <Text style={{ fontSize: typography.sizes.sm, color: colors.text.quaternary, width: 52 }}>{l}</Text>

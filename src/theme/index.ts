@@ -1,7 +1,3 @@
-// ============================================================
-// THEME / DESIGN SYSTEM — Flowday v4
-// Entry point
-// ============================================================
 
 import { useMemo } from 'react';
 import { useThemeStore } from '../features/theme/store';
@@ -29,7 +25,6 @@ export {
 };
 export type { ColorPalette, ThemeName, LifeBlockColor };
 
-// ─── useTheme hook (dynamique dark / light) ──────────────────
 export function useTheme() {
   const themeName = useThemeStore((s) => s.themeName);
   const isDark = themeName === 'dark';
@@ -49,7 +44,4 @@ export function useTheme() {
   };
 }
 
-// ─── Legacy static exports (compatibilité) ───────────────────
-// ⚠️  Ces imports sont figés en dark mode.
-//    Préférez useTheme() dans les nouveaux composants.
 export const Typography = getTypography(true);

@@ -150,7 +150,6 @@ export function EditTemplateBlockModal({
         style={styles.overlay}
       >
         <View style={[styles.modal, { backgroundColor: colors.bg.elevated }]}>
-          {/* Header */}
           <View style={styles.header}>
             <Text style={[styles.title, { color: colors.text.primary }]}>
               {isEditing ? 'Modifier le créneau' : 'Nouveau créneau'}
@@ -161,13 +160,11 @@ export function EditTemplateBlockModal({
           </View>
 
           <ScrollView showsVerticalScrollIndicator={false}>
-            {/* Jour */}
             <View style={styles.section}>
               <Text style={[styles.label, { color: colors.text.secondary }]}>Jour</Text>
               <Text style={[styles.dayText, { color: colors.text.primary }]}>{DAY_LABELS[dayOfWeek]}</Text>
             </View>
 
-            {/* Life Block */}
             <View style={styles.section}>
               <Text style={[styles.label, { color: colors.text.secondary }]}>Life Block</Text>
               <ScrollView horizontal showsHorizontalScrollIndicator={false}>
@@ -204,7 +201,6 @@ export function EditTemplateBlockModal({
               </ScrollView>
             </View>
 
-            {/* Horaires — Picker natif iOS wheel */}
             <View style={styles.section}>
               <Text style={[styles.label, { color: colors.text.secondary }]}>Horaires</Text>
               <View style={styles.timeRow}>
@@ -243,7 +239,6 @@ export function EditTemplateBlockModal({
               )}
             </View>
 
-            {/* Titre optionnel */}
             <View style={styles.section}>
               <Text style={[styles.label, { color: colors.text.secondary }]}>Titre (optionnel)</Text>
               <TextInput
@@ -255,7 +250,6 @@ export function EditTemplateBlockModal({
               />
             </View>
 
-            {/* Flexible */}
             <View style={styles.section}>
               <Pressable
                 style={styles.toggleRow}
@@ -274,7 +268,6 @@ export function EditTemplateBlockModal({
               </Pressable>
             </View>
 
-            {/* Notes */}
             <View style={styles.section}>
               <Text style={[styles.label, { color: colors.text.secondary }]}>Notes (optionnel)</Text>
               <TextInput
@@ -287,7 +280,6 @@ export function EditTemplateBlockModal({
               />
             </View>
 
-            {/* Actions */}
             <View style={styles.actions}>
               <Pressable
                 style={[
