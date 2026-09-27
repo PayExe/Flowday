@@ -1,30 +1,27 @@
 # Flowday
 
-Flowday est une application mobile de planification personnelle construite avec React Native et Expo.
+Flowday is a personal planning mobile application built with React Native and Expo.
 
-> Projet de portfolio et d'apprentissage : ce dépôt montre mon parcours, mes essais et ma progression avec React Native. Il ne s'agit pas d'une application commerciale ni d'un produit fini.
+> Portfolio and learning project: this repository shows my journey, experiments, and progress with React Native. It is not a commercial application or a finished product.
 
-Ce projet est avant tout un projet d'apprentissage. Il m'a permis de pratiquer la navigation mobile, la gestion d'état, les composants réutilisables, les thèmes clair/sombre et la conception d'interfaces inspirées d'iOS.
+This project was created primarily for learning. It helped me practice mobile navigation, state management, reusable components, light and dark themes, and iOS-inspired interface design.
 
+## Status
 
-## Statut
+Flowday is an experimental and incomplete application. It still contains bugs, and some parts may change or not work as expected.
 
-Flowday est une version expérimentale et incomplète. L'application contient encore des bugs et certaines parties peuvent changer ou ne pas fonctionner comme prévu.
+I am sharing it as a record of my learning process, not as a production-ready application.
 
-Je la partage comme une trace de mon apprentissage, pas comme une application prête pour la production. Les retours constructifs sont les bienvenus.
+## Features
 
-
-## Fonctionnalités
-
-- Organisation de la journée avec des blocs de vie
-- Planning hebdomadaire et timeline quotidienne
-- Tâches avec priorités et suivi d'avancement
-- Score de journée et séries de jours
-- Rituels du matin et du soir
-- Mode focus avec minuteur
-- Thème clair et thème sombre
-- Stockage local sur l'appareil
-
+- Daily planning with life blocks
+- Weekly planning and daily timeline
+- Tasks with priorities and progress tracking
+- Daily score and streak tracking
+- Morning and evening rituals
+- Focus mode with a timer
+- Light and dark themes
+- Local device storage
 
 ## Technologies
 
@@ -36,16 +33,15 @@ Je la partage comme une trace de mon apprentissage, pas comme une application pr
 - AsyncStorage
 - Reanimated
 
+## Learning Resources
 
-## Ressources d'apprentissage
+This project was built progressively using tutorials, documentation, and a lot of experimentation:
 
-Le projet a été construit progressivement en m'appuyant sur des tutoriels, de la documentation et beaucoup d'expérimentation :
+- [Video tutorial](https://youtu.be/m1-bc53EGh8?si=xLnjeSeY1BLpS7Zs)
+- [Expo documentation](https://docs.expo.dev/)
 
-- [Tutoriel vidéo](https://youtu.be/m1-bc53EGh8?si=xLnjeSeY1BLpS7Zs)
-- [Documentation Expo](https://docs.expo.dev/)
+The architecture and design decisions are not all final. Part of the project's purpose is to show how it evolves throughout the learning process.
 
-Les choix d'architecture et de design ne sont pas tous définitifs. Une partie de l'intérêt du projet est justement de voir son évolution au fil de l'apprentissage.
+## License
 
-## Licence
-
-Ce projet est distribué sous licence [MIT](LICENSE).
+This project is distributed under the [MIT License](LICENSE).
