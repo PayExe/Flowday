@@ -30,7 +30,7 @@ export default function FocusScreen() {
   const stopFocus = useFocusStore((state) => state.stopFocus);
   const abandonPomodoro = useFocusStore((state) => state.abandonPomodoro);
 
-  const intervalRef = useRef<NodeJS.Timeout | null>(null);
+  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   useEffect(() => {
     if (focusState.isActive && !focusState.isBreak) {

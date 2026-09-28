@@ -9,7 +9,7 @@ export interface Task {
   priority: Priority;
   lifeBlockId?: string;
   estimatedMinutes?: number;
-  scheduledDate?: string; // YYYY-MM-DD
+  scheduledDate?: string;
   createdAt: string;
   dueDate?: string;
 }

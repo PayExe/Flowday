@@ -1,9 +1,9 @@
 export interface TemplateBlock {
   id: string;
   lifeBlockId: string;
-  dayOfWeek: 0 | 1 | 2 | 3 | 4 | 5 | 6; // 0 = lundi
-  startTime: string; // "09:00"
-  endTime: string; // "12:00"
+  dayOfWeek: 0 | 1 | 2 | 3 | 4 | 5 | 6;
+  startTime: string;
+  endTime: string;
   title?: string;
   notes?: string;
   isFlexible: boolean;

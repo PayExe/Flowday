@@ -5,25 +5,12 @@ import {
   ColorsDark,
   ColorsLight,
   getTypography,
-  LifeBlockColors,
-  Spacing,
-  Space,
-  Radius,
   type ColorPalette,
   type ThemeName,
-  type LifeBlockColor,
 } from './colors';
 
-export {
-  LifeBlockColors,
-  Spacing,
-  Space,
-  Radius,
-  ColorsDark,
-  ColorsLight,
-  getTypography,
-};
-export type { ColorPalette, ThemeName, LifeBlockColor };
+export { ColorsDark, ColorsLight, getTypography };
+export type { ColorPalette, ThemeName };
 
 export function useTheme() {
   const themeName = useThemeStore((s) => s.themeName);
@@ -43,5 +30,3 @@ export function useTheme() {
     typography,
   };
 }
-
-export const Typography = getTypography(true);

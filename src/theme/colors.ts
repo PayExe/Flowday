@@ -1,47 +1,29 @@
-
-export const LifeBlockColors = [
-  '#30D158', // vert
-  '#FF453A', // rouge
-  '#FFD60A', // jaune
-  '#BF5AF2', // violet
-  '#0A84FF', // bleu
-  '#FF9F0A', // orange
-  '#FF375F', // rose
-  '#5E5CE6', // indigo
-  '#40CBE0', // teal
-  '#AC8E68', // marron
-  '#8E8E93', // gris
-  '#FFFFFF', // blanc
-] as const;
-
-export type LifeBlockColor = (typeof LifeBlockColors)[number];
-
 export const ColorsDark = {
   bg: {
-    primary: '#000000',           // systemBackground dark
-    secondary: '#1C1C1E',         // secondarySystemBackground dark
-    tertiary: '#2C2C2E',           // tertiarySystemBackground dark
-    grouped: '#000000',            // systemGroupedBackground dark
-    groupedSecondary: '#1C1C1E',  // secondarySystemGroupedBackground
-    elevated: '#1C1C1E',           // elevated systemBackground (modals, sheets)
-    input: '#2C2C2E',              // input / hover
-    hover: '#2C2C2E',              // pressed state
-    blockActive: '#2C2C2E',        // bloc actif timeline
+    primary: '#000000',
+    secondary: '#1C1C1E',
+    tertiary: '#2C2C2E',
+    grouped: '#000000',
+    groupedSecondary: '#1C1C1E',
+    elevated: '#1C1C1E',
+    input: '#2C2C2E',
+    hover: '#2C2C2E',
+    blockActive: '#2C2C2E',
   },
 
   separator: {
-    default: '#38383A',            // opaque separator Apple
-    hairline: '#54545899',           // non-opaque separator Apple
+    default: '#38383A',
+    hairline: '#54545899',
   },
 
   text: {
-    primary: '#FFFFFF',            // label
-    secondary: '#EBEBF599',        // secondaryLabel (60%)
-    tertiary: '#EBEBF54D',         // tertiaryLabel (30%)
-    quaternary: '#EBEBF52E',       // quaternaryLabel (18%)
-    placeholder: '#3C3C4399',      // placeholderText
-    link: '#0A84FF',               // link
-    inverse: '#000000',            // text sur fond clair/accent
+    primary: '#FFFFFF',
+    secondary: '#EBEBF599',
+    tertiary: '#EBEBF54D',
+    quaternary: '#EBEBF52E',
+    placeholder: '#3C3C4399',
+    link: '#0A84FF',
+    inverse: '#000000',
   },
 
   system: {
@@ -83,30 +65,30 @@ export const ColorsDark = {
 
 export const ColorsLight = {
   bg: {
-    primary: '#FFFFFF',            // systemBackground light
-    secondary: '#F2F2F7',          // secondarySystemBackground light
-    tertiary: '#FFFFFF',           // tertiarySystemBackground light
-    grouped: '#F2F2F7',            // systemGroupedBackground light
-    groupedSecondary: '#FFFFFF',   // secondarySystemGroupedBackground light
-    elevated: '#FFFFFF',           // elevated
-    input: '#FFFFFF',              // input / hover (avec bordure)
-    hover: '#E5E5EA',              // pressed state
-    blockActive: '#E5E5EA',        // bloc actif timeline
+    primary: '#FFFFFF',
+    secondary: '#F2F2F7',
+    tertiary: '#FFFFFF',
+    grouped: '#F2F2F7',
+    groupedSecondary: '#FFFFFF',
+    elevated: '#FFFFFF',
+    input: '#FFFFFF',
+    hover: '#E5E5EA',
+    blockActive: '#E5E5EA',
   },
 
   separator: {
-    default: '#C6C6C8',            // opaque separator light
-    hairline: '#3C3C4340',         // non-opaque separator light
+    default: '#C6C6C8',
+    hairline: '#3C3C4340',
   },
 
   text: {
-    primary: '#000000',            // label
-    secondary: '#3C3C4399',        // secondaryLabel (60% noir)
-    tertiary: '#3C3C434D',         // tertiaryLabel (30% noir)
-    quaternary: '#3C3C432E',       // quaternaryLabel (18% noir)
-    placeholder: '#3C3C4399',      // placeholderText
-    link: '#007AFF',               // link — Apple blue light
-    inverse: '#FFFFFF',            // text sur fond foncé/accent
+    primary: '#000000',
+    secondary: '#3C3C4399',
+    tertiary: '#3C3C434D',
+    quaternary: '#3C3C432E',
+    placeholder: '#3C3C4399',
+    link: '#007AFF',
+    inverse: '#FFFFFF',
   },
 
   system: {
@@ -208,28 +190,6 @@ export interface ColorPalette {
 }
 
 export type ThemeName = 'dark' | 'light';
-
-export const Spacing = {
-  xs: 4,
-  sm: 8,
-  md: 12,
-  lg: 16,
-  xl: 20,
-  xxl: 24,
-  xxxl: 32,
-  huge: 44,
-} as const;
-
-export const Space = Spacing;
-
-export const Radius = {
-  sm: 6,
-  md: 10,
-  lg: 13,
-  xl: 20,
-  xxl: 24,
-  full: 9999,
-} as const;
 
 export function getTypography(isDark: boolean) {
   const textPrimary = isDark ? '#FFFFFF' : '#000000';
@@ -348,5 +308,3 @@ export function getTypography(isDark: boolean) {
     },
   } as const;
 }
-
-export const Typography = getTypography(true);

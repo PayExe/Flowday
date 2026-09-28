@@ -23,10 +23,49 @@ I am sharing it as a record of my learning process, not as a production-ready ap
 - Light and dark themes
 - Local device storage
 
+## Getting started
+
+### Prerequisites
+
+- [Node.js](https://nodejs.org/) (v22+)
+- [Expo Go](https://expo.dev/go) installed on your iPhone or Android device
+- A free [Expo account](https://expo.dev/signup)
+
+### Setup
+
+```bash
+# 1. Clone the project
+git clone <repo-url>
+cd Flowday
+
+# 2. Install dependencies
+npm install
+
+# 3. Start the development server
+npx expo start
+```
+
+### Opening the app
+
+- **Web**: press `w` in the terminal
+- **iOS / Android**: scan the QR code with Expo Go
+
+#### Important — Expo login is required
+
+Expo Go for SDK 57 requires you to be logged in on **both** the terminal and the app with the same free Expo account:
+
+```bash
+npx expo login     # log in on your terminal
+```
+
+Then open Expo Go on your phone, tap the avatar icon in the top-right corner, and log in with the **same account**. Once both sides are authenticated, scan the QR code and the app will load.
+
+> You don't need the original project owner's account — any free Expo account works for local development.
+
 ## Technologies
 
 - React Native
-- Expo SDK 54
+- Expo SDK 57
 - Expo Router
 - TypeScript
 - Zustand

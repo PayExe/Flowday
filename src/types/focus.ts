@@ -13,7 +13,7 @@ export interface FocusState {
   isActive: boolean;
   currentTaskId?: string;
   currentTaskTitle?: string;
-  timeRemaining: number; // secondes
+  timeRemaining: number;
   isBreak: boolean;
   sessionPomodoroCount: number;
   dailyPomodoroCount: number;

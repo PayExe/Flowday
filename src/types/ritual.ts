@@ -1,7 +1,7 @@
 export type Mood = 'bad' | 'meh' | 'good';
 
 export interface RitualLog {
-  date: string; // YYYY-MM-DD
+  date: string;
   type: 'morning' | 'evening';
   mood?: Mood;
   intention?: string;
@@ -11,7 +11,7 @@ export interface RitualLog {
 
 export interface MorningRitualConfig {
   enabled: boolean;
-  time: string; // "08:00"
+  time: string;
   fastMode: boolean;
   steps: {
     mood: boolean;
@@ -23,5 +23,5 @@ export interface MorningRitualConfig {
 
 export interface EveningWrapConfig {
   enabled: boolean;
-  time: string; // "20:00"
+  time: string;
 }

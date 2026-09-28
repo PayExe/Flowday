@@ -1,5 +1,5 @@
 import React from 'react';
-import { Platform } from 'react-native';
+import { Platform, type ColorValue } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 
 let SymbolView: React.ComponentType<any> | null = null;
@@ -167,7 +167,7 @@ const SF_TO_IONICON: Record<string, keyof typeof Ionicons.glyphMap> = {
 export interface SymbolProps {
   name: string;
   size?: number;
-  color?: string;
+  color?: ColorValue;
   weight?: 'ultraLight' | 'thin' | 'light' | 'regular' | 'medium' | 'semibold' | 'bold' | 'heavy' | 'black';
   type?: 'monochrome' | 'hierarchical' | 'palette' | 'multicolor';
   style?: React.CSSProperties;

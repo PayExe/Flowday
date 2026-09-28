@@ -343,6 +343,7 @@ export default function MorningRitualScreen() {
         style={styles.scroll}
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
+        keyboardShouldPersistTaps="handled"
       >
         {step === 1 && renderStep1()}
         {step === 2 && renderStep2()}
