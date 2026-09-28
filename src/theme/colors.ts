@@ -23,7 +23,7 @@ export const ColorsDark = {
     quaternary: '#EBEBF52E',
     placeholder: '#3C3C4399',
     link: '#0A84FF',
-    inverse: '#000000',
+    inverse: '#FFFFFF',
   },
 
   system: {

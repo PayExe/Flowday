@@ -16,6 +16,7 @@ import { EmptyState } from '../../src/components/shared/EmptyState';
 import { useTheme } from '../../src/theme';
 import { hapticLight } from '../../src/utils/haptics';
 import { Symbol, SymbolNames } from '../../src/components/ui/Symbol';
+import { PageInfo } from '../../src/components/ui/PageInfo';
 
 const DAY_LABELS = ['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi', 'Dimanche'];
 
@@ -129,6 +130,15 @@ export default function WeekScreen() {
               {template?.name || 'Template'}
             </Text>
           </View>
+          <PageInfo
+            title="Semaine"
+            description="Ton planning type, répété chaque semaine."
+            points={[
+              'Ajoute des blocs pour chaque jour avec le bouton +.',
+              'Ce template est utilisé chaque jour dans l’onglet Planning.',
+              'Le total en haut montre ton temps planifié sur la semaine.',
+            ]}
+          />
         </View>
         {totalPlannedMinutes > 0 && (
           <Text style={[typography.footnote, { color: colors.text.quaternary }]}>

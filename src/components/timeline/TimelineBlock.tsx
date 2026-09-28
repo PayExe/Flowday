@@ -19,17 +19,6 @@ interface TimelineBlockProps {
   onFocusTask?: (taskId: string, taskTitle: string) => void;
 }
 
-function formatDuration(start: string, end: string): string {
-  const [sh, sm] = start.split(':').map(Number);
-  const [eh, em] = end.split(':').map(Number);
-  const min = (eh * 60 + em) - (sh * 60 + sm);
-  const h = Math.floor(min / 60);
-  const m = min % 60;
-  if (h > 0 && m > 0) return `${h}h${m}`;
-  if (h > 0) return `${h}h`;
-  return `${m}min`;
-}
-
 export function TimelineBlock({
   emoji,
   name,
@@ -45,13 +34,12 @@ export function TimelineBlock({
 }: TimelineBlockProps) {
   const { colors, typography } = useTheme();
   const displayTitle = title || name;
-  const duration = formatDuration(startTime, endTime);
+  const timeRange = `${startTime}–${endTime}`;
+  const showTasks = tasks.length > 0 && height >= 90;
 
   return (
-    <View style={{ flexDirection: 'row', marginBottom: 2 }}>
-      <View style={{ width: 52, alignItems: 'flex-end', paddingRight: 10, paddingTop: 10 }}>
-        <Text style={{ fontSize: typography.sizes.xs, color: colors.text.quaternary }}>{startTime}</Text>
-      </View>
+    <View style={{ flexDirection: 'row', height: '100%', paddingVertical: 2 }}>
+      <View style={{ width: 52 }} />
 
       <View
         style={[
@@ -64,13 +52,17 @@ export function TimelineBlock({
       >
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
           <Text style={{ fontSize: typography.sizes.base }}>{emoji}</Text>
-          <Text style={{ fontSize: typography.sizes.base, fontWeight: typography.weights.medium, color: colors.text.primary, flex: 1 }}>
-            {displayTitle}
-          </Text>
-          <Text style={{ fontSize: typography.sizes.xs, color: colors.text.quaternary }}>{duration}</Text>
+          <View style={{ flex: 1 }}>
+            <Text numberOfLines={1} style={{ fontSize: typography.sizes.base, fontWeight: typography.weights.medium, color: colors.text.primary }}>
+              {displayTitle}
+            </Text>
+            <Text style={{ fontSize: typography.sizes.xs, color: colors.text.quaternary, marginTop: 1 }}>
+              {timeRange}
+            </Text>
+          </View>
         </View>
 
-        {tasks.length > 0 && (
+        {showTasks && (
           <View style={{ marginTop: 8, gap: 4 }}>
             {tasks.slice(0, 3).map((task) => (
               <Pressable
@@ -118,6 +110,6 @@ const styles = StyleSheet.create({
     borderLeftWidth: 3,
     padding: 10,
     marginRight: 16,
-    minHeight: 52,
+    overflow: 'hidden',
   },
 });

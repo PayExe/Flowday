@@ -16,7 +16,7 @@ function getScoreLabel(score: number): string {
   if (score >= 60) return 'Journée correcte';
   if (score >= 45) return 'Journée mitigée';
   if (score >= 30) return 'Journée difficile';
-  return 'Ça arrive';
+  return 'Journée à compléter';
 }
 
 export function DayScoreHeader({
@@ -58,24 +58,33 @@ export function DayScoreHeader({
     { label: 'Rituels', value: ritualsPercent, color: colors.system.orange },
   ];
 
+  const hasData = score > 0 || bars.some((b) => b.value > 0);
+
   return (
     <View style={{ paddingHorizontal: 16, paddingBottom: 20 }}>
-      <View style={{ flexDirection: 'row', alignItems: 'baseline', gap: 10, marginBottom: 16 }}>
+      <View style={{ flexDirection: 'row', alignItems: 'flex-end', gap: 8, marginBottom: 4 }}>
         <Text style={{ fontSize: typography.sizes.score, fontWeight: '700', color: colors.text.primary, letterSpacing: -2 }}>
           {displayScore}
         </Text>
-        <Text style={{ fontSize: typography.sizes.lg, color: colors.text.secondary }}>{label}</Text>
+        <Text style={{ fontSize: typography.sizes.lg, color: colors.text.secondary, marginBottom: 10 }}>/100</Text>
       </View>
+      <Text style={{ fontSize: typography.sizes.base, color: colors.text.secondary, marginBottom: 16 }}>{label}</Text>
 
-      {bars.map(({ label: l, value, color }) => (
-        <View key={l} style={{ flexDirection: 'row', alignItems: 'center', gap: 10, marginBottom: 8 }}>
-          <Text style={{ fontSize: typography.sizes.sm, color: colors.text.quaternary, width: 52 }}>{l}</Text>
-          <View style={{ flex: 1, height: 3, backgroundColor: colors.bg.hover, borderRadius: 2, overflow: 'hidden' }}>
-            <View style={{ width: `${Math.max(0, Math.min(100, value))}%`, height: '100%', backgroundColor: color, borderRadius: 2 }} />
+      {hasData ? (
+        bars.map(({ label: l, value, color }) => (
+          <View key={l} style={{ flexDirection: 'row', alignItems: 'center', gap: 10, marginBottom: 8 }}>
+            <Text style={{ fontSize: typography.sizes.sm, color: colors.text.quaternary, width: 52 }}>{l}</Text>
+            <View style={{ flex: 1, height: 3, backgroundColor: colors.bg.hover, borderRadius: 2, overflow: 'hidden' }}>
+              <View style={{ width: `${Math.max(0, Math.min(100, value))}%`, height: '100%', backgroundColor: color, borderRadius: 2 }} />
+            </View>
+            <Text style={{ fontSize: typography.sizes.sm, color: colors.text.quaternary, width: 36, textAlign: 'right' }}>{Math.round(value)}%</Text>
           </View>
-          <Text style={{ fontSize: typography.sizes.sm, color: colors.text.quaternary, width: 36, textAlign: 'right' }}>{Math.round(value)}%</Text>
-        </View>
-      ))}
+        ))
+      ) : (
+        <Text style={{ fontSize: typography.sizes.sm, color: colors.text.quaternary }}>
+          Complète tes blocs, tâches et rituels pour remplir ton score.
+        </Text>
+      )}
     </View>
   );
 }

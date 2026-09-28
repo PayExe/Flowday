@@ -1,5 +1,4 @@
-import { useRef, useMemo } from 'react';
-import { View, Text, Pressable, Alert, PanResponder, Animated } from 'react-native';
+import { View, Text, Pressable, Alert } from 'react-native';
 import { LifeBlock } from '../../types/lifeBlock';
 import { hapticWarning } from '../../utils/haptics';
 import { useTheme } from '../../theme';
@@ -39,30 +38,6 @@ export function LifeBlockCard({
 }: LifeBlockCardProps) {
   const { colors, typography } = useTheme();
   const progress = Math.min(progressPercent, 100);
-  const CARD_HEIGHT = 130;
-
-  const panY = useRef(new Animated.Value(0)).current;
-
-  const panResponder = useMemo(
-    () =>
-      PanResponder.create({
-        onStartShouldSetPanResponder: () => true,
-        onMoveShouldSetPanResponder: (_, g) => Math.abs(g.dy) > 8,
-        onPanResponderMove: (_, g) => {
-          panY.setValue(g.dy);
-        },
-        onPanResponderRelease: (_, g) => {
-          Animated.spring(panY, { toValue: 0, useNativeDriver: false }).start();
-          const threshold = CARD_HEIGHT / 3;
-          if (g.dy < -threshold && canMoveUp) {
-            onMoveUp();
-          } else if (g.dy > threshold && canMoveDown) {
-            onMoveDown();
-          }
-        },
-      }),
-    [canMoveUp, canMoveDown, onMoveUp, onMoveDown]
-  );
 
   const handleArchive = () => {
     hapticWarning();
@@ -77,14 +52,13 @@ export function LifeBlockCard({
   };
 
   const cardContent = (
-    <Animated.View
+    <View
       style={{
         backgroundColor: colors.bg.secondary,
         borderRadius: 13,
         padding: 16,
         marginHorizontal: 16,
         marginBottom: 12,
-        transform: [{ translateY: panY }],
       }}
     >
       <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12, marginBottom: 14 }}>
@@ -102,19 +76,32 @@ export function LifeBlockCard({
         </View>
 
         <View style={{ flex: 1 }}>
-            <Text style={{ fontSize: typography.sizes.lg, fontWeight: typography.weights.semibold, color: colors.text.primary, letterSpacing: -0.41 }}>
+          <Text style={{ fontSize: typography.sizes.lg, fontWeight: typography.weights.semibold, color: colors.text.primary, letterSpacing: -0.41 }}>
             {block.name}
           </Text>
-            <Text style={{ fontSize: typography.sizes.sm, color: colors.text.secondary, marginTop: 1 }}>
+          <Text style={{ fontSize: typography.sizes.sm, color: colors.text.secondary, marginTop: 1 }}>
             {formatMinutes(timeSpentMinutes)} cette semaine
           </Text>
         </View>
 
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 2 }}>
-          <View {...panResponder.panHandlers} style={{ padding: 6 }}>
-            <Symbol name={SymbolNames.menu} size={16} color={colors.text.tertiary} />
-          </View>
-          <Pressable onPress={handleArchive} hitSlop={6} style={{ padding: 6 }}>
+          <Pressable
+            onPress={canMoveUp ? onMoveUp : undefined}
+            disabled={!canMoveUp}
+            hitSlop={6}
+            style={[styles.iconBtn, !canMoveUp && styles.iconBtnDisabled]}
+          >
+            <Symbol name={SymbolNames.chevronUp} size={16} color={colors.text.tertiary} />
+          </Pressable>
+          <Pressable
+            onPress={canMoveDown ? onMoveDown : undefined}
+            disabled={!canMoveDown}
+            hitSlop={6}
+            style={[styles.iconBtn, !canMoveDown && styles.iconBtnDisabled]}
+          >
+            <Symbol name={SymbolNames.chevronDown} size={16} color={colors.text.tertiary} />
+          </Pressable>
+          <Pressable onPress={handleArchive} hitSlop={6} style={styles.iconBtn}>
             <Symbol name={SymbolNames.archive} size={16} color={colors.text.tertiary} />
           </Pressable>
         </View>
@@ -139,7 +126,7 @@ export function LifeBlockCard({
           objectif {formatMinutes(block.weeklyGoalMinutes)}
         </Text>
       </View>
-        </Animated.View>
+    </View>
   );
 
   return (
@@ -161,3 +148,12 @@ export function LifeBlockCard({
     </ContextMenu>
   );
 }
+
+const styles = {
+  iconBtn: {
+    padding: 6,
+  },
+  iconBtnDisabled: {
+    opacity: 0.3,
+  },
+};

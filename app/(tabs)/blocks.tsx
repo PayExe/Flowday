@@ -5,12 +5,14 @@ import { useLifeBlocksStore } from '../../src/features/lifeBlocks/store';
 import { useTaskStore } from '../../src/features/tasks/store';
 import { useTemplateStore } from '../../src/features/templates/store';
 import { LifeBlock, LifeBlockColor } from '../../src/types/lifeBlock';
+import { TemplateBlock } from '../../src/types/template';
 import { LifeBlockCard } from '../../src/components/lifeBlocks/LifeBlockCard';
 import { EditBlockModal } from '../../src/components/lifeBlocks/EditBlockModal';
 import { EmptyState } from '../../src/components/shared/EmptyState';
 import { useTheme } from '../../src/theme';
 import { hapticLight, hapticWarning } from '../../src/utils/haptics';
 import { Symbol, SymbolNames } from '../../src/components/ui/Symbol';
+import { PageInfo } from '../../src/components/ui/PageInfo';
 
 
 function timeToMinutes(time: string): number {
@@ -18,15 +20,19 @@ function timeToMinutes(time: string): number {
   return h * 60 + m;
 }
 
-function getBlockTimeSpent(
-  block: LifeBlock,
-  templateBlocks: ReturnType<typeof useTemplateStore.getState>['getTodayBlocks']
+function getWeeklyMinutes(
+  blockId: string,
+  getBlocksForDay: (dayOfWeek: number) => TemplateBlock[]
 ): number {
-  const todayBlocks = templateBlocks();
-  const blockInstances = todayBlocks.filter((b) => b.lifeBlockId === block.id);
-  return blockInstances.reduce((sum, b) => {
-    return sum + (timeToMinutes(b.endTime) - timeToMinutes(b.startTime));
-  }, 0);
+  let total = 0;
+  for (let day = 0; day < 7; day++) {
+    for (const b of getBlocksForDay(day)) {
+      if (b.lifeBlockId === blockId) {
+        total += timeToMinutes(b.endTime) - timeToMinutes(b.startTime);
+      }
+    }
+  }
+  return total;
 }
 
 
@@ -43,7 +49,8 @@ export default function BlocksScreen() {
   const reorderBlock = useLifeBlocksStore((state) => state.reorderBlock);
   const getActiveBlocks = useLifeBlocksStore((state) => state.getActiveBlocks);
 
-  const getTodayBlocks = useTemplateStore((state) => state.getTodayBlocks);
+  const getBlocksForDay = useTemplateStore((state) => state.getBlocksForDay);
+  const templates = useTemplateStore((state) => state.templates);
 
   const activeBlocks = getActiveBlocks();
   const archivedBlocks = blocks.filter((b) => b.isArchived);
@@ -98,7 +105,7 @@ export default function BlocksScreen() {
 
   const renderActiveBlock = useCallback(
     ({ item, index }: { item: LifeBlock; index: number }) => {
-      const timeSpent = getBlockTimeSpent(item, getTodayBlocks);
+      const timeSpent = getWeeklyMinutes(item.id, getBlocksForDay);
       const progress =
         item.weeklyGoalMinutes > 0
           ? (timeSpent / item.weeklyGoalMinutes) * 100
@@ -118,7 +125,7 @@ export default function BlocksScreen() {
         />
       );
     },
-    [activeBlocks.length, getTodayBlocks, handleEdit, archiveBlock, reorderBlock]
+    [activeBlocks.length, templates, getBlocksForDay, handleEdit, archiveBlock, reorderBlock]
   );
 
   return (
@@ -132,21 +139,32 @@ export default function BlocksScreen() {
               {activeBlocks.length !== 1 ? 's' : ''}
             </Text>
           </View>
-          <Pressable
-            style={({ pressed }) => ({
-              width: 32,
-              height: 32,
-              borderRadius: 8,
-              backgroundColor: pressed ? colors.bg.hover : colors.bg.secondary,
-              alignItems: 'center',
-              justifyContent: 'center',
-              borderWidth: 1,
-              borderColor: colors.separator.default,
-            })}
-            onPress={handleCreate}
-          >
-            <Symbol name={SymbolNames.add} size={20} color={colors.system.blue} />
-          </Pressable>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+            <PageInfo
+              title="Blocs de vie"
+              description="Tes grands domaines de vie (travail, sport, santé…) et leur objectif hebdomadaire."
+              points={[
+                'La barre montre ton temps planifié cette semaine par rapport à l’objectif.',
+                'Appuie sur un bloc pour le modifier ou l’archiver.',
+                'Utilise les flèches ↑ ↓ pour réordonner les blocs.',
+              ]}
+            />
+            <Pressable
+              style={({ pressed }) => ({
+                width: 32,
+                height: 32,
+                borderRadius: 8,
+                backgroundColor: pressed ? colors.bg.hover : colors.bg.secondary,
+                alignItems: 'center',
+                justifyContent: 'center',
+                borderWidth: 1,
+                borderColor: colors.separator.default,
+              })}
+              onPress={handleCreate}
+            >
+              <Symbol name={SymbolNames.add} size={20} color={colors.system.blue} />
+            </Pressable>
+          </View>
         </View>
       </View>
 

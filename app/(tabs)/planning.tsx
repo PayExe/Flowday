@@ -17,6 +17,7 @@ import { useFocusStore } from '../../src/features/focus/store';
 import { useRitualStore } from '../../src/features/rituals/store';
 import { useTheme } from '../../src/theme';
 import { Symbol, SymbolNames } from '../../src/components/ui/Symbol';
+import { PageInfo } from '../../src/components/ui/PageInfo';
 import { TimelineBlock } from '../../src/components/timeline/TimelineBlock';
 import { CurrentTimeLine } from '../../src/components/timeline/CurrentTimeLine';
 import { FreeSlot } from '../../src/components/timeline/FreeSlot';
@@ -79,9 +80,12 @@ export default function PlanningScreen() {
 
   const getActiveTemplate = useTemplateStore((state) => state.getActiveTemplate);
   const getTodayBlocks = useTemplateStore((state) => state.getTodayBlocks);
+  const templates = useTemplateStore((state) => state.templates);
+  const activeTemplateId = useTemplateStore((state) => state.activeTemplateId);
 
   const getBlockById = useLifeBlocksStore((state) => state.getBlockById);
   const getActiveBlocks = useLifeBlocksStore((state) => state.getActiveBlocks);
+  const lifeBlocks = useLifeBlocksStore((state) => state.blocks);
 
   const scores = useDayScoreStore((state) => state.scores);
   const updateBlockValidation = useDayScoreStore((state) => state.updateBlockValidation);
@@ -91,9 +95,9 @@ export default function PlanningScreen() {
 
   const hasDoneMorningToday = useRitualStore((state) => state.hasDoneMorningToday);
 
-  const activeBlocks = useMemo(() => getActiveBlocks(), [getActiveBlocks]);
+  const activeBlocks = useMemo(() => getActiveBlocks(), [lifeBlocks, getActiveBlocks]);
   const todayTasks = useMemo(() => getTodayTasks(), [tasks, getTodayTasks]);
-  const templateBlocks = useMemo(() => getTodayBlocks(), [getTodayBlocks]);
+  const templateBlocks = useMemo(() => getTodayBlocks(), [templates, activeTemplateId, getTodayBlocks]);
 
   const hasTemplate = getActiveTemplate() !== undefined;
   const morningDone = hasDoneMorningToday();
@@ -244,7 +248,19 @@ export default function PlanningScreen() {
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.bg.primary }]} edges={['top']}>
       <View style={styles.header}>
-        <Text style={[typography.screenTitle, { color: colors.text.primary }]}>{formatDateFr(new Date())}</Text>
+        <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+          <Text style={[typography.screenTitle, { color: colors.text.primary }]}>{formatDateFr(new Date())}</Text>
+          <PageInfo
+            title="Planning"
+            description="La timeline de ta journée, heure par heure, avec tes tâches et tes blocs."
+            points={[
+              'La barre rouge indique l’heure actuelle.',
+              'Appuie sur un bloc pour valider ses tâches ou lancer un focus.',
+              'Ajoute une tâche en haut, puis associe-la à un bloc si besoin.',
+              'Le bouton rond en bas lance le mode Focus.',
+            ]}
+          />
+        </View>
         <Text style={[typography.subheadline, { color: colors.text.secondary, marginTop: 2 }]}>
           {formatDuration(plannedMinutes)} planifiées
         </Text>
@@ -256,7 +272,7 @@ export default function PlanningScreen() {
         <Pressable
           style={{
             position: 'absolute',
-            top: 110,
+            bottom: 168,
             alignSelf: 'center',
             backgroundColor: colors.system.blue,
             borderRadius: 20,
@@ -274,7 +290,7 @@ export default function PlanningScreen() {
             setShowNowButton(false);
           }}
         >
-          <Text style={{ fontSize: typography.sizes.base, fontWeight: typography.weights.medium, color: colors.text.inverse }}>↓ Maintenant</Text>
+          <Text style={{ fontSize: typography.sizes.base, fontWeight: typography.weights.medium, color: colors.text.inverse }}>Maintenant</Text>
         </Pressable>
       )}
 
@@ -507,22 +523,18 @@ export default function PlanningScreen() {
         style={{
           position: 'absolute',
           right: 16,
-          bottom: 88,
+          bottom: 100,
           width: 56,
           height: 56,
           borderRadius: 28,
           backgroundColor: colors.system.blue,
           alignItems: 'center',
           justifyContent: 'center',
-          shadowColor: '#000',
-          shadowOffset: { width: 0, height: 4 },
-          shadowOpacity: 0.3,
-          shadowRadius: 8,
-          elevation: 5,
+          zIndex: 10,
         }}
         onPress={() => router.push('/focus')}
       >
-        <Symbol name={SymbolNames.timer} size={24} color={colors.text.inverse} />
+        <Symbol name={SymbolNames.timer} size={24} color="#FFFFFF" />
       </Pressable>
     </SafeAreaView>
   );

@@ -9,6 +9,7 @@ import { useDayScoreStore } from '../../src/features/dayScore/store';
 import { useRitualStore } from '../../src/features/rituals/store';
 import { useTheme } from '../../src/theme';
 import { Symbol, SymbolNames } from '../../src/components/ui/Symbol';
+import { PageInfo } from '../../src/components/ui/PageInfo';
 import { DayScoreHeader } from '../../src/components/dayScore/DayScoreHeader';
 import { TaskCard } from '../../src/components/tasks/TaskCard';
 import { calculateStreaks } from '../../src/utils/streaks';
@@ -48,8 +49,10 @@ export default function HomeScreen() {
   const morningDone = hasDoneMorningToday();
 
   const getTodayBlocks = useTemplateStore((state) => state.getTodayBlocks);
+  const templates = useTemplateStore((state) => state.templates);
+  const activeTemplateId = useTemplateStore((state) => state.activeTemplateId);
   const getBlockById = useLifeBlocksStore((state) => state.getBlockById);
-  const templateBlocks = useMemo(() => getTodayBlocks(), [getTodayBlocks]);
+  const templateBlocks = useMemo(() => getTodayBlocks(), [templates, activeTemplateId, getTodayBlocks]);
 
   const tasks = useTaskStore((state) => state.tasks);
   const toggleTask = useTaskStore((state) => state.toggleTask);
@@ -112,6 +115,18 @@ export default function HomeScreen() {
 
   const streaks = useMemo(() => calculateStreaks(scores), [scores]);
 
+  const last7Days = useMemo(() => {
+    const dayShort = ['D', 'L', 'M', 'M', 'J', 'V', 'S'];
+    const result = [];
+    for (let i = 6; i >= 0; i--) {
+      const d = new Date(Date.now() - i * 86400000);
+      const iso = d.toISOString().split('T')[0];
+      const s = scores.find((sc) => sc.date === iso);
+      result.push({ key: iso, label: dayShort[d.getDay()], score: s?.total || 0 });
+    }
+    return result;
+  }, [scores]);
+
   const handleQuickAdd = () => {
     setQuickAddTitle('');
     setQuickAddVisible(true);
@@ -136,19 +151,31 @@ export default function HomeScreen() {
         <View style={styles.header}>
           <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
             <Text style={[typography.screenTitle, { color: colors.text.primary }]}>Accueil</Text>
-            <Pressable
-              style={{
-                width: 32,
-                height: 32,
-                borderRadius: 16,
-                backgroundColor: colors.system.blue,
-                alignItems: 'center',
-                justifyContent: 'center',
-              }}
-              onPress={handleQuickAdd}
-            >
-              <Symbol name={SymbolNames.add} size={18} color={colors.text.inverse} />
-            </Pressable>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+              <PageInfo
+                title="Accueil"
+                description="Ton tableau de bord du jour : score, prochain bloc, séries et tâches prioritaires."
+                points={[
+                  'Le score /100 résume ta journée (blocs, tâches, focus et rituels).',
+                  '« En ce moment / Prochain bloc » reflète ton planning actuel.',
+                  'Les Streaks comptent tes journées à 60+ points consécutives.',
+                  'Les tâches prioritaires sont tes 3 tâches en cours les plus importantes.',
+                ]}
+              />
+              <Pressable
+                style={{
+                  width: 32,
+                  height: 32,
+                  borderRadius: 16,
+                  backgroundColor: colors.system.blue,
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}
+                onPress={handleQuickAdd}
+              >
+                <Symbol name={SymbolNames.add} size={18} color={colors.text.inverse} />
+              </Pressable>
+            </View>
           </View>
           <Text style={[typography.subheadline, { marginTop: 2 }]}>
             {formatDateFr(new Date())}
@@ -265,6 +292,47 @@ export default function HomeScreen() {
                 </View>
               </View>
             )}
+          </View>
+        </View>
+
+        <View style={{ marginBottom: 24 }}>
+          <Text style={[typography.sectionHeader, { paddingHorizontal: 32, paddingBottom: 8 }]}>
+            Performance
+          </Text>
+          <View
+            style={{
+              backgroundColor: colors.bg.secondary,
+              borderRadius: 13,
+              marginHorizontal: 16,
+              paddingHorizontal: 16,
+              paddingVertical: 16,
+            }}
+          >
+            <View style={{ flexDirection: 'row', alignItems: 'flex-end', height: 120, gap: 8 }}>
+              {last7Days.map((day) => {
+                const isToday = day.key === todayISO();
+                const barHeight = day.score > 0 ? Math.max(4, (day.score / 100) * 100) : 2;
+                return (
+                  <View key={day.key} style={{ flex: 1, alignItems: 'center', gap: 6 }}>
+                    <Text style={{ fontSize: 10, color: day.score > 0 ? colors.text.secondary : colors.text.quaternary }}>
+                      {day.score > 0 ? day.score : '—'}
+                    </Text>
+                    <View style={{ width: '100%', maxWidth: 24, height: 100, justifyContent: 'flex-end' }}>
+                      <View
+                        style={{
+                          height: barHeight,
+                          borderRadius: 4,
+                          backgroundColor: isToday ? colors.system.blue : colors.system.gray3,
+                        }}
+                      />
+                    </View>
+                    <Text style={{ fontSize: 10, color: isToday ? colors.system.blue : colors.text.quaternary, fontWeight: isToday ? '600' : '400' }}>
+                      {day.label}
+                    </Text>
+                  </View>
+                );
+              })}
+            </View>
           </View>
         </View>
 

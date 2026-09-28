@@ -1,15 +1,16 @@
 import { useState } from 'react';
 import { View, Text, Pressable, StyleSheet, Switch, ScrollView, Modal, TextInput } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import SegmentedControl from '@react-native-segmented-control/segmented-control';
 import { useThemeStore } from '../../src/features/theme/store';
 import { useRitualStore } from '../../src/features/rituals/store';
 import { useTheme } from '../../src/theme';
 import { Symbol, SymbolNames } from '../../src/components/ui/Symbol';
+import { SegmentedControl } from '../../src/components/ui/SegmentedControl';
+import { PageInfo } from '../../src/components/ui/PageInfo';
 import { ThemeName } from '../../src/theme';
 
 export default function SettingsScreen() {
-  const { colors, typography, isDark } = useTheme();
+  const { colors, typography } = useTheme();
   const themeName = useThemeStore((state) => state.themeName);
   const setTheme = useThemeStore((state) => state.setTheme);
 
@@ -40,9 +41,9 @@ export default function SettingsScreen() {
     setTimeModalVisible(false);
   };
 
-  const themes: { name: ThemeName; label: string }[] = [
-    { name: 'dark', label: 'Sombre' },
-    { name: 'light', label: 'Clair' },
+  const themes: { value: ThemeName; label: string }[] = [
+    { value: 'dark', label: 'Sombre' },
+    { value: 'light', label: 'Clair' },
   ];
 
   const renderCell = (
@@ -120,22 +121,24 @@ export default function SettingsScreen() {
     <SafeAreaView style={[styles.container, { backgroundColor: colors.bg.primary }]} edges={['top']}>
       <View style={styles.header}>
         <Text style={[typography.screenTitle, { color: colors.text.primary }]}>Réglages</Text>
+        <PageInfo
+          title="Réglages"
+          description="Personnalise l'apparence et les rituels automatiques."
+          points={[
+            'Le thème Sombre / Clair change toute l’app instantanément.',
+            'Le Morning Ritual s’ouvre automatiquement chaque matin.',
+            'L’Evening Wrap s’ouvre après l’heure que tu définis.',
+          ]}
+        />
       </View>
 
       <ScrollView showsVerticalScrollIndicator={false}>
         <Text style={[typography.sectionHeader, { paddingHorizontal: 32, paddingTop: 28, paddingBottom: 8 }]}>Thème</Text>
         <View style={{ marginHorizontal: 16, marginBottom: 24 }}>
           <SegmentedControl
-            values={themes.map((t) => t.label)}
-            selectedIndex={themes.findIndex((t) => t.name === themeName)}
-            onChange={(event) => {
-              const index = event.nativeEvent.selectedSegmentIndex;
-              setTheme(themes[index].name);
-            }}
-            appearance={isDark ? 'dark' : 'light'}
-            tintColor={colors.system.blue}
-            backgroundColor={colors.bg.secondary}
-            style={{ height: 36 }}
+            options={themes}
+            value={themeName}
+            onChange={(name) => setTheme(name)}
           />
         </View>
 
@@ -262,6 +265,9 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   header: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
     paddingHorizontal: 16,
     paddingTop: 16,
     paddingBottom: 8,
