@@ -3,6 +3,7 @@ import { persist, createJSONStorage } from 'zustand/middleware';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { generateId } from '../../utils/id';
 import { Task, Priority } from '../../types/task';
+import { dateKey } from '../../utils/dates';
 
 interface TaskState {
   tasks: Task[];
@@ -61,14 +62,14 @@ export const useTaskStore = create<TaskState>()(
         })),
 
       getTodayTasks: () => {
-        const today = new Date().toISOString().split('T')[0];
+        const today = dateKey();
         return get().tasks.filter(
           (task) => !task.scheduledDate || task.scheduledDate === today
         );
       },
 
       getTodayTasksByLifeBlock: (lifeBlockId) => {
-        const today = new Date().toISOString().split('T')[0];
+        const today = dateKey();
         return get().tasks.filter(
           (task) =>
             task.lifeBlockId === lifeBlockId &&
@@ -85,7 +86,7 @@ export const useTaskStore = create<TaskState>()(
       },
 
       getOverdueTasks: () => {
-        const today = new Date().toISOString().split('T')[0];
+        const today = dateKey();
         return get().tasks.filter(
           (task) =>
             !task.completed &&

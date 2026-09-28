@@ -16,16 +16,17 @@ import { useTaskStore } from '../src/features/tasks/store';
 import { useDayScoreStore } from '../src/features/dayScore/store';
 import { useRitualStore } from '../src/features/rituals/store';
 import { useTheme } from '../src/theme';
+import { dateKey } from '../src/utils/dates';
 import { hapticLight, hapticWarning } from '../src/utils/haptics';
 
 function todayISO(): string {
-  return new Date().toISOString().split('T')[0];
+  return dateKey();
 }
 
 function tomorrowISO(): string {
   const d = new Date();
   d.setDate(d.getDate() + 1);
-  return d.toISOString().split('T')[0];
+  return dateKey(d);
 }
 
 function endOfWeekISO(): string {
@@ -33,7 +34,7 @@ function endOfWeekISO(): string {
   const day = d.getDay();
   const daysUntilSunday = day === 0 ? 0 : 7 - day;
   d.setDate(d.getDate() + daysUntilSunday);
-  return d.toISOString().split('T')[0];
+  return dateKey(d);
 }
 
 function getScoreLabel(score: number): string {

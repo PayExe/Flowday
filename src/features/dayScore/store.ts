@@ -18,22 +18,25 @@ interface DayScoreState {
   updateTasksPercent: (date: string, completed: number, total: number) => void;
 }
 
-function computeTotal(score: DayScore, pomodoroGoal: number): number {
+export function computeTotal(score: DayScore, pomodoroGoal: number): number {
   const ritualsPoints =
     (score.morningRitualDone ? 5 : 0) + (score.eveningWrapDone ? 5 : 0);
-  const pomodorosPercent = Math.min(
-    (score.pomodorosCompleted / pomodoroGoal) * 100,
-    100
-  );
-  const ritualsPercent = ritualsPoints * 10;
+  const pomodorosPercent = pomodoroGoal > 0
+    ? Math.min((score.pomodorosCompleted / pomodoroGoal) * 100, 100)
+    : 0;
+  const blocksPercent = Math.min(Math.max(score.blocksPercent, 0), 100);
+  const tasksPercent = Math.min(Math.max(score.tasksPercent, 0), 100);
+  const ritualsPercent = Math.min(ritualsPoints * 10, 100);
+  score.blocksPercent = blocksPercent;
+  score.tasksPercent = tasksPercent;
   score.pomodorosPercent = pomodorosPercent;
   score.ritualsPercent = ritualsPercent;
   const total =
-    score.blocksPercent * 0.4 +
-    score.tasksPercent * 0.3 +
+    blocksPercent * 0.4 +
+    tasksPercent * 0.3 +
     pomodorosPercent * 0.2 +
     ritualsPercent * 0.1;
-  return Math.round(total);
+  return Math.min(Math.round(total), 100);
 }
 
 function getOrCreateScore(state: DayScoreState, date: string): DayScore {
@@ -100,7 +103,9 @@ export const useDayScoreStore = create<DayScoreState>()(
       updateBlockValidation: (date, blocksValidated, totalBlocks) =>
         set((state) =>
           updateScore(state, date, (s) => {
-            s.blocksPercent = totalBlocks > 0 ? (blocksValidated / totalBlocks) * 100 : 0;
+            s.blocksPercent = totalBlocks > 0
+              ? Math.min((blocksValidated / totalBlocks) * 100, 100)
+              : 0;
           })
         ),
 

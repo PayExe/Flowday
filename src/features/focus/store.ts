@@ -4,12 +4,13 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { generateId } from '../../utils/id';
 import { useDayScoreStore } from '../../features/dayScore/store';
 import { FocusSession, FocusState } from '../../types/focus';
+import { dateKey } from '../../utils/dates';
 
 const POMODORO_MINUTES = 25;
 const BREAK_MINUTES = 5;
 
 function todayISO(): string {
-  return new Date().toISOString().split('T')[0];
+  return dateKey();
 }
 
 interface FocusStoreState {
@@ -136,8 +137,7 @@ export const useFocusStore = create<FocusStoreState>()(
               sessions: updatedSessions,
               focusState: {
                 ...state.focusState,
-                isBreak: true,
-                timeRemaining: BREAK_MINUTES * 60,
+                isActive: false,
               },
             };
           }
@@ -194,7 +194,7 @@ export const useFocusStore = create<FocusStoreState>()(
         })),
 
       getTodaySessions: () => {
-        const today = new Date().toISOString().split('T')[0];
+        const today = dateKey();
         return get().sessions.filter((s) => s.startedAt.startsWith(today));
       },
 

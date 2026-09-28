@@ -8,9 +8,10 @@ import { useRitualStore } from '../src/features/rituals/store';
 import { useLifeBlocksStore } from '../src/features/lifeBlocks/store';
 import { useTemplateStore } from '../src/features/templates/store';
 import { useThemeStore } from '../src/features/theme/store';
+import { dateKey } from '../src/utils/dates';
 
 function todayISO(): string {
-  return new Date().toISOString().split('T')[0];
+  return dateKey();
 }
 
 export default function RootLayout() {

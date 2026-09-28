@@ -16,6 +16,7 @@ import { useDayScoreStore } from '../../src/features/dayScore/store';
 import { useFocusStore } from '../../src/features/focus/store';
 import { useRitualStore } from '../../src/features/rituals/store';
 import { useTheme } from '../../src/theme';
+import { dateKey } from '../../src/utils/dates';
 import { Symbol, SymbolNames } from '../../src/components/ui/Symbol';
 import { PageInfo } from '../../src/components/ui/PageInfo';
 import { TimelineBlock } from '../../src/components/timeline/TimelineBlock';
@@ -31,7 +32,7 @@ import { Task } from '../../src/types/task';
 
 
 function todayISO(): string {
-  return new Date().toISOString().split('T')[0];
+  return dateKey();
 }
 
 function formatDateFr(date: Date): string {

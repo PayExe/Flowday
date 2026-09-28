@@ -33,7 +33,7 @@ export default function FocusScreen() {
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   useEffect(() => {
-    if (focusState.isActive && !focusState.isBreak) {
+    if (focusState.isActive) {
       intervalRef.current = setInterval(() => {
         tick();
       }, 1000);

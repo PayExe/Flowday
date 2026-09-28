@@ -8,6 +8,7 @@ import { useLifeBlocksStore } from '../../src/features/lifeBlocks/store';
 import { useDayScoreStore } from '../../src/features/dayScore/store';
 import { useRitualStore } from '../../src/features/rituals/store';
 import { useTheme } from '../../src/theme';
+import { dateKey } from '../../src/utils/dates';
 import { Symbol, SymbolNames } from '../../src/components/ui/Symbol';
 import { PageInfo } from '../../src/components/ui/PageInfo';
 import { DayScoreHeader } from '../../src/components/dayScore/DayScoreHeader';
@@ -16,7 +17,7 @@ import { calculateStreaks } from '../../src/utils/streaks';
 
 
 function todayISO(): string {
-  return new Date().toISOString().split('T')[0];
+  return dateKey();
 }
 
 function formatDateFr(date: Date): string {
@@ -120,7 +121,7 @@ export default function HomeScreen() {
     const result = [];
     for (let i = 6; i >= 0; i--) {
       const d = new Date(Date.now() - i * 86400000);
-      const iso = d.toISOString().split('T')[0];
+      const iso = dateKey(d);
       const s = scores.find((sc) => sc.date === iso);
       result.push({ key: iso, label: dayShort[d.getDay()], score: s?.total || 0 });
     }

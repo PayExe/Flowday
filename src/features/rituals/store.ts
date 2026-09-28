@@ -2,6 +2,7 @@ import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { RitualLog, MorningRitualConfig, EveningWrapConfig, Mood } from '../../types/ritual';
+import { dateKey } from '../../utils/dates';
 
 interface RitualState {
   logs: RitualLog[];
@@ -17,7 +18,7 @@ interface RitualState {
 }
 
 function todayISO(): string {
-  return new Date().toISOString().split('T')[0];
+  return dateKey();
 }
 
 export const useRitualStore = create<RitualState>()(

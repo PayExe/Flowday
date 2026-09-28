@@ -1,4 +1,5 @@
 import { DayScore } from '../types/dayScore';
+import { addDays, dateKey } from './dates';
 
 export interface StreakResult {
   currentStreak: number;
@@ -20,8 +21,8 @@ export function calculateStreaks(
   let bestStreak = 0;
   let tempStreak = 0;
 
-  const today = new Date().toISOString().split('T')[0];
-  const yesterday = new Date(Date.now() - 86400000).toISOString().split('T')[0];
+  const today = dateKey();
+  const yesterday = dateKey(addDays(new Date(), -1));
 
   for (let i = 0; i < sorted.length; i++) {
     const score = sorted[i];

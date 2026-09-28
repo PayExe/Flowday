@@ -16,6 +16,7 @@ import { useTemplateStore } from '../src/features/templates/store';
 import { useLifeBlocksStore } from '../src/features/lifeBlocks/store';
 import { useDayScoreStore } from '../src/features/dayScore/store';
 import { useTheme } from '../src/theme';
+import { dateKey } from '../src/utils/dates';
 import { hapticLight } from '../src/utils/haptics';
 import { Mood } from '../src/types/ritual';
 
@@ -28,7 +29,7 @@ const MOODS: { value: Mood; label: string; emoji: string; color: string }[] = [
 const DAY_LABELS = ['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi', 'Dimanche'];
 
 function todayISO(): string {
-  return new Date().toISOString().split('T')[0];
+  return dateKey();
 }
 
 function capitalize(str: string): string {
