@@ -4,6 +4,7 @@ import { Task } from '../../types/task';
 import { hapticLight } from '../../utils/haptics';
 import { useTheme } from '../../theme';
 import { Symbol, SymbolNames } from '../ui/Symbol';
+import { BLOCK_LARGE_THRESHOLD, BLOCK_MEDIUM_THRESHOLD, BLOCK_MIN_HEIGHT } from './HourMarker';
 
 interface TimelineBlockProps {
   emoji: string;
@@ -16,7 +17,9 @@ interface TimelineBlockProps {
   tasks: Task[];
   isActive: boolean;
   onToggleTask: (taskId: string) => void;
+  onTaskPress?: (task: Task) => void;
   onFocusTask?: (taskId: string, taskTitle: string) => void;
+  onPress?: () => void;
 }
 
 export function TimelineBlock({
@@ -30,45 +33,52 @@ export function TimelineBlock({
   tasks,
   isActive,
   onToggleTask,
+  onTaskPress,
   onFocusTask,
+  onPress,
 }: TimelineBlockProps) {
   const { colors, typography } = useTheme();
   const displayTitle = title || name;
   const timeRange = `${startTime}–${endTime}`;
-  const showTasks = tasks.length > 0 && height >= 90;
+  const isLarge = height >= BLOCK_LARGE_THRESHOLD;
+  const isMedium = height >= BLOCK_MEDIUM_THRESHOLD;
+  const visibleTasks = isLarge ? tasks.slice(0, 3) : tasks.slice(0, 1);
+  const remainingTasks = tasks.length - visibleTasks.length;
 
   return (
-    <View style={{ flexDirection: 'row', height: '100%', paddingVertical: 2 }}>
-      <View style={{ width: 52 }} />
-
+    <Pressable onPress={onPress} style={{ height: '100%', paddingVertical: 2 }}>
       <View
         style={[
           styles.block,
           {
+            minHeight: Math.min(BLOCK_MIN_HEIGHT, height),
             borderLeftColor: color,
             backgroundColor: isActive ? colors.bg.hover : colors.bg.secondary,
           },
         ]}
       >
-        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-          <Text style={{ fontSize: typography.sizes.base }}>{emoji}</Text>
-          <View style={{ flex: 1 }}>
-            <Text numberOfLines={1} style={{ fontSize: typography.sizes.base, fontWeight: typography.weights.medium, color: colors.text.primary }}>
-              {displayTitle}
-            </Text>
-            <Text style={{ fontSize: typography.sizes.xs, color: colors.text.quaternary, marginTop: 1 }}>
-              {timeRange}
-            </Text>
-          </View>
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 5, flex: isMedium ? undefined : 1 }}>
+          <Text style={{ fontSize: isMedium ? typography.sizes.base : typography.sizes.xs }}>{emoji}</Text>
+          <Text numberOfLines={1} style={{ flex: 1, fontSize: isMedium ? typography.sizes.base : typography.sizes.xs, fontWeight: typography.weights.medium, color: colors.text.primary }}>
+            {displayTitle}
+          </Text>
+          {!isLarge && <Text numberOfLines={1} style={{ fontSize: typography.sizes.xs, color: colors.text.quaternary }}>{isMedium ? timeRange : `· ${timeRange}`}</Text>}
+          {!isMedium && tasks.length > 0 && (
+            <Text style={{ fontSize: typography.sizes.xs, color: colors.text.secondary }}>{tasks.length} tâche{tasks.length > 1 ? 's' : ''}</Text>
+          )}
         </View>
 
-        {showTasks && (
-          <View style={{ marginTop: 8, gap: 4 }}>
-            {tasks.slice(0, 3).map((task) => (
+        {isLarge && (
+          <Text style={{ fontSize: typography.sizes.xs, color: colors.text.quaternary, marginTop: 1 }}>{timeRange}</Text>
+        )}
+
+        {isMedium && tasks.length > 0 && (
+          <View style={{ marginTop: 4, gap: 4 }}>
+            {visibleTasks.map((task) => (
               <Pressable
                 key={task.id}
                 style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}
-                onPress={() => { hapticLight(); onToggleTask(task.id); }}
+                onPress={(event) => { event.stopPropagation(); hapticLight(); onTaskPress ? onTaskPress(task) : onToggleTask(task.id); }}
               >
                 <View
                   style={{
@@ -91,15 +101,15 @@ export function TimelineBlock({
                 </Text>
               </Pressable>
             ))}
-            {tasks.length > 3 && (
+            {remainingTasks > 0 && (
               <Text style={{ fontSize: typography.sizes.xs, color: colors.text.quaternary }}>
-                +{tasks.length - 3} autres
+                +{remainingTasks} autres
               </Text>
             )}
           </View>
         )}
       </View>
-    </View>
+    </Pressable>
   );
 }
 
@@ -108,8 +118,7 @@ const styles = StyleSheet.create({
     flex: 1,
     borderRadius: 10,
     borderLeftWidth: 3,
-    padding: 10,
-    marginRight: 16,
+    padding: 6,
     overflow: 'hidden',
   },
 });

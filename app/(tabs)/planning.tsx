@@ -21,10 +21,13 @@ import { PageInfo } from '../../src/components/ui/PageInfo';
 import { TimelineBlock } from '../../src/components/timeline/TimelineBlock';
 import { CurrentTimeLine } from '../../src/components/timeline/CurrentTimeLine';
 import { FreeSlot } from '../../src/components/timeline/FreeSlot';
-import { HourMarker, HOUR_HEIGHT, START_HOUR, END_HOUR } from '../../src/components/timeline/HourMarker';
+import { HourMarker, HOUR_HEIGHT, START_HOUR, END_HOUR, MINUTES_PER_HOUR, HOUR_LABEL_WIDTH, timelineY } from '../../src/components/timeline/HourMarker';
 import { TaskCard } from '../../src/components/tasks/TaskCard';
+import { TaskDetailSheet } from '../../src/components/tasks/TaskDetailSheet';
+import { BlockDetailSheet } from '../../src/components/timeline/BlockDetailSheet';
 import { EmptyState } from '../../src/components/shared/EmptyState';
 import { hapticLight } from '../../src/utils/haptics';
+import { Task } from '../../src/types/task';
 
 
 function todayISO(): string {
@@ -66,15 +69,22 @@ export default function PlanningScreen() {
   const router = useRouter();
   const { colors, typography } = useTheme();
   const scrollRef = useRef<ScrollView>(null);
-  const [nowY, setNowY] = useState(currentMinutesSinceStart() * (HOUR_HEIGHT / 60));
+  const [nowY, setNowY] = useState(timelineY(currentMinutesSinceStart()));
   const [newTaskTitle, setNewTaskTitle] = useState('');
   const [selectedBlockId, setSelectedBlockId] = useState<string | undefined>(undefined);
-  const [showNowButton, setShowNowButton] = useState(false);
+  const [selectedTaskId, setSelectedTaskId] = useState<string | undefined>(undefined);
+  const [selectedTimelineBlock, setSelectedTimelineBlock] = useState<{
+    title: string;
+    timeRange: string;
+    color: string;
+    tasks: Task[];
+  }>();
 
   const tasks = useTaskStore((state) => state.tasks);
   const addTask = useTaskStore((state) => state.addTask);
   const toggleTask = useTaskStore((state) => state.toggleTask);
   const deleteTask = useTaskStore((state) => state.deleteTask);
+  const updateTask = useTaskStore((state) => state.updateTask);
   const getTodayTasks = useTaskStore((state) => state.getTodayTasks);
   const getTodayTasksByLifeBlock = useTaskStore((state) => state.getTodayTasksByLifeBlock);
 
@@ -124,7 +134,7 @@ export default function PlanningScreen() {
 
   useEffect(() => {
     if (!hasTemplate || activeBlocks.length === 0) return;
-    const y = currentMinutesSinceStart() * (HOUR_HEIGHT / 60) - 120;
+    const y = timelineY(currentMinutesSinceStart()) - 120;
     const timer = setTimeout(() => {
       scrollRef.current?.scrollTo({ y: Math.max(0, y), animated: true });
     }, 300);
@@ -133,7 +143,7 @@ export default function PlanningScreen() {
 
   useEffect(() => {
     const interval = setInterval(() => {
-      setNowY(currentMinutesSinceStart() * (HOUR_HEIGHT / 60));
+      setNowY(timelineY(currentMinutesSinceStart()));
     }, 60000);
     return () => clearInterval(interval);
   }, []);
@@ -211,7 +221,10 @@ export default function PlanningScreen() {
 
   const handleDeleteTask = useCallback((taskId: string) => {
     deleteTask(taskId);
+    setSelectedTaskId(undefined);
   }, [deleteTask]);
+
+  const selectedTask = todayTasks.find((task) => task.id === selectedTaskId);
 
   if (!hasTemplate) {
     return (
@@ -255,9 +268,8 @@ export default function PlanningScreen() {
             description="La timeline de ta journée, heure par heure, avec tes tâches et tes blocs."
             points={[
               'La barre rouge indique l’heure actuelle.',
-              'Appuie sur un bloc pour valider ses tâches ou lancer un focus.',
+              'Appuie sur un bloc pour voir son détail et ses tâches.',
               'Ajoute une tâche en haut, puis associe-la à un bloc si besoin.',
-              'Le bouton rond en bas lance le mode Focus.',
             ]}
           />
         </View>
@@ -268,41 +280,12 @@ export default function PlanningScreen() {
 
       <View style={{ height: 0.5, backgroundColor: colors.separator.default, marginHorizontal: 16 }} />
 
-      {showNowButton && (
-        <Pressable
-          style={{
-            position: 'absolute',
-            bottom: 168,
-            alignSelf: 'center',
-            backgroundColor: colors.system.blue,
-            borderRadius: 20,
-            paddingHorizontal: 16,
-            paddingVertical: 8,
-            zIndex: 20,
-            shadowColor: '#000',
-            shadowOffset: { width: 0, height: 2 },
-            shadowOpacity: 0.2,
-            shadowRadius: 4,
-            elevation: 4,
-          }}
-          onPress={() => {
-            scrollRef.current?.scrollTo({ y: Math.max(0, nowY - 120), animated: true });
-            setShowNowButton(false);
-          }}
-        >
-          <Text style={{ fontSize: typography.sizes.base, fontWeight: typography.weights.medium, color: colors.text.inverse }}>Maintenant</Text>
-        </Pressable>
-      )}
-
       <ScrollView
         ref={scrollRef}
         style={styles.scroll}
         showsVerticalScrollIndicator={false}
         scrollEventThrottle={32}
-        onScroll={(e) => {
-          const y = e.nativeEvent.contentOffset.y;
-          setShowNowButton(y > nowY + 200 || y < nowY - 200);
-        }}
+        contentContainerStyle={styles.scrollContent}
       >
         {!morningDone && (
           <Pressable
@@ -337,7 +320,14 @@ export default function PlanningScreen() {
             }}
           >
             <View style={{ flexDirection: 'row', alignItems: 'center', paddingHorizontal: 12, paddingVertical: 4 }}>
-              <Symbol name={SymbolNames.add} size={22} color={colors.system.blue} />
+              <Pressable
+                onPress={handleAddTask}
+                hitSlop={8}
+                accessibilityRole="button"
+                accessibilityLabel="Ajouter la tâche"
+              >
+                <Symbol name={SymbolNames.add} size={22} color={colors.system.blue} />
+              </Pressable>
               <TextInput
                 style={{
                   flex: 1,
@@ -348,7 +338,7 @@ export default function PlanningScreen() {
                   marginLeft: 4,
                 }}
                 placeholder="Nouvelle tâche..."
-                placeholderTextColor={colors.text.placeholder}
+                placeholderTextColor={colors.text.secondary}
                 value={newTaskTitle}
                 onChangeText={setNewTaskTitle}
                 onSubmitEditing={handleAddTask}
@@ -356,12 +346,13 @@ export default function PlanningScreen() {
               />
             </View>
 
-            <View style={{ height: 0.5, backgroundColor: colors.separator.hairline, marginLeft: 44 }} />
+          </View>
 
-            <ScrollView
+          <ScrollView
               horizontal
               showsHorizontalScrollIndicator={false}
-              style={{ paddingHorizontal: 12, paddingVertical: 8 }}
+              contentContainerStyle={{ paddingHorizontal: 12, paddingVertical: 8, paddingRight: 20 }}
+              style={{ marginTop: 8, backgroundColor: colors.bg.secondary, borderRadius: 13 }}
             >
               <Pressable
                 style={{
@@ -402,8 +393,7 @@ export default function PlanningScreen() {
                   </Text>
                 </Pressable>
               ))}
-            </ScrollView>
-          </View>
+          </ScrollView>
         </View>
 
         {todayTasks.length > 0 && (
@@ -430,6 +420,8 @@ export default function PlanningScreen() {
                     task={task}
                     onToggle={handleToggleTask}
                     onDelete={handleDeleteTask}
+                    lifeBlock={task.lifeBlockId ? getBlockById(task.lifeBlockId) : undefined}
+                    onPress={() => setSelectedTaskId(task.id)}
                   />
                   {index < todayTasks.length - 1 && (
                     <View style={{ height: 0.5, backgroundColor: colors.separator.hairline, marginLeft: 57 }} />
@@ -440,8 +432,8 @@ export default function PlanningScreen() {
           </View>
         )}
 
-        <View style={{ marginTop: 24, marginBottom: 120 }}>
-            <Text
+        <View style={{ marginTop: 24 }}>
+          <Text
             style={[
               typography.sectionHeader,
               { paddingHorizontal: 32, paddingBottom: 8 },
@@ -451,39 +443,43 @@ export default function PlanningScreen() {
           </Text>
 
           <View style={styles.timelineContainer}>
-            {Array.from({ length: END_HOUR - START_HOUR + 1 }, (_, i) => (
-              <View
-                key={i}
-                style={{ position: 'absolute', top: i * HOUR_HEIGHT, left: 0, right: 0 }}
-              >
-                <HourMarker hour={START_HOUR + i} />
-              </View>
-            ))}
+            <View style={styles.hourLabels} pointerEvents="none">
+              {Array.from({ length: END_HOUR - START_HOUR + 1 }, (_, i) => (
+                <View key={i} style={{ position: 'absolute', top: timelineY(i * MINUTES_PER_HOUR), left: 0 }}>
+                  <HourMarker hour={START_HOUR + i} />
+                </View>
+              ))}
+            </View>
 
-            {timelineItems.map((item, index) => {
-              const top = (item.startMinutes - START_HOUR * 60) * (HOUR_HEIGHT / 60);
-              const height = (item.endMinutes - item.startMinutes) * (HOUR_HEIGHT / 60);
+            <View style={styles.timelineContent}>
+              {Array.from({ length: END_HOUR - START_HOUR + 1 }, (_, i) => (
+                <View key={`line-${i}`} style={[styles.hourLine, { top: timelineY(i * MINUTES_PER_HOUR), backgroundColor: colors.separator.hairline }]} />
+              ))}
 
-              if (item.type === 'free') {
-                return (
-                  <View
-                    key={`free-${index}`}
-                    style={[styles.itemAbsolute, { top, height }]}
-                  >
-                    <FreeSlot height={height} duration={item.endMinutes - item.startMinutes} />
-                  </View>
-                );
-              }
+              {timelineItems.map((item, index) => {
+                const top = timelineY(item.startMinutes - START_HOUR * MINUTES_PER_HOUR);
+                const height = timelineY(item.endMinutes - item.startMinutes);
 
-              const block = item.data;
-              const lifeBlock = getBlockById(block.lifeBlockId);
-              const blockTasks = lifeBlock
-                ? getTodayTasksByLifeBlock(lifeBlock.id)
-                : [];
+                if (item.type === 'free') {
+                  return (
+                    <View
+                      key={`free-${index}`}
+                      style={[styles.itemAbsolute, { top, height }]}
+                    >
+                      <FreeSlot height={height} duration={item.endMinutes - item.startMinutes} />
+                    </View>
+                  );
+                }
 
-              const nowMin = currentMinutesSinceStart() + START_HOUR * 60;
-              const isActive =
-                nowMin >= item.startMinutes && nowMin < item.endMinutes;
+                const block = item.data;
+                const lifeBlock = getBlockById(block.lifeBlockId);
+                const blockTasks = lifeBlock
+                  ? getTodayTasksByLifeBlock(lifeBlock.id)
+                  : [];
+
+                const nowMin = currentMinutesSinceStart() + START_HOUR * 60;
+                const isActive =
+                  nowMin >= item.startMinutes && nowMin < item.endMinutes;
 
               return (
                 <View
@@ -501,11 +497,19 @@ export default function PlanningScreen() {
                     tasks={blockTasks}
                     isActive={isActive}
                     onToggleTask={handleToggleTask}
+                    onTaskPress={(task) => setSelectedTaskId(task.id)}
                     onFocusTask={handleFocusTask}
+                    onPress={() => setSelectedTimelineBlock({
+                      title: block.title || lifeBlock?.name || 'Bloc',
+                      timeRange: `${block.startTime}–${block.endTime}`,
+                      color: lifeBlock?.color || '#8E8E93',
+                      tasks: blockTasks,
+                    })}
                   />
                 </View>
-              );
-            })}
+                );
+              })}
+            </View>
 
             <View
               style={[
@@ -519,23 +523,25 @@ export default function PlanningScreen() {
         </View>
       </ScrollView>
 
-      <Pressable
-        style={{
-          position: 'absolute',
-          right: 16,
-          bottom: 100,
-          width: 56,
-          height: 56,
-          borderRadius: 28,
-          backgroundColor: colors.system.blue,
-          alignItems: 'center',
-          justifyContent: 'center',
-          zIndex: 10,
-        }}
-        onPress={() => router.push('/focus')}
-      >
-        <Symbol name={SymbolNames.timer} size={24} color="#FFFFFF" />
-      </Pressable>
+      <TaskDetailSheet
+        task={selectedTask}
+        blocks={activeBlocks}
+        onClose={() => setSelectedTaskId(undefined)}
+        onUpdate={updateTask}
+        onDelete={handleDeleteTask}
+      />
+      {selectedTimelineBlock && (
+        <BlockDetailSheet
+          visible
+          title={selectedTimelineBlock.title}
+          timeRange={selectedTimelineBlock.timeRange}
+          color={selectedTimelineBlock.color}
+          tasks={selectedTimelineBlock.tasks.map((task) => tasks.find((currentTask) => currentTask.id === task.id) || task)}
+          onClose={() => setSelectedTimelineBlock(undefined)}
+          onToggleTask={handleToggleTask}
+        />
+      )}
+
     </SafeAreaView>
   );
 }
@@ -554,10 +560,34 @@ const styles = StyleSheet.create({
   scroll: {
     flex: 1,
   },
+  scrollContent: {
+    paddingBottom: 140,
+  },
   timelineContainer: {
     position: 'relative',
-    height: (END_HOUR - START_HOUR + 1) * HOUR_HEIGHT,
+    height: (END_HOUR - START_HOUR) * HOUR_HEIGHT,
     marginHorizontal: 16,
+    marginTop: 16,
+  },
+  hourLabels: {
+    position: 'absolute',
+    top: 0,
+    bottom: 0,
+    left: 0,
+    width: HOUR_LABEL_WIDTH,
+  },
+  timelineContent: {
+    position: 'absolute',
+    top: 0,
+    bottom: 0,
+    left: HOUR_LABEL_WIDTH,
+    right: 0,
+  },
+  hourLine: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    height: 0.5,
   },
   itemAbsolute: {
     position: 'absolute',

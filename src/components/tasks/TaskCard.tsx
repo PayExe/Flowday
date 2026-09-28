@@ -6,11 +6,14 @@ import { hapticLight, hapticWarning } from '../../utils/haptics';
 import { useTheme } from '../../theme';
 import { Symbol, SymbolNames } from '../ui/Symbol';
 import { ContextMenu } from '../ui/ContextMenu';
+import { LifeBlock } from '../../types/lifeBlock';
 
 interface TaskCardProps {
   task: Task;
   onToggle: (id: string) => void;
   onDelete: (id: string) => void;
+  onPress?: () => void;
+  lifeBlock?: LifeBlock;
 }
 
 function priorityColor(priority: string, colors: any): string {
@@ -22,14 +25,15 @@ function priorityColor(priority: string, colors: any): string {
   }
 }
 
-export function TaskCard({ task, onToggle, onDelete }: TaskCardProps) {
+export function TaskCard({ task, onToggle, onDelete, onPress, lifeBlock }: TaskCardProps) {
   const { colors, typography } = useTheme();
   const done = task.completed;
   const pColor = priorityColor(task.priority, colors);
   const swipeableRef = useRef<Swipeable>(null);
   const checkboxScale = useRef(new Animated.Value(1)).current;
 
-  const handleCheckboxPress = () => {
+  const handleCheckboxPress = (event: any) => {
+    event.stopPropagation();
     hapticLight();
     onToggle(task.id);
     Animated.sequence([
@@ -45,7 +49,7 @@ export function TaskCard({ task, onToggle, onDelete }: TaskCardProps) {
       swipeableRef.current?.close();
     } else if (direction === 'right') {
       hapticWarning();
-      Alert.alert('Supprimer la tâche ?', 'Cette action est irréversible.', [
+        Alert.alert('Supprimer cette tâche ?', 'Cette action est irréversible.', [
         {
           text: 'Annuler',
           style: 'cancel',
@@ -64,7 +68,8 @@ export function TaskCard({ task, onToggle, onDelete }: TaskCardProps) {
   };
 
   const cardContent = (
-    <View
+    <Pressable
+      onPress={onPress}
       style={{
         flexDirection: 'row',
         alignItems: 'flex-start',
@@ -107,12 +112,18 @@ export function TaskCard({ task, onToggle, onDelete }: TaskCardProps) {
         >
           {task.title}
         </Text>
+        <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 3, gap: 5 }}>
+          {lifeBlock && <View style={{ width: 6, height: 6, borderRadius: 3, backgroundColor: lifeBlock.color }} />}
+          <Text style={{ fontSize: typography.sizes.xs, color: colors.text.secondary }}>
+            {lifeBlock?.name || 'Sans bloc'}
+          </Text>
+        </View>
       </View>
 
       {task.priority === 'high' && !done && (
         <Symbol name={SymbolNames.flag} size={14} color={colors.system.red} style={{ marginTop: 3 }} />
       )}
-    </View>
+    </Pressable>
   );
 
   const swipeActions = (
@@ -157,19 +168,11 @@ export function TaskCard({ task, onToggle, onDelete }: TaskCardProps) {
           title: done ? 'Annuler' : 'Terminer',
           systemIcon: done ? 'xmark.circle' : 'checkmark.circle',
         },
-        {
-          title: 'Supprimer',
-          systemIcon: 'trash',
-          destructive: true,
-        },
       ]}
       onPress={(name) => {
         if (name === 'Terminer' || name === 'Annuler') {
           hapticLight();
           onToggle(task.id);
-        } else if (name === 'Supprimer') {
-          hapticWarning();
-          onDelete(task.id);
         }
       }}
     >
