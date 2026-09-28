@@ -8,6 +8,7 @@ import {
   ScrollView,
   Alert,
   Animated,
+  KeyboardAvoidingView,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -335,63 +336,69 @@ export default function EveningWrapScreen() {
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.bg.primary }]} edges={['top']}>
-      <View style={styles.header}>
-        <Text style={{ fontSize: typography.sizes.lg, fontWeight: '700', color: colors.text.primary }}>Flowday</Text>
-        {renderStepIndicator()}
-      </View>
+      <KeyboardAvoidingView style={styles.keyboardAvoiding} behavior="padding">
+        <View style={styles.header}>
+          <Text style={{ fontSize: typography.sizes.lg, fontWeight: '700', color: colors.text.primary }}>Flowday</Text>
+          {renderStepIndicator()}
+        </View>
 
-      <ScrollView
-        style={styles.scroll}
-        contentContainerStyle={styles.scrollContent}
-        showsVerticalScrollIndicator={false}
-      >
-        {step === 1 && renderStep1()}
-        {step === 2 && renderStep2()}
-        {step === 3 && renderStep3()}
-        {step === 4 && renderStep4()}
-      </ScrollView>
-
-      <View style={[styles.footer, { borderTopColor: colors.separator.default }]}>
-        {step > 1 && (
-          <Pressable
-            style={{ padding: 12 }}
-            onPress={() => setStep(step - 1)}
-          >
-            <Text style={{ fontSize: typography.sizes.lg, color: colors.text.secondary }}>← Retour</Text>
-          </Pressable>
-        )}
-
-        {step === 2 && incompleteTasks.length > 0 && !tasksSkipped && (
-          <Pressable
-            style={{ padding: 12 }}
-            onPress={() => setTasksSkipped(true)}
-          >
-            <Text style={{ fontSize: typography.sizes.base, color: colors.system.orange }}>Ignorer les tâches</Text>
-          </Pressable>
-        )}
-
-        <Pressable
-          style={({ pressed }) => ({
-            backgroundColor: pressed ? colors.system.blue + 'CC' : colors.system.blue,
-            borderRadius: 13,
-            paddingHorizontal: 24,
-            paddingVertical: 14,
-            opacity: step === 2 && !allTasksHandled ? 0.4 : 1,
-          })}
-          onPress={nextStep}
-          disabled={step === 2 && !allTasksHandled}
+        <ScrollView
+          style={styles.scroll}
+          contentContainerStyle={styles.scrollContent}
+          showsVerticalScrollIndicator={false}
+          keyboardDismissMode="interactive"
         >
-          <Text style={{ fontSize: typography.sizes.lg, fontWeight: '600', color: colors.text.inverse }}>
-            {step === 4 ? 'Bonne nuit →' : 'Suivant →'}
-          </Text>
-        </Pressable>
-      </View>
+          {step === 1 && renderStep1()}
+          {step === 2 && renderStep2()}
+          {step === 3 && renderStep3()}
+          {step === 4 && renderStep4()}
+        </ScrollView>
+
+        <View style={[styles.footer, { borderTopColor: colors.separator.default }]}>
+          {step > 1 && (
+            <Pressable
+              style={{ padding: 12 }}
+              onPress={() => setStep(step - 1)}
+            >
+              <Text style={{ fontSize: typography.sizes.lg, color: colors.text.secondary }}>← Retour</Text>
+            </Pressable>
+          )}
+
+          {step === 2 && incompleteTasks.length > 0 && !tasksSkipped && (
+            <Pressable
+              style={{ padding: 12 }}
+              onPress={() => setTasksSkipped(true)}
+            >
+              <Text style={{ fontSize: typography.sizes.base, color: colors.system.orange }}>Ignorer les tâches</Text>
+            </Pressable>
+          )}
+
+          <Pressable
+            style={({ pressed }) => ({
+              backgroundColor: pressed ? colors.system.blue + 'CC' : colors.system.blue,
+              borderRadius: 13,
+              paddingHorizontal: 24,
+              paddingVertical: 14,
+              opacity: step === 2 && !allTasksHandled ? 0.4 : 1,
+            })}
+            onPress={nextStep}
+            disabled={step === 2 && !allTasksHandled}
+          >
+            <Text style={{ fontSize: typography.sizes.lg, fontWeight: '600', color: colors.text.inverse }}>
+              {step === 4 ? 'Bonne nuit →' : 'Suivant →'}
+            </Text>
+          </Pressable>
+        </View>
+      </KeyboardAvoidingView>
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
+    flex: 1,
+  },
+  keyboardAvoiding: {
     flex: 1,
   },
   header: {

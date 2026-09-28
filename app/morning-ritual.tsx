@@ -7,6 +7,7 @@ import {
   StyleSheet,
   ScrollView,
   Animated,
+  KeyboardAvoidingView,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -329,62 +330,68 @@ export default function MorningRitualScreen() {
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.bg.primary }]} edges={['top']}>
-      <View style={styles.header}>
-        <Pressable
-          style={{ padding: 8 }}
-          onPress={() => router.replace('/')}
-        >
-          <Text style={{ fontSize: typography.sizes.lg, color: colors.system.blue }}>Plus tard</Text>
-        </Pressable>
-        <Text style={{ fontSize: typography.sizes.lg, fontWeight: '700', color: colors.text.primary }}>Flowday</Text>
-        {renderStepIndicator()}
-      </View>
-
-      <ScrollView
-        style={styles.scroll}
-        contentContainerStyle={styles.scrollContent}
-        showsVerticalScrollIndicator={false}
-        keyboardShouldPersistTaps="handled"
-      >
-        {step === 1 && renderStep1()}
-        {step === 2 && renderStep2()}
-        {step === 3 && renderStep3()}
-        {step === 4 && renderStep4()}
-        {step === 5 && renderStep5()}
-      </ScrollView>
-
-      <View style={[styles.footer, { borderTopColor: colors.separator.default }]}>
-        {step > 1 && (
+      <KeyboardAvoidingView style={styles.keyboardAvoiding} behavior="padding">
+        <View style={styles.header}>
           <Pressable
-            style={{ padding: 12 }}
-            onPress={() => setStep(step - 1)}
+            style={{ padding: 8 }}
+            onPress={() => router.replace('/')}
           >
-            <Text style={{ fontSize: typography.sizes.lg, color: colors.text.secondary }}>← Retour</Text>
+            <Text style={{ fontSize: typography.sizes.lg, color: colors.system.blue }}>Plus tard</Text>
           </Pressable>
-        )}
+          <Text style={{ fontSize: typography.sizes.lg, fontWeight: '700', color: colors.text.primary }}>Flowday</Text>
+          {renderStepIndicator()}
+        </View>
 
-        <Pressable
-          style={({ pressed }) => ({
-            backgroundColor: pressed ? colors.system.blue + 'CC' : colors.system.blue,
-            borderRadius: 13,
-            paddingHorizontal: 24,
-            paddingVertical: 14,
-            opacity: canProceed ? 1 : 0.4,
-          })}
-          onPress={nextStep}
-          disabled={!canProceed}
+        <ScrollView
+          style={styles.scroll}
+          contentContainerStyle={styles.scrollContent}
+          showsVerticalScrollIndicator={false}
+          keyboardShouldPersistTaps="handled"
+          keyboardDismissMode="interactive"
         >
-          <Text style={{ fontSize: typography.sizes.lg, fontWeight: '600', color: colors.text.inverse }}>
-            {step === 5 ? 'Commencer la journée →' : 'Suivant →'}
-          </Text>
-        </Pressable>
-      </View>
+          {step === 1 && renderStep1()}
+          {step === 2 && renderStep2()}
+          {step === 3 && renderStep3()}
+          {step === 4 && renderStep4()}
+          {step === 5 && renderStep5()}
+        </ScrollView>
+
+        <View style={[styles.footer, { borderTopColor: colors.separator.default }]}>
+          {step > 1 && (
+            <Pressable
+              style={{ padding: 12 }}
+              onPress={() => setStep(step - 1)}
+            >
+              <Text style={{ fontSize: typography.sizes.lg, color: colors.text.secondary }}>← Retour</Text>
+            </Pressable>
+          )}
+
+          <Pressable
+            style={({ pressed }) => ({
+              backgroundColor: pressed ? colors.system.blue + 'CC' : colors.system.blue,
+              borderRadius: 13,
+              paddingHorizontal: 24,
+              paddingVertical: 14,
+              opacity: canProceed ? 1 : 0.4,
+            })}
+            onPress={nextStep}
+            disabled={!canProceed}
+          >
+            <Text style={{ fontSize: typography.sizes.lg, fontWeight: '600', color: colors.text.inverse }}>
+              {step === 5 ? 'Commencer la journée →' : 'Suivant →'}
+            </Text>
+          </Pressable>
+        </View>
+      </KeyboardAvoidingView>
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
+    flex: 1,
+  },
+  keyboardAvoiding: {
     flex: 1,
   },
   header: {

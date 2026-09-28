@@ -2,6 +2,7 @@ import { View, Text, Pressable, StyleSheet } from 'react-native';
 import { Task } from '../../types/task';
 import { hapticLight } from '../../utils/haptics';
 import { useTheme } from '../../theme';
+import { Symbol, SymbolNames } from '../ui/Symbol';
 import { BLOCK_LARGE_THRESHOLD, BLOCK_MEDIUM_THRESHOLD, BLOCK_MIN_HEIGHT } from './HourMarker';
 
 interface TimelineBlockProps {
@@ -16,6 +17,7 @@ interface TimelineBlockProps {
   isActive: boolean;
   onToggleTask: (taskId: string) => void;
   onTaskPress?: (task: Task) => void;
+  onFocusTask?: (task: Task) => void;
   onPress?: () => void;
 }
 
@@ -31,6 +33,7 @@ export function TimelineBlock({
   isActive,
   onToggleTask,
   onTaskPress,
+  onFocusTask,
   onPress,
 }: TimelineBlockProps) {
   const { colors, typography } = useTheme();
@@ -102,6 +105,16 @@ export function TimelineBlock({
                 >
                   {task.title}
                 </Text>
+                {onFocusTask && (
+                  <Pressable
+                    hitSlop={8}
+                    accessibilityRole="button"
+                    accessibilityLabel={`Démarrer Focus pour ${task.title}`}
+                    onPress={(event) => { event.stopPropagation(); hapticLight(); onFocusTask(task); }}
+                  >
+                    <Symbol name={SymbolNames.timer} size={16} color={colors.system.blue} />
+                  </Pressable>
+                )}
               </Pressable>
             ))}
             {remainingTasks > 0 && (

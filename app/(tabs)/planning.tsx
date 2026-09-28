@@ -14,12 +14,12 @@ import { useTemplateStore } from '../../src/features/templates/store';
 import { useLifeBlocksStore } from '../../src/features/lifeBlocks/store';
 import { useDayScoreStore } from '../../src/features/dayScore/store';
 import { useRitualStore } from '../../src/features/rituals/store';
+import { useFocusStore } from '../../src/features/focus/store';
 import { useTheme } from '../../src/theme';
 import { dateKey } from '../../src/utils/dates';
 import { Symbol, SymbolNames } from '../../src/components/ui/Symbol';
 import { PageInfo } from '../../src/components/ui/PageInfo';
 import { TimelineBlock } from '../../src/components/timeline/TimelineBlock';
-import { CurrentTimeLine } from '../../src/components/timeline/CurrentTimeLine';
 import { FreeSlot } from '../../src/components/timeline/FreeSlot';
 import { HourMarker, HOUR_HEIGHT, START_HOUR, END_HOUR, MINUTES_PER_HOUR, HOUR_LABEL_WIDTH, timelineY } from '../../src/components/timeline/HourMarker';
 import { TaskCard } from '../../src/components/tasks/TaskCard';
@@ -74,7 +74,6 @@ export default function PlanningScreen() {
   const router = useRouter();
   const { colors, typography } = useTheme();
   const scrollRef = useRef<ScrollView>(null);
-  const [nowY, setNowY] = useState(timelineY(currentMinutesSinceStart()));
   const [newTaskTitle, setNewTaskTitle] = useState('');
   const [selectedBlockId, setSelectedBlockId] = useState<string | undefined>(undefined);
   const [selectedTaskId, setSelectedTaskId] = useState<string | undefined>(undefined);
@@ -106,6 +105,7 @@ export default function PlanningScreen() {
   const updateTasksPercent = useDayScoreStore((state) => state.updateTasksPercent);
 
   const hasDoneMorningToday = useRitualStore((state) => state.hasDoneMorningToday);
+  const startFocus = useFocusStore((state) => state.startFocus);
 
   const activeBlocks = useMemo(() => getActiveBlocks(), [lifeBlocks, getActiveBlocks]);
   const todayTasks = useMemo(() => getTodayTasks(), [tasks, getTodayTasks]);
@@ -136,13 +136,6 @@ export default function PlanningScreen() {
     }, 300);
     return () => clearTimeout(timer);
   }, [hasTemplate, activeBlocks.length]);
-
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setNowY(timelineY(currentMinutesSinceStart()));
-    }, 60000);
-    return () => clearInterval(interval);
-  }, []);
 
   const handleAddTask = useCallback(() => {
     if (!newTaskTitle.trim()) return;
@@ -215,6 +208,12 @@ export default function PlanningScreen() {
     setSelectedTaskId(undefined);
   }, [deleteTask]);
 
+  const handleFocusTask = useCallback((task: Task) => {
+    hapticLight();
+    startFocus(task.id, task.title);
+    router.push('/focus');
+  }, [router, startFocus]);
+
   const selectedTask = todayTasks.find((task) => task.id === selectedTaskId);
 
   if (!hasTemplate) {
@@ -258,7 +257,6 @@ export default function PlanningScreen() {
             title="Planning"
             description="La timeline de ta journée, heure par heure, avec tes tâches et tes blocs."
             points={[
-              'La barre rouge indique l’heure actuelle.',
               'Appuie sur un bloc pour voir son détail et ses tâches.',
               'Ajoute une tâche en haut, puis associe-la à un bloc si besoin.',
             ]}
@@ -487,9 +485,10 @@ export default function PlanningScreen() {
                     height={height}
                     tasks={blockTasks}
                     isActive={isActive}
-                    onToggleTask={handleToggleTask}
-                    onTaskPress={(task) => setSelectedTaskId(task.id)}
-                    onPress={() => setSelectedTimelineBlock({
+                     onToggleTask={handleToggleTask}
+                     onTaskPress={(task) => setSelectedTaskId(task.id)}
+                     onFocusTask={handleFocusTask}
+                     onPress={() => setSelectedTimelineBlock({
                       title: block.title || lifeBlock?.name || 'Bloc',
                       timeRange: `${block.startTime}–${block.endTime}`,
                       color: lifeBlock?.color || '#8E8E93',
@@ -501,14 +500,6 @@ export default function PlanningScreen() {
               })}
             </View>
 
-            <View
-              style={[
-                styles.itemAbsolute,
-                { top: nowY, height: 20, zIndex: 10 },
-              ]}
-            >
-              <CurrentTimeLine />
-            </View>
           </View>
         </View>
       </ScrollView>

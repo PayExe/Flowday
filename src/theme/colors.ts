@@ -60,7 +60,6 @@ export const ColorsDark = {
   danger: '#FF453A',
   warning: '#FF9F0A',
   info: '#0A84FF',
-  nowLine: '#FF453A',
 } as const;
 
 export const ColorsLight = {
@@ -125,7 +124,6 @@ export const ColorsLight = {
   danger: '#FF3B30',
   warning: '#FF9500',
   info: '#007AFF',
-  nowLine: '#FF3B30',
 } as const;
 
 export interface ColorPalette {
@@ -186,7 +184,6 @@ export interface ColorPalette {
   danger: string;
   warning: string;
   info: string;
-  nowLine: string;
 }
 
 export type ThemeName = 'dark' | 'light';
