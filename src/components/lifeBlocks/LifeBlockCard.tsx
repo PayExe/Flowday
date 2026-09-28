@@ -52,7 +52,8 @@ export function LifeBlockCard({
   };
 
   const cardContent = (
-    <View
+    <Pressable
+      onPress={onEdit}
       style={{
         backgroundColor: colors.bg.secondary,
         borderRadius: 13,
@@ -86,7 +87,7 @@ export function LifeBlockCard({
 
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 2 }}>
           <Pressable
-            onPress={canMoveUp ? onMoveUp : undefined}
+            onPress={canMoveUp ? (event) => { event.stopPropagation(); onMoveUp(); } : undefined}
             disabled={!canMoveUp}
             hitSlop={6}
             style={[styles.iconBtn, !canMoveUp && styles.iconBtnDisabled]}
@@ -94,14 +95,14 @@ export function LifeBlockCard({
             <Symbol name={SymbolNames.chevronUp} size={16} color={colors.text.tertiary} />
           </Pressable>
           <Pressable
-            onPress={canMoveDown ? onMoveDown : undefined}
+            onPress={canMoveDown ? (event) => { event.stopPropagation(); onMoveDown(); } : undefined}
             disabled={!canMoveDown}
             hitSlop={6}
             style={[styles.iconBtn, !canMoveDown && styles.iconBtnDisabled]}
           >
             <Symbol name={SymbolNames.chevronDown} size={16} color={colors.text.tertiary} />
           </Pressable>
-          <Pressable onPress={handleArchive} hitSlop={6} style={styles.iconBtn}>
+          <Pressable onPress={(event) => { event.stopPropagation(); handleArchive(); }} hitSlop={6} style={styles.iconBtn}>
             <Symbol name={SymbolNames.archive} size={16} color={colors.text.tertiary} />
           </Pressable>
         </View>
@@ -126,7 +127,7 @@ export function LifeBlockCard({
           objectif {formatMinutes(block.weeklyGoalMinutes)}
         </Text>
       </View>
-    </View>
+    </Pressable>
   );
 
   return (

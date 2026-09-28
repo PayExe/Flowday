@@ -42,6 +42,7 @@ export function TimelineBlock({
   const timeRange = `${startTime}–${endTime}`;
   const isLarge = height >= BLOCK_LARGE_THRESHOLD;
   const isMedium = height >= BLOCK_MEDIUM_THRESHOLD;
+  const shouldCollapseTasks = tasks.length > (isLarge ? 3 : 1);
   const visibleTasks = isLarge ? tasks.slice(0, 3) : tasks.slice(0, 1);
   const remainingTasks = tasks.length - visibleTasks.length;
 
@@ -72,7 +73,13 @@ export function TimelineBlock({
           <Text style={{ fontSize: typography.sizes.xs, color: colors.text.quaternary, marginTop: 1 }}>{timeRange}</Text>
         )}
 
-        {isMedium && tasks.length > 0 && (
+        {isMedium && tasks.length > 0 && shouldCollapseTasks && (
+          <Text style={{ marginTop: 4, fontSize: typography.sizes.xs, color: colors.text.secondary }}>
+            Cliquer pour voir les tâches
+          </Text>
+        )}
+
+        {isMedium && tasks.length > 0 && !shouldCollapseTasks && (
           <View style={{ marginTop: 4, gap: 4 }}>
             {visibleTasks.map((task) => (
               <Pressable
@@ -102,9 +109,11 @@ export function TimelineBlock({
               </Pressable>
             ))}
             {remainingTasks > 0 && (
-              <Text style={{ fontSize: typography.sizes.xs, color: colors.text.quaternary }}>
-                +{remainingTasks} autres
-              </Text>
+              <View style={{ alignSelf: 'flex-start', backgroundColor: colors.bg.hover, borderRadius: 6, paddingHorizontal: 7, paddingVertical: 3 }}>
+                <Text style={{ fontSize: typography.sizes.xs, color: colors.text.secondary }}>
+                  +{remainingTasks} autre{remainingTasks > 1 ? 's' : ''}
+                </Text>
+              </View>
             )}
           </View>
         )}
