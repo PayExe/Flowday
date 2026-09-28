@@ -19,7 +19,7 @@ interface HourMarkerProps {
 }
 
 export function HourMarker({ hour }: HourMarkerProps) {
-  const { colors, typography } = useTheme();
+  const { colors } = useTheme();
   const label = `${hour.toString().padStart(2, '0')}:00`;
   return (
     <View style={{ position: 'relative', height: 0, width: HOUR_LABEL_WIDTH }}>

@@ -51,8 +51,7 @@ export default function SettingsScreen() {
     iconColor: string,
     label: string,
     value?: string | React.ReactNode,
-    onPress?: () => void,
-    isLast?: boolean
+    onPress?: () => void
   ) => (
     <Pressable
       onPress={onPress}
@@ -164,7 +163,6 @@ export default function SettingsScreen() {
               'Heure',
               morningConfig.time,
               () => openTimeModal('morning'),
-              true
             )}
           </>,
           "Le Morning Ritual s'ouvre automatiquement chaque matin."
@@ -192,7 +190,6 @@ export default function SettingsScreen() {
               'Heure',
               eveningConfig.time,
               () => openTimeModal('evening'),
-              true
             )}
           </>
         )}

@@ -10,7 +10,7 @@ interface PageInfoProps {
 }
 
 export function PageInfo({ title, description, points }: PageInfoProps) {
-  const { colors, typography } = useTheme();
+  const { colors } = useTheme();
   const [visible, setVisible] = useState(false);
 
   return (

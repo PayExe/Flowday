@@ -13,7 +13,6 @@ import { useTaskStore } from '../../src/features/tasks/store';
 import { useTemplateStore } from '../../src/features/templates/store';
 import { useLifeBlocksStore } from '../../src/features/lifeBlocks/store';
 import { useDayScoreStore } from '../../src/features/dayScore/store';
-import { useFocusStore } from '../../src/features/focus/store';
 import { useRitualStore } from '../../src/features/rituals/store';
 import { useTheme } from '../../src/theme';
 import { dateKey } from '../../src/utils/dates';
@@ -29,6 +28,7 @@ import { BlockDetailSheet } from '../../src/components/timeline/BlockDetailSheet
 import { EmptyState } from '../../src/components/shared/EmptyState';
 import { hapticLight } from '../../src/utils/haptics';
 import { Task } from '../../src/types/task';
+import { TemplateBlock } from '../../src/types/template';
 
 
 function todayISO(): string {
@@ -58,12 +58,16 @@ function formatDuration(min: number): string {
   return `${h}h${m.toString().padStart(2, '0')}`;
 }
 
-interface TimelineItem {
-  type: 'block' | 'free';
+type TimelineItem = {
+  type: 'free';
   startMinutes: number;
   endMinutes: number;
-  data?: any;
-}
+} | {
+  type: 'block';
+  startMinutes: number;
+  endMinutes: number;
+  data: TemplateBlock;
+};
 
 
 export default function PlanningScreen() {
@@ -98,11 +102,8 @@ export default function PlanningScreen() {
   const getActiveBlocks = useLifeBlocksStore((state) => state.getActiveBlocks);
   const lifeBlocks = useLifeBlocksStore((state) => state.blocks);
 
-  const scores = useDayScoreStore((state) => state.scores);
   const updateBlockValidation = useDayScoreStore((state) => state.updateBlockValidation);
   const updateTasksPercent = useDayScoreStore((state) => state.updateTasksPercent);
-
-  const startFocus = useFocusStore((state) => state.startFocus);
 
   const hasDoneMorningToday = useRitualStore((state) => state.hasDoneMorningToday);
 
@@ -126,12 +127,6 @@ export default function PlanningScreen() {
     );
     updateBlockValidation(today, blocksWithCompletedTasks.length, plannedBlocks.length);
   }, [tasks, activeBlocks, todayTasks, templateBlocks, updateTasksPercent, updateBlockValidation]);
-
-  const todayScore = useMemo(() => {
-    return scores.find((s) => s.date === todayISO());
-  }, [scores]);
-
-  const dayScore = todayScore?.total || 0;
 
   useEffect(() => {
     if (!hasTemplate || activeBlocks.length === 0) return;
@@ -214,11 +209,6 @@ export default function PlanningScreen() {
   const handleToggleTask = useCallback((taskId: string) => {
     toggleTask(taskId);
   }, [toggleTask]);
-
-  const handleFocusTask = useCallback((taskId: string, taskTitle: string) => {
-    startFocus(taskId, taskTitle);
-    router.push('/focus');
-  }, [startFocus, router]);
 
   const handleDeleteTask = useCallback((taskId: string) => {
     deleteTask(taskId);
@@ -499,7 +489,6 @@ export default function PlanningScreen() {
                     isActive={isActive}
                     onToggleTask={handleToggleTask}
                     onTaskPress={(task) => setSelectedTaskId(task.id)}
-                    onFocusTask={handleFocusTask}
                     onPress={() => setSelectedTimelineBlock({
                       title: block.title || lifeBlock?.name || 'Bloc',
                       timeRange: `${block.startTime}–${block.endTime}`,

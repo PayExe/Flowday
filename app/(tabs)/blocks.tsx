@@ -2,7 +2,6 @@ import { useState, useCallback } from 'react';
 import { View, Text, Pressable, FlatList, StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useLifeBlocksStore } from '../../src/features/lifeBlocks/store';
-import { useTaskStore } from '../../src/features/tasks/store';
 import { useTemplateStore } from '../../src/features/templates/store';
 import { LifeBlock, LifeBlockColor } from '../../src/types/lifeBlock';
 import { TemplateBlock } from '../../src/types/template';

@@ -3,7 +3,7 @@ import { useTheme } from '../../theme';
 import { HOUR_LABEL_WIDTH } from './HourMarker';
 
 export function CurrentTimeLine() {
-  const { colors, typography } = useTheme();
+  const { colors } = useTheme();
   const now = new Date();
   const currentTime = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
 

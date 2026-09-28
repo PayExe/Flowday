@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useRef } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import {
   View,
   Text,
@@ -80,8 +80,6 @@ export function EditTemplateBlockModal({
     }
   }, [block, visible, lifeBlocks]);
 
-  const selectedBlock = lifeBlocks.find((b) => b.id === selectedLifeBlockId);
-
   const validationError = useMemo(() => {
     const start = timeToMinutes(startTime);
     const end = timeToMinutes(endTime);
@@ -131,11 +129,6 @@ export function EditTemplateBlockModal({
         { text: 'Supprimer', style: 'destructive', onPress: () => onDelete?.() },
       ]
     );
-  };
-
-  const pickerStyle = {
-    color: colors.text.primary,
-    backgroundColor: colors.bg.input,
   };
 
   return (

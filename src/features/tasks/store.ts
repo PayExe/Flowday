@@ -2,7 +2,7 @@ import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { generateId } from '../../utils/id';
-import { Task, Priority } from '../../types/task';
+import { Task } from '../../types/task';
 import { dateKey } from '../../utils/dates';
 
 interface TaskState {

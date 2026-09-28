@@ -194,8 +194,6 @@ export type ThemeName = 'dark' | 'light';
 export function getTypography(isDark: boolean) {
   const textPrimary = isDark ? '#FFFFFF' : '#000000';
   const textSecondary = isDark ? '#EBEBF599' : '#3C3C4399';
-  const textTertiary = isDark ? '#EBEBF54D' : '#3C3C434D';
-
   return {
     sizes: {
       xs: 11,

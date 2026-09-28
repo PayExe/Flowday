@@ -1,8 +1,17 @@
 import React from 'react';
-import { Platform, type ColorValue } from 'react-native';
+import { Platform, type ColorValue, type StyleProp, type TextStyle } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 
-let SymbolView: React.ComponentType<any> | null = null;
+interface SymbolViewProps {
+  name: string;
+  style?: StyleProp<TextStyle>;
+  type: SymbolProps['type'];
+  weight: SymbolProps['weight'];
+  tintColor: ColorValue;
+  resizeMode: 'scaleAspectFit';
+}
+
+let SymbolView: React.ComponentType<SymbolViewProps> | null = null;
 if (Platform.OS === 'ios') {
   try {
     const Symbols = require('expo-symbols');
@@ -170,7 +179,7 @@ export interface SymbolProps {
   color?: ColorValue;
   weight?: 'ultraLight' | 'thin' | 'light' | 'regular' | 'medium' | 'semibold' | 'bold' | 'heavy' | 'black';
   type?: 'monochrome' | 'hierarchical' | 'palette' | 'multicolor';
-  style?: React.CSSProperties;
+  style?: StyleProp<TextStyle>;
 }
 
 export function Symbol({
@@ -200,7 +209,7 @@ export function Symbol({
       name={ioniconName}
       size={size}
       color={color}
-      style={style as any}
+       style={style}
     />
   );
 }

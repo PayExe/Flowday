@@ -1,9 +1,9 @@
 import { useRef } from 'react';
-import { View, Text, Pressable, Alert, Animated } from 'react-native';
+import { View, Text, Pressable, Alert, Animated, type GestureResponderEvent } from 'react-native';
 import { Swipeable } from 'react-native-gesture-handler';
 import { Task } from '../../types/task';
 import { hapticLight, hapticWarning } from '../../utils/haptics';
-import { useTheme } from '../../theme';
+import { useTheme, type ColorPalette } from '../../theme';
 import { Symbol, SymbolNames } from '../ui/Symbol';
 import { ContextMenu } from '../ui/ContextMenu';
 import { LifeBlock } from '../../types/lifeBlock';
@@ -16,7 +16,7 @@ interface TaskCardProps {
   lifeBlock?: LifeBlock;
 }
 
-function priorityColor(priority: string, colors: any): string {
+function priorityColor(priority: string, colors: ColorPalette): string {
   switch (priority) {
     case 'high': return colors.system.red;
     case 'medium': return colors.system.yellow;
@@ -32,7 +32,7 @@ export function TaskCard({ task, onToggle, onDelete, onPress, lifeBlock }: TaskC
   const swipeableRef = useRef<Swipeable>(null);
   const checkboxScale = useRef(new Animated.Value(1)).current;
 
-  const handleCheckboxPress = (event: any) => {
+  const handleCheckboxPress = (event: GestureResponderEvent) => {
     event.stopPropagation();
     hapticLight();
     onToggle(task.id);
@@ -131,7 +131,7 @@ export function TaskCard({ task, onToggle, onDelete, onPress, lifeBlock }: TaskC
       ref={swipeableRef}
       friction={2}
       overshootFriction={8}
-      renderLeftActions={(progress) => (
+      renderLeftActions={() => (
         <View style={{
           width: 80,
           backgroundColor: colors.system.green,
@@ -144,7 +144,7 @@ export function TaskCard({ task, onToggle, onDelete, onPress, lifeBlock }: TaskC
         </View>
       )}
       onSwipeableOpen={handleSwipeOpen}
-      renderRightActions={(progress) => (
+      renderRightActions={() => (
         <View style={{
           width: 80,
           backgroundColor: colors.system.red,

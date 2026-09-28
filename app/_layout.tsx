@@ -25,7 +25,6 @@ export default function RootLayout() {
   const blocks = useLifeBlocksStore((state) => state.blocks);
   const initializeBlocks = useLifeBlocksStore((state) => state.initializeDefaults);
 
-  const templates = useTemplateStore((state) => state.templates);
   const initializeTemplates = useTemplateStore((state) => state.initializeDefaults);
 
   const themeName = useThemeStore((state) => state.themeName);
