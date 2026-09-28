@@ -2,84 +2,185 @@
 
 Flowday is a personal planning mobile application built with React Native and Expo.
 
-> Portfolio and learning project: this repository shows my journey, experiments, and progress with React Native. It is not a commercial application or a finished product.
+> **Portfolio and learning project**: I am currently a second-year student, and this repository reflects my learning journey with React Native. It is not a commercial product or a finished application.
 
-This project was created primarily for learning. It helped me practice mobile navigation, state management, reusable components, light and dark themes, and iOS-inspired interface design.
+## About the project
 
-## Status
+<table>
+  <tr>
+    <td width="55%" valign="middle">
+      <h3>Planning your day</h3>
+      <p>
+        Flowday was created to help organize a day around tasks, life blocks and
+        weekly routines. The application combines daily planning, a weekly
+        template, focus sessions and morning and evening rituals in one mobile
+        experience.
+      </p>
+      <p>
+        The goal is to make planning feel simple and focused rather than turning
+        it into another complicated tool. Data is stored locally, so the
+        application can be used without a backend or an account.
+      </p>
+      <h3>My learning process</h3>
+      <p>
+        The project was built progressively with the help of simple tutorials,
+        online documentation, personal research and experimentation with the
+        technologies involved. I did not build every part only from prior
+        knowledge. This repository shows how I learn, investigate problems and
+        turn what I discover into a working application.
+      </p>
+    </td>
+    <td width="45%" align="center" valign="middle">
+      <img src="./docs/media/OverAll.gif" alt="Flowday overall demonstration" width="320" />
+    </td>
+  </tr>
+</table>
 
-Flowday is an experimental and incomplete application. It still contains bugs, and some parts may change or not work as expected.
+## Main features
 
-I am sharing it as a record of my learning process, not as a production-ready application.
+<table>
+  <tr>
+    <td width="33%" align="center" valign="top">
+      <img src="./docs/media/WeeklyChange.gif" alt="Weekly planning demonstration" width="220" />
+      <h3>Weekly planning</h3>
+      <p>
+        Create a weekly template with time blocks for each day. The template is
+        then used to build the daily planning view.
+      </p>
+    </td>
+    <td width="33%" align="center" valign="top">
+      <img src="./docs/media/Planning.gif" alt="Daily planning demonstration" width="220" />
+      <h3>Daily timeline</h3>
+      <p>
+        View the day hour by hour, add tasks, associate them with life blocks and
+        follow the current time on the timeline.
+      </p>
+    </td>
+    <td width="33%" align="center" valign="top">
+      <img src="./docs/media/Bloc.gif" alt="Life blocks demonstration" width="220" />
+      <h3>Life blocks</h3>
+      <p>
+        Organize activities into meaningful areas such as work, sport, health or
+        learning, with colors and weekly objectives.
+      </p>
+    </td>
+  </tr>
+</table>
 
-## Features
+Other features include:
 
-- Daily planning with life blocks
-- Weekly planning and daily timeline
-- Tasks with priorities and progress tracking
-- Daily score and streak tracking
-- Morning and evening rituals
-- Focus mode with a timer
-- Light and dark themes
-- Local device storage
+- Tasks with priorities, completion tracking and rescheduling.
+- Daily score and streak tracking.
+- Morning Ritual and Evening Wrap workflows.
+- Focus mode with Pomodoro sessions.
+- Light and dark themes.
+- Haptic feedback and reusable mobile components.
+- Local persistence with AsyncStorage.
 
-## Getting started
+## Technical overview
 
-### Prerequisites
+The project is organized by responsibility:
 
-- [Node.js](https://nodejs.org/) (v22+)
-- [Expo Go](https://expo.dev/go) installed on your iPhone or Android device
-- A free [Expo account](https://expo.dev/signup)
-
-### Setup
-
-```bash
-# 1. Clone the project
-git clone <repo-url>
-cd Flowday
-
-# 2. Install dependencies
-npm install
-
-# 3. Start the development server
-npx expo start
+```text
+app/                  Expo Router screens and navigation
+src/features/         Zustand stores and domain logic
+src/components/       Reusable interface components
+src/types/            TypeScript domain models
+src/utils/             Shared utilities such as dates and streaks
+src/theme/             Colors, typography and theme configuration
+tests/                Unit tests for the main business logic
 ```
-
-### Opening the app
-
-- **Web**: press `w` in the terminal
-- **iOS / Android**: scan the QR code with Expo Go
-
-#### Important — Expo login is required
-
-Expo Go for SDK 57 requires you to be logged in on **both** the terminal and the app with the same free Expo account:
-
-```bash
-npx expo login     # log in on your terminal
-```
-
-Then open Expo Go on your phone, tap the avatar icon in the top-right corner, and log in with the **same account**. Once both sides are authenticated, scan the QR code and the app will load.
-
-> You don't need the original project owner's account — any free Expo account works for local development.
 
 ## Technologies
 
 - React Native
 - Expo SDK 57
 - Expo Router
-- TypeScript
+- TypeScript with strict mode
 - Zustand
 - AsyncStorage
 - Reanimated
+- Vitest
+- ESLint
+- GitHub Actions
 
-## Learning Resources
+## Quality checks
 
-This project was built progressively using tutorials, documentation, and a lot of experimentation:
+The repository includes unit tests, TypeScript checking, linting and a GitHub Actions workflow.
 
-- [Video tutorial](https://youtu.be/m1-bc53EGh8?si=xLnjeSeY1BLpS7Zs)
+```bash
+# TypeScript validation
+npm run typecheck
+
+# Unit tests
+npm test
+
+# Linting
+npm run lint
+```
+
+## Getting started
+
+### For visitors
+
+You can explore the project directly on GitHub through the demonstrations and source code. No Flowday account is required because the application currently stores data locally on the device.
+
+To run the application on a phone with Expo Go, you need a free Expo account. This is an Expo development requirement, not an account created for Flowday. The same Expo account may need to be signed in on both the terminal and the Expo Go application.
+
+### Prerequisites
+
+- [Node.js](https://nodejs.org/) v22 or newer
+- [Expo Go](https://expo.dev/go) on an iPhone or Android device
+- A free [Expo account](https://expo.dev/signup)
+
+### Installation
+
+```bash
+git clone https://github.com/PayExe/Flowday.git
+cd Flowday
+npm install
+npx expo start
+```
+
+You can then:
+
+- press `w` to open the web version;
+- scan the QR code with Expo Go to open the application on a mobile device.
+
+Depending on the Expo SDK version, Expo Go may require the terminal and the mobile application to use the same Expo account.
+
+## What I learned
+
+This project helped me practice:
+
+- building mobile interfaces with React Native;
+- managing navigation with Expo Router;
+- structuring an application by features;
+- managing global state with Zustand;
+- persisting data locally with AsyncStorage;
+- creating reusable components and themes;
+- writing unit tests for application logic;
+- using GitHub Actions to automate quality checks.
+
+The architecture and design decisions will continue to evolve as I improve my understanding of the technologies.
+
+## Current scope and future improvements
+
+Flowday is still an educational project under development. The current version focuses on local usage and does not include user accounts, cloud synchronization or a backend.
+
+Possible future improvements include:
+
+- improving accessibility and automated UI testing;
+- adding cloud synchronization;
+- adding data export and backup;
+- refining the focus and planning workflows;
+- publishing a production build.
+
+## Learning resources
+
 - [Expo documentation](https://docs.expo.dev/)
-
-The architecture and design decisions are not all final. Part of the project's purpose is to show how it evolves throughout the learning process.
+- [React Native documentation](https://reactnative.dev/docs/getting-started)
+- [Tutorial that helped me start the project](https://youtu.be/m1-bc53EGh8?si=xLnjeSeY1BLpS7Zs)
 
 ## License
 
