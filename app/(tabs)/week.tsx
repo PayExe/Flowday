@@ -6,7 +6,7 @@ import {
   ScrollView,
   StyleSheet,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTemplateStore } from '../../src/features/templates/store';
 import { useLifeBlocksStore } from '../../src/features/lifeBlocks/store';
 import { TemplateBlock } from '../../src/types/template';
@@ -27,6 +27,7 @@ function timeToMinutes(time: string): number {
 
 export default function WeekScreen() {
   const { colors, typography } = useTheme();
+  const insets = useSafeAreaInsets();
   const [modalVisible, setModalVisible] = useState(false);
   const [editingBlock, setEditingBlock] = useState<TemplateBlock | null>(null);
   const [editingDay, setEditingDay] = useState(0);
@@ -158,7 +159,11 @@ export default function WeekScreen() {
         )}
       </View>
 
-      <ScrollView style={styles.scroll} showsVerticalScrollIndicator={false}>
+      <ScrollView
+        style={styles.scroll}
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={[styles.scrollContent, { paddingBottom: 96 + insets.bottom }]}
+      >
         {DAY_LABELS.map((dayLabel, dayIndex) => {
           const dayBlocks = template
             ? getBlocksForDay(dayIndex).sort((a, b) =>
@@ -255,6 +260,9 @@ const styles = StyleSheet.create({
 
   scroll: {
     flex: 1,
+  },
+  scrollContent: {
+    paddingBottom: 40,
   },
   dayHeader: {
     flexDirection: 'row',

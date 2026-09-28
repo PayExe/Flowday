@@ -7,7 +7,7 @@ import {
   StyleSheet,
   Pressable,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { useTaskStore } from '../../src/features/tasks/store';
 import { useTemplateStore } from '../../src/features/templates/store';
@@ -73,6 +73,7 @@ type TimelineItem = {
 export default function PlanningScreen() {
   const router = useRouter();
   const { colors, typography } = useTheme();
+  const insets = useSafeAreaInsets();
   const scrollRef = useRef<ScrollView>(null);
   const [newTaskTitle, setNewTaskTitle] = useState('');
   const [selectedBlockId, setSelectedBlockId] = useState<string | undefined>(undefined);
@@ -295,7 +296,7 @@ export default function PlanningScreen() {
         style={styles.scroll}
         showsVerticalScrollIndicator={false}
         scrollEventThrottle={32}
-        contentContainerStyle={styles.scrollContent}
+        contentContainerStyle={[styles.scrollContent, { paddingBottom: 112 + insets.bottom }]}
       >
         {!morningDone && (
           <Pressable

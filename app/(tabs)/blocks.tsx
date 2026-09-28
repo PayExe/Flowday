@@ -1,6 +1,6 @@
 import { useState, useCallback } from 'react';
 import { View, Text, Pressable, FlatList, StyleSheet } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useLifeBlocksStore } from '../../src/features/lifeBlocks/store';
 import { useTemplateStore } from '../../src/features/templates/store';
 import { LifeBlock, LifeBlockColor } from '../../src/types/lifeBlock';
@@ -37,6 +37,7 @@ function getWeeklyMinutes(
 
 export default function BlocksScreen() {
   const { colors, typography } = useTheme();
+  const insets = useSafeAreaInsets();
   const [modalVisible, setModalVisible] = useState(false);
   const [editingBlock, setEditingBlock] = useState<LifeBlock | null>(null);
 
@@ -171,7 +172,7 @@ export default function BlocksScreen() {
         data={activeBlocks}
         keyExtractor={(item) => item.id}
         renderItem={renderActiveBlock}
-        contentContainerStyle={styles.listContent}
+        contentContainerStyle={[styles.listContent, { paddingBottom: 96 + insets.bottom }]}
         showsVerticalScrollIndicator={false}
         ListEmptyComponent={
           <EmptyState

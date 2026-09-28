@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { View, Text, Pressable, StyleSheet, Switch, ScrollView, Modal, TextInput } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useThemeStore } from '../../src/features/theme/store';
 import { useRitualStore } from '../../src/features/rituals/store';
 import { useTheme } from '../../src/theme';
@@ -12,6 +12,7 @@ import { isValidTime } from '../../src/utils/dates';
 
 export default function SettingsScreen() {
   const { colors, typography } = useTheme();
+  const insets = useSafeAreaInsets();
   const themeName = useThemeStore((state) => state.themeName);
   const setTheme = useThemeStore((state) => state.setTheme);
 
@@ -133,7 +134,10 @@ export default function SettingsScreen() {
         />
       </View>
 
-      <ScrollView showsVerticalScrollIndicator={false}>
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={{ paddingBottom: 96 + insets.bottom }}
+      >
         <Text style={[typography.sectionHeader, { paddingHorizontal: 32, paddingTop: 28, paddingBottom: 8 }]}>Thème</Text>
         <View style={{ marginHorizontal: 16, marginBottom: 24 }}>
           <SegmentedControl

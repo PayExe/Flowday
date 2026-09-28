@@ -11,7 +11,6 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFocusStore } from '../src/features/focus/store';
 import { useTheme } from '../src/theme';
 import { hapticLight, hapticWarning } from '../src/utils/haptics';
-import { Symbol, SymbolNames } from '../src/components/ui/Symbol';
 import { PageInfo } from '../src/components/ui/PageInfo';
 
 function formatTime(seconds: number): string {
@@ -58,11 +57,6 @@ export default function FocusScreen() {
     router.back();
   };
 
-  const handleStop = () => {
-    stopFocus();
-    router.back();
-  };
-
   const maxDots = 8;
   const dots = Array.from({ length: maxDots }, (_, i) => i < focusState.sessionPomodoroCount);
 
@@ -84,19 +78,6 @@ export default function FocusScreen() {
       <StatusBar hidden />
 
       <View style={styles.header}>
-        <Pressable
-          onPress={handleStop}
-          style={({ pressed }) => ({
-            width: 44,
-            height: 44,
-            borderRadius: 12,
-            backgroundColor: pressed ? colors.system.gray4 : colors.bg.secondary,
-            alignItems: 'center',
-            justifyContent: 'center',
-          })}
-        >
-          <Symbol name={SymbolNames.close} size={20} color={colors.text.primary} />
-        </Pressable>
         <PageInfo
           title="Focus"
           description="Travaille sur une seule tâche pendant une session de 25 minutes, puis prends une pause."
@@ -180,7 +161,7 @@ const styles = StyleSheet.create({
   header: {
     paddingHorizontal: 16,
     paddingTop: 12,
-    alignItems: 'flex-start',
+    alignItems: 'flex-end',
   },
   content: {
     flex: 1,

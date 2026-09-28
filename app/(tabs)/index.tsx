@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react';
 import { View, Text, Pressable, ScrollView, StyleSheet, Modal, TextInput } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { useTaskStore } from '../../src/features/tasks/store';
 import { useTemplateStore } from '../../src/features/templates/store';
@@ -40,6 +41,7 @@ function currentMinutes(): number {
 export default function HomeScreen() {
   const router = useRouter();
   const { colors, typography } = useTheme();
+  const insets = useSafeAreaInsets();
 
   const scores = useDayScoreStore((state) => state.scores);
   const todayScore = useMemo(() => scores.find((s) => s.date === todayISO()), [scores]);
@@ -148,7 +150,10 @@ export default function HomeScreen() {
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.bg.primary }]} edges={['top']}>
-      <ScrollView showsVerticalScrollIndicator={false}>
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={{ paddingBottom: 96 + insets.bottom }}
+      >
         <View style={styles.header}>
           <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
             <Text style={[typography.screenTitle, { color: colors.text.primary }]}>Accueil</Text>
@@ -395,7 +400,6 @@ export default function HomeScreen() {
           </View>
         )}
 
-        <View style={{ height: 40 }} />
       </ScrollView>
 
       <Modal
