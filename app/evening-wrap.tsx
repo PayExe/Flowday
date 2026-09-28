@@ -19,6 +19,7 @@ import { useRitualStore } from '../src/features/rituals/store';
 import { useTheme } from '../src/theme';
 import { dateKey } from '../src/utils/dates';
 import { hapticLight, hapticWarning } from '../src/utils/haptics';
+import { PageInfo } from '../src/components/ui/PageInfo';
 
 function todayISO(): string {
   return dateKey();
@@ -338,7 +339,18 @@ export default function EveningWrapScreen() {
     <SafeAreaView style={[styles.container, { backgroundColor: colors.bg.primary }]} edges={['top']}>
       <KeyboardAvoidingView style={styles.keyboardAvoiding} behavior="padding">
         <View style={styles.header}>
-          <Text style={{ fontSize: typography.sizes.lg, fontWeight: '700', color: colors.text.primary }}>Flowday</Text>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+            <Text style={{ fontSize: typography.sizes.lg, fontWeight: '700', color: colors.text.primary }}>Flowday</Text>
+            <PageInfo
+              title="Evening Wrap"
+              description="Termine ta journée proprement et prépare la suivante."
+              points={[
+                'Consulte ton score et le détail de ta journée.',
+                'Décide quoi faire des tâches non terminées : demain, cette semaine ou supprimer.',
+                'Ajoute une courte note avant de valider ta journée.',
+              ]}
+            />
+          </View>
           {renderStepIndicator()}
         </View>
 

@@ -20,6 +20,7 @@ import { useTheme } from '../src/theme';
 import { dateKey } from '../src/utils/dates';
 import { hapticLight } from '../src/utils/haptics';
 import { Mood } from '../src/types/ritual';
+import { PageInfo } from '../src/components/ui/PageInfo';
 
 const MOODS: { value: Mood; label: string; emoji: string; color: string }[] = [
   { value: 'bad', label: 'Pas top', emoji: '🔴', color: '#FF453A' },
@@ -352,7 +353,18 @@ export default function MorningRitualScreen() {
           >
             <Text style={{ fontSize: typography.sizes.lg, color: colors.system.blue }}>Plus tard</Text>
           </Pressable>
-          <Text style={{ fontSize: typography.sizes.lg, fontWeight: '700', color: colors.text.primary }}>Flowday</Text>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+            <Text style={{ fontSize: typography.sizes.lg, fontWeight: '700', color: colors.text.primary }}>Flowday</Text>
+            <PageInfo
+              title="Morning Ritual"
+              description="Prépare ta journée en quelques étapes avant de commencer."
+              points={[
+                'Indique ton humeur pour adapter ton point de départ.',
+                'Consulte tes blocs et tes priorités du jour.',
+                'Ajoute une intention pour garder un cap simple aujourd’hui.',
+              ]}
+            />
+          </View>
           {renderStepIndicator()}
         </View>
 

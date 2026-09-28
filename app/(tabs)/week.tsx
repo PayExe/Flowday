@@ -106,10 +106,21 @@ export default function WeekScreen() {
     return (
       <SafeAreaView style={[styles.container, { backgroundColor: colors.bg.primary }]} edges={['top']}>
         <View style={styles.header}>
-            <Text style={[typography.screenTitle, { color: colors.text.primary }]}>Semaine</Text>
-          <Text style={[typography.subheadline, { color: colors.text.secondary }]}>
-            Définis ton template hebdomadaire
-          </Text>
+          <View style={styles.headerTop}>
+            <View>
+              <Text style={[typography.screenTitle, { color: colors.text.primary }]}>Semaine</Text>
+              <Text style={[typography.subheadline, { color: colors.text.secondary }]}>Définis ton template hebdomadaire</Text>
+            </View>
+            <PageInfo
+              title="Semaine"
+              description="Construis une semaine type qui servira de base à ton planning quotidien."
+              points={[
+                'Crée d’abord tes blocs de vie dans l’onglet Blocs.',
+                'Utilise + pour ajouter un créneau à un jour.',
+                'Appuie sur un créneau pour modifier ses horaires ou le supprimer.',
+              ]}
+            />
+          </View>
         </View>
         <EmptyState
           icon="cube-outline"
@@ -135,8 +146,8 @@ export default function WeekScreen() {
             description="Ton planning type, répété chaque semaine."
             points={[
               'Ajoute des blocs pour chaque jour avec le bouton +.',
-              'Ce template est utilisé chaque jour dans l’onglet Planning.',
-              'Le total en haut montre ton temps planifié sur la semaine.',
+              'Les créneaux apparaissent ensuite dans Planning le jour correspondant.',
+              'Le total indique le temps planifié sur toute la semaine.',
             ]}
           />
         </View>

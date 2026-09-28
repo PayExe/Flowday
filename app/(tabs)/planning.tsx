@@ -221,7 +221,18 @@ export default function PlanningScreen() {
       <SafeAreaView style={[styles.container, { backgroundColor: colors.bg.primary }]} edges={['top']}>
         <View style={styles.header}>
           <Text style={[typography.screenTitle, { color: colors.text.primary }]}>Planning</Text>
-          <Text style={[typography.subheadline, { color: colors.text.secondary }]}>{formatDateFr(new Date())}</Text>
+          <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+            <Text style={[typography.subheadline, { color: colors.text.secondary }]}>{formatDateFr(new Date())}</Text>
+            <PageInfo
+              title="Planning"
+              description="Organise ta journée avec une timeline, des tâches et des blocs de vie."
+              points={[
+                'Ajoute une tâche en haut, puis choisis éventuellement son bloc de vie.',
+                'Appuie sur une tâche pour la modifier ou lancer une session Focus.',
+                'Appuie sur un bloc pour voir ses tâches et valider ce qui est fait.',
+              ]}
+            />
+          </View>
         </View>
         <EmptyState
           icon="calendar-outline"
@@ -237,7 +248,17 @@ export default function PlanningScreen() {
       <SafeAreaView style={[styles.container, { backgroundColor: colors.bg.primary }]} edges={['top']}>
         <View style={styles.header}>
           <Text style={[typography.screenTitle, { color: colors.text.primary }]}>Planning</Text>
-          <Text style={[typography.subheadline, { color: colors.text.secondary }]}>{formatDateFr(new Date())}</Text>
+          <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+            <Text style={[typography.subheadline, { color: colors.text.secondary }]}>{formatDateFr(new Date())}</Text>
+            <PageInfo
+              title="Planning"
+              description="Organise ta journée avec une timeline, des tâches et des blocs de vie."
+              points={[
+                'Crée d’abord un template dans Semaine et des blocs de vie dans Blocs.',
+                'Une fois configuré, ajoute tes tâches et associe-les au bon bloc.',
+              ]}
+            />
+          </View>
         </View>
         <EmptyState
           icon="cube-outline"

@@ -12,6 +12,7 @@ import { useFocusStore } from '../src/features/focus/store';
 import { useTheme } from '../src/theme';
 import { hapticLight, hapticWarning } from '../src/utils/haptics';
 import { Symbol, SymbolNames } from '../src/components/ui/Symbol';
+import { PageInfo } from '../src/components/ui/PageInfo';
 
 function formatTime(seconds: number): string {
   const m = Math.floor(seconds / 60);
@@ -96,6 +97,15 @@ export default function FocusScreen() {
         >
           <Symbol name={SymbolNames.close} size={20} color={colors.text.primary} />
         </Pressable>
+        <PageInfo
+          title="Focus"
+          description="Travaille sur une seule tâche pendant une session de 25 minutes, puis prends une pause."
+          points={[
+            'Le minuteur démarre avec la tâche choisie depuis Planning.',
+            'Mets la session en pause ou reprends-la à tout moment.',
+            'Abandonner arrête la session sans la comptabiliser comme terminée.',
+          ]}
+        />
       </View>
 
       <View style={styles.content}>

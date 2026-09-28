@@ -18,6 +18,8 @@ export function PageInfo({ title, description, points }: PageInfoProps) {
       <Pressable
         onPress={() => setVisible(true)}
         hitSlop={8}
+        accessibilityRole="button"
+        accessibilityLabel={`Aide : ${title}`}
         style={({ pressed }) => ({
           width: 32,
           height: 32,
