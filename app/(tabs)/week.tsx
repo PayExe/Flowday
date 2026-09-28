@@ -2,7 +2,6 @@ import { useState, useCallback, useMemo, useEffect, useRef } from 'react';
 import {
   View,
   Text,
-  Pressable,
   ScrollView,
   StyleSheet,
 } from 'react-native';
@@ -15,7 +14,6 @@ import { EditTemplateBlockModal } from '../../src/components/templates/EditTempl
 import { EmptyState } from '../../src/components/shared/EmptyState';
 import { useTheme } from '../../src/theme';
 import { hapticLight } from '../../src/utils/haptics';
-import { Symbol, SymbolNames } from '../../src/components/ui/Symbol';
 import { PageInfo } from '../../src/components/ui/PageInfo';
 import { AddButton } from '../../src/components/ui/AddButton';
 

@@ -10,7 +10,6 @@ import { EditBlockModal } from '../../src/components/lifeBlocks/EditBlockModal';
 import { EmptyState } from '../../src/components/shared/EmptyState';
 import { useTheme } from '../../src/theme';
 import { hapticLight, hapticWarning } from '../../src/utils/haptics';
-import { Symbol, SymbolNames } from '../../src/components/ui/Symbol';
 import { PageInfo } from '../../src/components/ui/PageInfo';
 import { AddButton } from '../../src/components/ui/AddButton';
 
