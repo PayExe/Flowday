@@ -95,7 +95,7 @@ export default function SettingsScreen() {
     </Pressable>
   );
 
-  const renderGroup = (children: React.ReactNode, footer?: string) => (
+  const renderGroup = (children: React.ReactNode) => (
     <View style={{ marginBottom: 24 }}>
       <View
         style={{
@@ -107,11 +107,6 @@ export default function SettingsScreen() {
       >
         {children}
       </View>
-      {footer && (
-        <Text style={{ fontSize: typography.sizes.sm, color: colors.text.secondary, paddingHorizontal: 32, paddingTop: 8 }}>
-          {footer}
-        </Text>
-      )}
     </View>
   );
 
@@ -170,8 +165,7 @@ export default function SettingsScreen() {
               morningConfig.time,
               () => openTimeModal('morning'),
             )}
-          </>,
-          "Le Morning Ritual s'ouvre automatiquement chaque matin."
+          </>
         )}
 
         <Text style={[typography.sectionHeader, { paddingHorizontal: 32, paddingTop: 28, paddingBottom: 8 }]}>Evening Wrap</Text>
@@ -201,8 +195,10 @@ export default function SettingsScreen() {
         )}
 
         <View style={{ marginTop: 24, alignItems: 'center', paddingVertical: 32 }}>
-          <Text style={{ fontSize: typography.sizes.sm, color: colors.text.tertiary }}>Flowday v1.0</Text>
-          <Text style={{ fontSize: typography.sizes.xs, color: colors.text.quaternary, marginTop: 4 }}>Built with Expo</Text>
+          <Text style={{ fontSize: typography.sizes.sm, color: colors.text.tertiary }}>Version test</Text>
+          <Text style={{ fontSize: typography.sizes.xs, color: colors.text.quaternary, marginTop: 4 }}>
+            Made by PayExe · Built with Expo
+          </Text>
         </View>
       </ScrollView>
 

@@ -12,6 +12,7 @@ import { useTheme } from '../../src/theme';
 import { hapticLight, hapticWarning } from '../../src/utils/haptics';
 import { Symbol, SymbolNames } from '../../src/components/ui/Symbol';
 import { PageInfo } from '../../src/components/ui/PageInfo';
+import { AddButton } from '../../src/components/ui/AddButton';
 
 
 function timeToMinutes(time: string): number {
@@ -149,21 +150,7 @@ export default function BlocksScreen() {
                 'Utilise les flèches ↑ ↓ pour réordonner les blocs.',
               ]}
             />
-            <Pressable
-              style={({ pressed }) => ({
-                width: 32,
-                height: 32,
-                borderRadius: 8,
-                backgroundColor: pressed ? colors.bg.hover : colors.bg.secondary,
-                alignItems: 'center',
-                justifyContent: 'center',
-                borderWidth: 1,
-                borderColor: colors.separator.default,
-              })}
-              onPress={handleCreate}
-            >
-              <Symbol name={SymbolNames.add} size={20} color={colors.system.blue} />
-            </Pressable>
+            <AddButton onPress={handleCreate} accessibilityLabel="Ajouter un bloc de vie" />
           </View>
         </View>
       </View>
@@ -178,7 +165,7 @@ export default function BlocksScreen() {
           <EmptyState
             icon="cube-outline"
             title="Aucun Life Block"
-            subtitle="Crée ton premier bloc de vie avec le bouton +"
+            subtitle="Aucun bloc de vie pour le moment"
           />
         }
         ListFooterComponent={

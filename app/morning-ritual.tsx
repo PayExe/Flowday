@@ -247,7 +247,7 @@ export default function MorningRitualScreen() {
         ))}
         {topTasks.length === 0 && (
           <Text style={{ fontSize: typography.sizes.sm, color: colors.text.quaternary, textAlign: 'center', marginTop: 12 }}>
-            Ajoute des tâches dans l'onglet Aujourd'hui pour voir tes priorités ici.
+            Aucune priorité pour le moment.
           </Text>
         )}
       </View>

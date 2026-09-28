@@ -17,6 +17,7 @@ import { useTheme } from '../../src/theme';
 import { hapticLight } from '../../src/utils/haptics';
 import { Symbol, SymbolNames } from '../../src/components/ui/Symbol';
 import { PageInfo } from '../../src/components/ui/PageInfo';
+import { AddButton } from '../../src/components/ui/AddButton';
 
 const DAY_LABELS = ['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi', 'Dimanche'];
 
@@ -126,7 +127,7 @@ export default function WeekScreen() {
         <EmptyState
           icon="cube-outline"
           title="Aucun Life Block"
-          subtitle="Crée d'abord des blocs de vie dans l'onglet Blocs"
+          subtitle="Aucun bloc de vie pour le moment"
         />
       </SafeAreaView>
     );
@@ -175,21 +176,10 @@ export default function WeekScreen() {
             <View key={dayIndex} style={{ marginBottom: 24 }}>
               <View style={styles.dayHeader}>
                 <Text style={[typography.sectionHeader, { color: colors.text.primary }]}>{dayLabel}</Text>
-                <Pressable
-                  style={({ pressed }) => ({
-                    width: 28,
-                    height: 28,
-                    borderRadius: 8,
-                    backgroundColor: pressed ? colors.bg.hover : colors.bg.secondary,
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    borderWidth: 1,
-                    borderColor: colors.separator.default,
-                  })}
+                <AddButton
                   onPress={() => handleCreate(dayIndex)}
-                >
-                  <Symbol name={SymbolNames.add} size={16} color={colors.system.blue} />
-                </Pressable>
+                  accessibilityLabel={`Ajouter un bloc le ${dayLabel}`}
+                />
               </View>
 
               {dayBlocks.length === 0 ? null : (

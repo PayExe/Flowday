@@ -18,6 +18,7 @@ import { useFocusStore } from '../../src/features/focus/store';
 import { useTheme } from '../../src/theme';
 import { dateKey } from '../../src/utils/dates';
 import { Symbol, SymbolNames } from '../../src/components/ui/Symbol';
+import { AddButton } from '../../src/components/ui/AddButton';
 import { PageInfo } from '../../src/components/ui/PageInfo';
 import { TimelineBlock } from '../../src/components/timeline/TimelineBlock';
 import { FreeSlot } from '../../src/components/timeline/FreeSlot';
@@ -238,7 +239,7 @@ export default function PlanningScreen() {
         <EmptyState
           icon="calendar-outline"
           title="Aucun template actif"
-          subtitle="Crée ta semaine type dans l'onglet Semaine pour voir ta timeline"
+          subtitle="Aucun planning pour le moment"
         />
       </SafeAreaView>
     );
@@ -264,7 +265,7 @@ export default function PlanningScreen() {
         <EmptyState
           icon="cube-outline"
           title="Aucun Life Block"
-          subtitle="Crée tes blocs de vie dans l'onglet Blocs pour commencer"
+          subtitle="Aucun bloc de vie pour le moment"
         />
       </SafeAreaView>
     );
@@ -331,14 +332,7 @@ export default function PlanningScreen() {
             }}
           >
             <View style={{ flexDirection: 'row', alignItems: 'center', paddingHorizontal: 12, paddingVertical: 4 }}>
-              <Pressable
-                onPress={handleAddTask}
-                hitSlop={8}
-                accessibilityRole="button"
-                accessibilityLabel="Ajouter la tâche"
-              >
-                <Symbol name={SymbolNames.add} size={22} color={colors.system.blue} />
-              </Pressable>
+              <AddButton onPress={handleAddTask} accessibilityLabel="Ajouter la tâche" />
               <TextInput
                 style={{
                   flex: 1,

@@ -11,6 +11,7 @@ import { useRitualStore } from '../../src/features/rituals/store';
 import { useTheme } from '../../src/theme';
 import { dateKey } from '../../src/utils/dates';
 import { Symbol, SymbolNames } from '../../src/components/ui/Symbol';
+import { AddButton } from '../../src/components/ui/AddButton';
 import { PageInfo } from '../../src/components/ui/PageInfo';
 import { DayScoreHeader } from '../../src/components/dayScore/DayScoreHeader';
 import { TaskCard } from '../../src/components/tasks/TaskCard';
@@ -168,19 +169,7 @@ export default function HomeScreen() {
                   'Les tâches prioritaires sont tes 3 tâches en cours les plus importantes.',
                 ]}
               />
-              <Pressable
-                style={{
-                  width: 32,
-                  height: 32,
-                  borderRadius: 16,
-                  backgroundColor: colors.system.blue,
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                }}
-                onPress={handleQuickAdd}
-              >
-                <Symbol name={SymbolNames.add} size={18} color={colors.text.inverse} />
-              </Pressable>
+              <AddButton onPress={handleQuickAdd} accessibilityLabel="Ajouter une tâche" />
             </View>
           </View>
           <Text style={[typography.subheadline, { marginTop: 2 }]}>
