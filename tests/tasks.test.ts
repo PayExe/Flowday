@@ -21,6 +21,17 @@ describe('tasks', () => {
     expect(useTaskStore.getState().tasks[0].completed).toBe(true);
   });
 
+  it('keeps completedAt consistent when completion changes through updateTask', () => {
+    useTaskStore.getState().addTask({ title: 'Focus', completed: false, priority: 'high' });
+    const task = useTaskStore.getState().tasks[0];
+
+    useTaskStore.getState().updateTask(task.id, { completed: true });
+    expect(useTaskStore.getState().tasks[0].completedAt).toEqual(expect.any(String));
+
+    useTaskStore.getState().updateTask(task.id, { completed: false });
+    expect(useTaskStore.getState().tasks[0].completedAt).toBeUndefined();
+  });
+
   it('does not include tasks scheduled for another day', () => {
     useTaskStore.getState().addTask({ title: 'Tomorrow', completed: false, priority: 'low', scheduledDate: '2099-01-01' });
     expect(useTaskStore.getState().getTodayTasks()).toHaveLength(0);

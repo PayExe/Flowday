@@ -56,11 +56,20 @@ export default function RootLayout() {
     if (!morningConfig.enabled) return;
     if (hasDoneMorning) return;
     if (pathname === '/morning-ritual') return;
+
+    const now = new Date();
+    const [hours, minutes] = morningConfig.time.split(':').map(Number);
+    const triggerMinutes = hours * 60 + minutes;
+    const nowMinutes = now.getHours() * 60 + now.getMinutes();
+    const delay = nowMinutes < triggerMinutes
+      ? (triggerMinutes - nowMinutes) * 60 * 1000
+      : 100;
+
     const timer = setTimeout(() => {
       router.replace('/morning-ritual');
-    }, 100);
+    }, delay);
     return () => clearTimeout(timer);
-  }, [hasDoneMorning, pathname, router, morningConfig.enabled]);
+  }, [hasDoneMorning, pathname, router, morningConfig.enabled, morningConfig.time]);
 
   const eveningRedirected = useRef(false);
   const hasDoneEvening = logs.some(

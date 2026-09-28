@@ -36,18 +36,10 @@ export const useTaskStore = create<TaskState>()(
           ],
         })),
 
-      toggleTask: (id) =>
-        set((state) => ({
-          tasks: state.tasks.map((task) =>
-            task.id === id
-              ? {
-                  ...task,
-                  completed: !task.completed,
-                  completedAt: !task.completed ? new Date().toISOString() : undefined,
-                }
-              : task
-          ),
-        })),
+      toggleTask: (id) => {
+        const task = get().tasks.find((candidate) => candidate.id === id);
+        if (task) get().updateTask(id, { completed: !task.completed });
+      },
 
       deleteTask: (id) =>
         set((state) => ({
@@ -56,9 +48,20 @@ export const useTaskStore = create<TaskState>()(
 
       updateTask: (id, updates) =>
         set((state) => ({
-          tasks: state.tasks.map((task) =>
-            task.id === id ? { ...task, ...updates } : task
-          ),
+          tasks: state.tasks.map((task) => {
+            if (task.id !== id) return task;
+
+            const completionChanged =
+              typeof updates.completed === 'boolean' && updates.completed !== task.completed;
+
+            return completionChanged
+              ? {
+                  ...task,
+                  ...updates,
+                  completedAt: updates.completed ? new Date().toISOString() : undefined,
+                }
+              : { ...task, ...updates };
+          }),
         })),
 
       getTodayTasks: () => {

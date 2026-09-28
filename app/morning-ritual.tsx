@@ -37,6 +37,8 @@ function capitalize(str: string): string {
   return str.charAt(0).toUpperCase() + str.slice(1);
 }
 
+type MorningStep = 'mood' | 'overview' | 'priorities' | 'intention' | 'summary';
+
 export default function MorningRitualScreen() {
   const router = useRouter();
   const { colors, typography } = useTheme();
@@ -54,6 +56,17 @@ export default function MorningRitualScreen() {
   const getBlockById = useLifeBlocksStore((state) => state.getBlockById);
 
   const setMorningRitualDone = useDayScoreStore((state) => state.setMorningRitualDone);
+
+  const stepKeys = useMemo<MorningStep[]>(() => {
+    const configuredSteps: MorningStep[] = [];
+    if (morningConfig.steps.mood) configuredSteps.push('mood');
+    if (!morningConfig.fastMode && morningConfig.steps.overview) configuredSteps.push('overview');
+    if (!morningConfig.fastMode && morningConfig.steps.priorities) configuredSteps.push('priorities');
+    if (morningConfig.steps.intention) configuredSteps.push('intention');
+    return [...configuredSteps, 'summary'];
+  }, [morningConfig]);
+
+  const currentStep = stepKeys[step - 1] || 'summary';
 
   const todayLabel = useMemo(() => {
     const now = new Date();
@@ -81,10 +94,8 @@ export default function MorningRitualScreen() {
   }, [tasks, getIncompleteTodayTasks]);
 
   const canProceed = useMemo(() => {
-    if (step === 1 && morningConfig.steps.mood) return selectedMood !== null;
-    if (step === 3 && morningConfig.steps.priorities) return true;
-    return true;
-  }, [step, selectedMood, morningConfig]);
+    return currentStep !== 'mood' || selectedMood !== null;
+  }, [currentStep, selectedMood]);
 
   const dotWidths = useRef([24, 8, 8, 8, 8].map((w) => new Animated.Value(w))).current;
 
@@ -109,7 +120,7 @@ export default function MorningRitualScreen() {
 
   const nextStep = () => {
     hapticLight();
-    if (step < 5) {
+    if (step < stepKeys.length) {
       setStep(step + 1);
     } else {
       handleFinish();
@@ -314,17 +325,20 @@ export default function MorningRitualScreen() {
 
   const renderStepIndicator = () => (
     <View style={{ flexDirection: 'row', gap: 6 }}>
-      {[1, 2, 3, 4, 5].map((s) => (
-        <Animated.View
-          key={s}
-          style={{
-            width: dotWidths[s - 1],
-            height: 8,
-            borderRadius: 4,
-            backgroundColor: s <= step ? colors.system.blue : colors.separator.default,
-          }}
-        />
-      ))}
+      {stepKeys.map((_, index) => {
+        const stepNumber = index + 1;
+        return (
+          <Animated.View
+            key={stepNumber}
+            style={{
+              width: dotWidths[index],
+              height: 8,
+              borderRadius: 4,
+              backgroundColor: stepNumber <= step ? colors.system.blue : colors.separator.default,
+            }}
+          />
+        );
+      })}
     </View>
   );
 
@@ -349,11 +363,11 @@ export default function MorningRitualScreen() {
           keyboardShouldPersistTaps="handled"
           keyboardDismissMode="interactive"
         >
-          {step === 1 && renderStep1()}
-          {step === 2 && renderStep2()}
-          {step === 3 && renderStep3()}
-          {step === 4 && renderStep4()}
-          {step === 5 && renderStep5()}
+          {currentStep === 'mood' && renderStep1()}
+          {currentStep === 'overview' && renderStep2()}
+          {currentStep === 'priorities' && renderStep3()}
+          {currentStep === 'intention' && renderStep4()}
+          {currentStep === 'summary' && renderStep5()}
         </ScrollView>
 
         <View style={[styles.footer, { borderTopColor: colors.separator.default }]}>
@@ -378,7 +392,7 @@ export default function MorningRitualScreen() {
             disabled={!canProceed}
           >
             <Text style={{ fontSize: typography.sizes.lg, fontWeight: '600', color: colors.text.inverse }}>
-              {step === 5 ? 'Commencer la journée →' : 'Suivant →'}
+              {currentStep === 'summary' ? 'Commencer la journée →' : 'Suivant →'}
             </Text>
           </Pressable>
         </View>

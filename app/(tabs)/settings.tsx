@@ -8,6 +8,7 @@ import { Symbol, SymbolNames } from '../../src/components/ui/Symbol';
 import { SegmentedControl } from '../../src/components/ui/SegmentedControl';
 import { PageInfo } from '../../src/components/ui/PageInfo';
 import { ThemeName } from '../../src/theme';
+import { isValidTime } from '../../src/utils/dates';
 
 export default function SettingsScreen() {
   const { colors, typography } = useTheme();
@@ -31,11 +32,12 @@ export default function SettingsScreen() {
   };
 
   const handleTimeModalSubmit = () => {
-    if (timeModalValue && /^\d{2}:\d{2}$/.test(timeModalValue)) {
+    const time = timeModalValue.trim();
+    if (isValidTime(time)) {
       if (timeModalTarget === 'morning') {
-        updateMorningConfig({ time: timeModalValue });
+        updateMorningConfig({ time });
       } else {
-        updateEveningConfig({ time: timeModalValue });
+        updateEveningConfig({ time });
       }
     }
     setTimeModalVisible(false);

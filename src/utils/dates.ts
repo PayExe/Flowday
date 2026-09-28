@@ -5,6 +5,10 @@ export function dateKey(date = new Date()): string {
   return `${year}-${month}-${day}`;
 }
 
+export function isValidTime(value: string): boolean {
+  return /^(?:[01]\d|2[0-3]):[0-5]\d$/.test(value);
+}
+
 export function addDays(date: Date, days: number): Date {
   const result = new Date(date);
   result.setDate(result.getDate() + days);
