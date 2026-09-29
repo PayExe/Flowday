@@ -2,7 +2,7 @@
   "expo": {
     "name": "flowday",
     "slug": "flowday",
-    "version": "1.0.0",
+    "version": "0.1.0",
     "scheme": "flowday",
     "orientation": "portrait",
     "icon": "./assets/icon.png",

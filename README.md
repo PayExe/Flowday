@@ -36,7 +36,7 @@ Flowday is a personal planning mobile application built with React Native and Ex
   </tr>
 </table>
 
-## features
+## Features
 
 <table>
   <tr>

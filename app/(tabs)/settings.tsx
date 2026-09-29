@@ -195,7 +195,7 @@ export default function SettingsScreen() {
         )}
 
         <View style={{ marginTop: 24, alignItems: 'center', paddingVertical: 32 }}>
-          <Text style={{ fontSize: typography.sizes.sm, color: colors.text.tertiary }}>Version test</Text>
+          <Text style={{ fontSize: typography.sizes.sm, color: colors.text.tertiary }}>v0.1.0</Text>
           <Text style={{ fontSize: typography.sizes.xs, color: colors.text.quaternary, marginTop: 4 }}>
             Made by PayExe · Built with Expo
           </Text>
