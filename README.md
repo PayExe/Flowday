@@ -4,7 +4,7 @@ Flowday is a personal planning mobile application built with React Native and Ex
 
 > **Portfolio and learning project**: I am currently a second-year student, and this repository reflects my learning journey with React Native. It is not a commercial product or a finished application.
 
-## About the project
+## Showcase
 
 <table>
   <tr>
@@ -36,7 +36,7 @@ Flowday is a personal planning mobile application built with React Native and Ex
   </tr>
 </table>
 
-## Main features
+## features
 
 <table>
   <tr>
@@ -77,48 +77,6 @@ Other features include:
 - Haptic feedback and reusable mobile components.
 - Local persistence with AsyncStorage.
 
-## Technical overview
-
-The project is organized by responsibility:
-
-```text
-app/                  Expo Router screens and navigation
-src/features/         Zustand stores and domain logic
-src/components/       Reusable interface components
-src/types/            TypeScript domain models
-src/utils/             Shared utilities such as dates and streaks
-src/theme/             Colors, typography and theme configuration
-tests/                Unit tests for the main business logic
-```
-
-## Technologies
-
-- React Native
-- Expo SDK 57
-- Expo Router
-- TypeScript with strict mode
-- Zustand
-- AsyncStorage
-- Reanimated
-- Vitest
-- ESLint
-- GitHub Actions
-
-## Quality checks
-
-The repository includes unit tests, TypeScript checking, linting and a GitHub Actions workflow.
-
-```bash
-# TypeScript validation
-npm run typecheck
-
-# Unit tests
-npm test
-
-# Linting
-npm run lint
-```
-
 ## Getting started
 
 ### For visitors
@@ -148,6 +106,15 @@ You can then:
 - scan the QR code with Expo Go to open the application on a mobile device.
 
 Depending on the Expo SDK version, Expo Go may require the terminal and the mobile application to use the same Expo account.
+
+## Technologies
+
+- React Native
+- Expo SDK 57
+- Expo Router
+- Zustand
+- AsyncStorage
+- Vitest
 
 ## What I learned
 
@@ -191,4 +158,7 @@ Possible future improvements include:
 
 ## License
 
-This project is distributed under the [MIT License](LICENSE).
+This project is distributed under the [Creative Commons Attribution-
+NonCommercial 4.0 International License (CC BY-NC 4.0)](LICENSE). Commercial
+use, including selling the project or incorporating it into a paid product or
+service, is not permitted.
