@@ -20,6 +20,7 @@ describe('focus action', () => {
         sessionPomodoroCount: 0,
         dailyPomodoroCount: 0,
         dailyPomodoroGoal: 6,
+        focusElapsedSeconds: 0,
       },
     });
   });
@@ -42,5 +43,32 @@ describe('focus action', () => {
       taskTitle: task.title,
       pomodorosCompleted: 0,
     });
+  });
+
+  it('does not create a second session while one is open', () => {
+    useFocusStore.getState().startFocus('task-1', 'First');
+    useFocusStore.getState().startFocus('task-2', 'Second');
+
+    expect(useFocusStore.getState().sessions).toHaveLength(1);
+    expect(useFocusStore.getState().focusState.currentTaskId).toBe('task-1');
+  });
+
+  it('resets the daily counter when Focus starts on a new day', () => {
+    useFocusStore.setState((state) => ({
+      focusState: {
+        ...state.focusState,
+        dailyPomodoroCount: 4,
+        lastResetDate: '2000-01-01',
+      },
+    }));
+
+    useFocusStore.getState().startFocus('task-1', 'First');
+
+    expect(useFocusStore.getState().focusState.dailyPomodoroCount).toBe(0);
+  });
+
+  it('rejects a focus without an identifier', () => {
+    expect(useFocusStore.getState().startFocus('', 'Missing task')).toBe(false);
+    expect(useFocusStore.getState().sessions).toHaveLength(0);
   });
 });

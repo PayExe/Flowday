@@ -3,6 +3,17 @@ import { persist, createJSONStorage } from 'zustand/middleware';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { generateId } from '../../utils/id';
 import { WeeklyTemplate, TemplateBlock } from '../../types/template';
+import { isValidTime } from '../../utils/dates';
+
+function isValidBlock(block: Omit<TemplateBlock, 'id'> | TemplateBlock): boolean {
+  return Number.isInteger(block.dayOfWeek)
+    && block.dayOfWeek >= 0
+    && block.dayOfWeek <= 6
+    && isValidTime(block.startTime)
+    && isValidTime(block.endTime)
+    && block.startTime < block.endTime
+    && block.lifeBlockId.trim().length > 0;
+}
 
 interface TemplateState {
   templates: WeeklyTemplate[];
@@ -40,16 +51,19 @@ export const useTemplateStore = create<TemplateState>()(
         return newTemplate;
       },
 
-      setActiveTemplate: (id) =>
+      setActiveTemplate: (id) => {
+        if (!get().templates.some((template) => template.id === id)) return;
         set((state) => ({
           templates: state.templates.map((t) => ({
             ...t,
             isActive: t.id === id,
           })),
           activeTemplateId: id,
-        })),
+        }));
+      },
 
-      addBlockToTemplate: (templateId, block) =>
+      addBlockToTemplate: (templateId, block) => {
+        if (!get().templates.some((template) => template.id === templateId) || !isValidBlock(block)) return;
         set((state) => ({
           templates: state.templates.map((t) =>
             t.id === templateId
@@ -63,9 +77,13 @@ export const useTemplateStore = create<TemplateState>()(
                 }
               : t
           ),
-        })),
+        }));
+      },
 
-      updateTemplateBlock: (templateId, blockId, updates) =>
+      updateTemplateBlock: (templateId, blockId, updates) => {
+        const template = get().templates.find((candidate) => candidate.id === templateId);
+        const block = template?.blocks.find((candidate) => candidate.id === blockId);
+        if (!block || !isValidBlock({ ...block, ...updates })) return;
         set((state) => ({
           templates: state.templates.map((t) =>
             t.id === templateId
@@ -78,7 +96,8 @@ export const useTemplateStore = create<TemplateState>()(
                 }
               : t
           ),
-        })),
+        }));
+      },
 
       removeTemplateBlock: (templateId, blockId) =>
         set((state) => ({

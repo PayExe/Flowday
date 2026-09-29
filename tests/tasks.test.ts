@@ -1,6 +1,8 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useTaskStore } from '../src/features/tasks/store';
+import { useDayScoreStore } from '../src/features/dayScore/store';
+import { dateKey } from '../src/utils/dates';
 
 vi.mock('@react-native-async-storage/async-storage', () => ({
   default: {
@@ -11,7 +13,10 @@ vi.mock('@react-native-async-storage/async-storage', () => ({
 }));
 
 describe('tasks', () => {
-  beforeEach(() => useTaskStore.setState({ tasks: [] }));
+  beforeEach(() => {
+    useTaskStore.setState({ tasks: [] });
+    useDayScoreStore.setState({ scores: [], currentDayScore: null, pomodoroGoal: 6 });
+  });
 
   it('adds, toggles and filters today tasks', () => {
     useTaskStore.getState().addTask({ title: 'Focus', completed: false, priority: 'high' });
@@ -44,5 +49,24 @@ describe('tasks', () => {
     useTaskStore.getState().addTask({ title: 'Persisted', completed: false, priority: 'medium' });
     await new Promise((resolve) => setTimeout(resolve, 0));
     expect(setItem).toHaveBeenCalledWith('flowday-tasks', expect.any(String));
+  });
+
+  it('updates the day score after completing a scheduled task', () => {
+    const today = dateKey();
+    useTaskStore.getState().addTask({
+      title: 'Score task',
+      completed: false,
+      priority: 'medium',
+      scheduledDate: today,
+    });
+    const task = useTaskStore.getState().tasks[0];
+
+    useDayScoreStore.getState().updateTasksPercent(today, 0, 1);
+    useTaskStore.getState().toggleTask(task.id);
+
+    expect(useDayScoreStore.getState().getScoreForDate(today)).toMatchObject({
+      tasksPercent: 100,
+      total: 30,
+    });
   });
 });

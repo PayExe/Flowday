@@ -25,4 +25,20 @@ describe('templates', () => {
     expect(useTemplateStore.getState().getBlocksForDay(0)).toHaveLength(1);
     expect(useTemplateStore.getState().getActiveTemplate()?.name).toBe('Semaine type');
   });
+
+  it('rejects invalid template block times and unknown template ids', () => {
+    const template = useTemplateStore.getState().addTemplate('Semaine type');
+
+    useTemplateStore.getState().addBlockToTemplate(template.id, {
+      lifeBlockId: 'work',
+      dayOfWeek: 0,
+      startTime: '10:00',
+      endTime: '09:00',
+      isFlexible: false,
+    });
+    useTemplateStore.getState().setActiveTemplate('missing-template');
+
+    expect(template.blocks).toHaveLength(0);
+    expect(useTemplateStore.getState().activeTemplateId).toBe(template.id);
+  });
 });

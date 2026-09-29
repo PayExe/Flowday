@@ -90,6 +90,8 @@ export function LifeBlockCard({
             onPress={canMoveUp ? (event) => { event.stopPropagation(); onMoveUp(); } : undefined}
             disabled={!canMoveUp}
             hitSlop={6}
+            accessibilityRole="button"
+            accessibilityLabel={`Monter ${block.name}`}
             style={[styles.iconBtn, !canMoveUp && styles.iconBtnDisabled]}
           >
             <Symbol name={SymbolNames.chevronUp} size={16} color={colors.text.tertiary} />
@@ -98,11 +100,19 @@ export function LifeBlockCard({
             onPress={canMoveDown ? (event) => { event.stopPropagation(); onMoveDown(); } : undefined}
             disabled={!canMoveDown}
             hitSlop={6}
+            accessibilityRole="button"
+            accessibilityLabel={`Descendre ${block.name}`}
             style={[styles.iconBtn, !canMoveDown && styles.iconBtnDisabled]}
           >
             <Symbol name={SymbolNames.chevronDown} size={16} color={colors.text.tertiary} />
           </Pressable>
-          <Pressable onPress={(event) => { event.stopPropagation(); handleArchive(); }} hitSlop={6} style={styles.iconBtn}>
+          <Pressable
+            onPress={(event) => { event.stopPropagation(); handleArchive(); }}
+            hitSlop={6}
+            accessibilityRole="button"
+            accessibilityLabel={`Archiver ${block.name}`}
+            style={styles.iconBtn}
+          >
             <Symbol name={SymbolNames.archive} size={16} color={colors.text.tertiary} />
           </Pressable>
         </View>

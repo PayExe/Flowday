@@ -2,7 +2,7 @@ import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { RitualLog, MorningRitualConfig, EveningWrapConfig, Mood } from '../../types/ritual';
-import { dateKey } from '../../utils/dates';
+import { dateKey, isValidTime } from '../../utils/dates';
 
 interface RitualState {
   logs: RitualLog[];
@@ -84,15 +84,19 @@ export const useRitualStore = create<RitualState>()(
           return { logs: [...filtered, log] };
         }),
 
-      updateMorningConfig: (config) =>
+      updateMorningConfig: (config) => {
+        if (config.time !== undefined && !isValidTime(config.time)) return;
         set((state) => ({
           morningConfig: { ...state.morningConfig, ...config },
-        })),
+        }));
+      },
 
-      updateEveningConfig: (config) =>
+      updateEveningConfig: (config) => {
+        if (config.time !== undefined && !isValidTime(config.time)) return;
         set((state) => ({
           eveningConfig: { ...state.eveningConfig, ...config },
-        })),
+        }));
+      },
 
       getTodayLog: (type) => {
         return get().logs.find(

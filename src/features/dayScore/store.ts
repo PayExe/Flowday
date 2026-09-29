@@ -120,7 +120,10 @@ export const useDayScoreStore = create<DayScoreState>()(
         return get().scores.find((s) => s.date === date);
       },
 
-      setPomodoroGoal: (goal) => set({ pomodoroGoal: goal }),
+       setPomodoroGoal: (goal) => {
+         if (!Number.isFinite(goal) || goal < 0) return;
+         set({ pomodoroGoal: Math.floor(goal) });
+       },
     }),
     {
       name: 'flowday-dayscores',

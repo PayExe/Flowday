@@ -24,4 +24,12 @@ describe('day score', () => {
     useDayScoreStore.getState().incrementPomodoro('2026-01-02');
     expect(useDayScoreStore.getState().getScoreForDate('2026-01-02')?.pomodorosCompleted).toBe(1);
   });
+
+  it('rejects a negative Pomodoro goal', () => {
+    useDayScoreStore.setState({ scores: [], currentDayScore: null, pomodoroGoal: 6 });
+
+    useDayScoreStore.getState().setPomodoroGoal(-1);
+
+    expect(useDayScoreStore.getState().pomodoroGoal).toBe(6);
+  });
 });

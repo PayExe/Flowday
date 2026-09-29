@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { useRitualStore } from '../src/features/rituals/store';
+import { skipMorningRitual } from '../src/utils/ritualNavigation';
 
 vi.mock('@react-native-async-storage/async-storage', () => ({
   default: {
@@ -32,5 +33,21 @@ describe('rituals', () => {
       fastMode: true,
       enabled: true,
     });
+  });
+
+  it('rejects invalid ritual times', () => {
+    const initialTime = useRitualStore.getState().morningConfig.time;
+
+    useRitualStore.getState().updateMorningConfig({ time: '25:99' });
+
+    expect(useRitualStore.getState().morningConfig.time).toBe(initialTime);
+  });
+
+  it('navigates home when the morning ritual is postponed', () => {
+    const replace = vi.fn();
+
+    skipMorningRitual({ replace });
+
+    expect(replace).toHaveBeenCalledWith('/');
   });
 });

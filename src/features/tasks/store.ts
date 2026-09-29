@@ -4,6 +4,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { generateId } from '../../utils/id';
 import { Task } from '../../types/task';
 import { dateKey } from '../../utils/dates';
+import { useDayScoreStore } from '../dayScore/store';
 
 interface TaskState {
   tasks: Task[];
@@ -46,23 +47,38 @@ export const useTaskStore = create<TaskState>()(
           tasks: state.tasks.filter((task) => task.id !== id),
         })),
 
-      updateTask: (id, updates) =>
-        set((state) => ({
-          tasks: state.tasks.map((task) => {
-            if (task.id !== id) return task;
+      updateTask: (id, updates) => {
+        const task = get().tasks.find((candidate) => candidate.id === id);
+        if (!task) return;
 
-            const completionChanged =
-              typeof updates.completed === 'boolean' && updates.completed !== task.completed;
+        const completionChanged =
+          typeof updates.completed === 'boolean' && updates.completed !== task.completed;
+        const nextTasks = get().tasks.map((candidate) => {
+          if (candidate.id !== id) return candidate;
 
-            return completionChanged
-              ? {
-                  ...task,
-                  ...updates,
-                  completedAt: updates.completed ? new Date().toISOString() : undefined,
-                }
-              : { ...task, ...updates };
-          }),
-        })),
+          return completionChanged
+            ? {
+                ...candidate,
+                ...updates,
+                completedAt: updates.completed ? new Date().toISOString() : undefined,
+              }
+            : { ...candidate, ...updates };
+        });
+
+        set({ tasks: nextTasks });
+
+        if (completionChanged) {
+          const date = task.scheduledDate || dateKey();
+          const dateTasks = nextTasks.filter(
+            (candidate) => (candidate.scheduledDate || dateKey()) === date
+          );
+          useDayScoreStore.getState().updateTasksPercent(
+            date,
+            dateTasks.filter((candidate) => candidate.completed).length,
+            dateTasks.length
+          );
+        }
+      },
 
       getTodayTasks: () => {
         const today = dateKey();

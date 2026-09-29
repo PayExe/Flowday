@@ -5,6 +5,7 @@ export interface FocusSession {
   startedAt: string;
   endedAt?: string;
   pomodorosCompleted: number;
+  pomodoroCompletedDates?: string[];
   pomodorosAbandoned: number;
   totalFocusMinutes: number;
 }
@@ -19,4 +20,6 @@ export interface FocusState {
   dailyPomodoroCount: number;
   dailyPomodoroGoal: number;
   lastResetDate?: string;
+  lastTickAt?: number;
+  focusElapsedSeconds: number;
 }

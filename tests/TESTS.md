@@ -6,7 +6,7 @@ Lancer les tests avec :
 npm test
 ```
 
-La suite couvre 9 cas :
+La suite couvre actuellement 28 cas :
 
 - calcul et limite du score à 100 ;
 - enregistrement d’un Pomodoro dans le score ;
@@ -15,6 +15,11 @@ La suite couvre 9 cas :
 - calcul des séries ;
 - transition focus → pause → focus ;
 - pause et reprise du timer ;
+- rattrapage du timer après un passage en arrière-plan ;
+- refus d’un second démarrage Focus et remise à zéro au changement de jour ;
+- report du Morning Ritual avec « Plus tard » ;
+- mise à jour du score après validation d’une tâche ;
+- rejet des objectifs négatifs, horaires invalides et identifiants inconnus ;
 - gestion des dates locales et changements de mois.
 
 Le typecheck se lance avec :
@@ -27,9 +32,13 @@ Les tests sont séparés par fonctionnalité :
 
 ```text
 tests/
+├── focus-action.test.ts
 ├── dates.test.ts
+├── life-blocks.test.ts
+├── pomodoro.test.ts
+├── rituals.test.ts
 ├── score.test.ts
-├── tasks.test.ts
 ├── streaks.test.ts
-└── pomodoro.test.ts
+├── tasks.test.ts
+└── templates.test.ts
 ```

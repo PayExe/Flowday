@@ -5,6 +5,7 @@ import {
   Pressable,
   StyleSheet,
   StatusBar,
+  AppState,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -25,6 +26,7 @@ export default function FocusScreen() {
 
   const focusState = useFocusStore((state) => state.focusState);
   const tick = useFocusStore((state) => state.tick);
+  const syncTimer = useFocusStore((state) => state.syncTimer);
   const pauseFocus = useFocusStore((state) => state.pauseFocus);
   const resumeFocus = useFocusStore((state) => state.resumeFocus);
   const stopFocus = useFocusStore((state) => state.stopFocus);
@@ -49,6 +51,14 @@ export default function FocusScreen() {
       }
     };
   }, [focusState.isActive, focusState.isBreak, tick]);
+
+  useEffect(() => {
+    syncTimer();
+    const subscription = AppState.addEventListener('change', (nextState) => {
+      if (nextState === 'active') syncTimer();
+    });
+    return () => subscription.remove();
+  }, [syncTimer]);
 
   const handleAbandon = () => {
     hapticWarning();

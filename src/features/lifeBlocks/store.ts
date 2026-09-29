@@ -29,7 +29,8 @@ export const useLifeBlocksStore = create<LifeBlocksState>()(
     (set, get) => ({
       blocks: [],
 
-      addBlock: (data) =>
+      addBlock: (data) => {
+        if (!Number.isFinite(data.weeklyGoalMinutes) || data.weeklyGoalMinutes < 0) return;
         set((state) => {
           const maxOrder = state.blocks.reduce((max, b) => Math.max(max, b.order), -1);
           return {
@@ -44,14 +45,18 @@ export const useLifeBlocksStore = create<LifeBlocksState>()(
               },
             ],
           };
-        }),
+        });
+      },
 
-      updateBlock: (id, updates) =>
+      updateBlock: (id, updates) => {
+        if (updates.weeklyGoalMinutes !== undefined &&
+            (!Number.isFinite(updates.weeklyGoalMinutes) || updates.weeklyGoalMinutes < 0)) return;
         set((state) => ({
           blocks: state.blocks.map((b) =>
             b.id === id ? { ...b, ...updates, updatedAt: new Date().toISOString() } : b
           ),
-        })),
+        }));
+      },
 
       archiveBlock: (id) =>
         set((state) => ({

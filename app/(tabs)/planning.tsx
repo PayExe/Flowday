@@ -211,8 +211,7 @@ export default function PlanningScreen() {
 
   const handleFocusTask = useCallback((task: Task) => {
     hapticLight();
-    startFocus(task.id, task.title);
-    router.push('/focus');
+    if (startFocus(task.id, task.title)) router.push('/focus');
   }, [router, startFocus]);
 
   const selectedTask = todayTasks.find((task) => task.id === selectedTaskId);

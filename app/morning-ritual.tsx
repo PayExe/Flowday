@@ -21,6 +21,7 @@ import { dateKey } from '../src/utils/dates';
 import { hapticLight } from '../src/utils/haptics';
 import { Mood } from '../src/types/ritual';
 import { PageInfo } from '../src/components/ui/PageInfo';
+import { skipMorningRitual } from '../src/utils/ritualNavigation';
 
 const MOODS: { value: Mood; label: string; emoji: string; color: string }[] = [
   { value: 'bad', label: 'Pas top', emoji: '🔴', color: '#FF453A' },
@@ -349,7 +350,7 @@ export default function MorningRitualScreen() {
         <View style={styles.header}>
           <Pressable
             style={{ padding: 8 }}
-            onPress={() => router.replace('/')}
+            onPress={() => skipMorningRitual(router)}
           >
             <Text style={{ fontSize: typography.sizes.lg, color: colors.system.blue }}>Plus tard</Text>
           </Pressable>

@@ -16,12 +16,13 @@ function todayISO(): string {
 interface FocusStoreState {
   sessions: FocusSession[];
   focusState: FocusState;
-  startFocus: (taskId: string, taskTitle: string) => void;
+  startFocus: (taskId: string, taskTitle: string) => boolean;
   pauseFocus: () => void;
   resumeFocus: () => void;
   stopFocus: () => void;
   abandonPomodoro: () => void;
   tick: () => void;
+  syncTimer: (now?: number) => void;
   setDailyGoal: (goal: number) => void;
   getTodaySessions: () => FocusSession[];
   getTodayPomodoroCount: () => number;
@@ -38,17 +39,24 @@ export const useFocusStore = create<FocusStoreState>()(
         sessionPomodoroCount: 0,
         dailyPomodoroCount: 0,
         dailyPomodoroGoal: 6,
+        focusElapsedSeconds: 0,
       },
 
-      startFocus: (taskId, taskTitle) =>
-        set((state) => {
+      startFocus: (taskId, taskTitle) => {
+        if (!taskId.trim() || !taskTitle.trim()) return false;
+        const state = get();
+        if (state.focusState.currentTaskId || state.sessions.some((session) => !session.endedAt)) {
+          return false;
+        }
+
+        set((current) => {
           const today = todayISO();
-          const resetCount = state.focusState.lastResetDate !== today
+          const resetCount = current.focusState.lastResetDate !== today
             ? 0
-            : state.focusState.dailyPomodoroCount;
+            : current.focusState.dailyPomodoroCount;
           return {
             focusState: {
-              ...state.focusState,
+              ...current.focusState,
               isActive: true,
               currentTaskId: taskId,
               currentTaskTitle: taskTitle,
@@ -57,151 +65,180 @@ export const useFocusStore = create<FocusStoreState>()(
               sessionPomodoroCount: 0,
               dailyPomodoroCount: resetCount,
               lastResetDate: today,
+              lastTickAt: Date.now(),
+              focusElapsedSeconds: 0,
             },
-          sessions: [
-            ...state.sessions,
-            {
-              id: generateId(),
-              taskId,
-              taskTitle,
-              startedAt: new Date().toISOString(),
-              pomodorosCompleted: 0,
-              pomodorosAbandoned: 0,
-              totalFocusMinutes: 0,
-            },
-          ],
+            sessions: [
+              ...current.sessions,
+              {
+                id: generateId(),
+                taskId,
+                taskTitle,
+                startedAt: new Date().toISOString(),
+                pomodorosCompleted: 0,
+                pomodorosAbandoned: 0,
+                totalFocusMinutes: 0,
+              },
+            ],
           };
-        }),
+        });
+        return true;
+      },
 
-      pauseFocus: () =>
+      pauseFocus: () => {
+        get().syncTimer();
         set((state) => ({
-          focusState: { ...state.focusState, isActive: false },
-        })),
+          focusState: { ...state.focusState, isActive: false, lastTickAt: undefined },
+        }));
+      },
 
       resumeFocus: () =>
         set((state) => ({
-          focusState: { ...state.focusState, isActive: true },
+          focusState: { ...state.focusState, isActive: true, lastTickAt: Date.now() },
         })),
 
-      stopFocus: () =>
+      stopFocus: () => {
+        get().syncTimer();
         set((state) => {
           const currentSession = state.sessions[state.sessions.length - 1];
-          if (currentSession && !currentSession.endedAt) {
-            const endedAt = new Date().toISOString();
-            const duration =
-              (new Date(endedAt).getTime() -
-                new Date(currentSession.startedAt).getTime()) /
-              60000;
-            const updatedSessions = [...state.sessions];
-            updatedSessions[updatedSessions.length - 1] = {
-              ...currentSession,
-              endedAt,
-              totalFocusMinutes: Math.round(duration),
-            };
-            return {
-              sessions: updatedSessions,
-              focusState: {
-                ...state.focusState,
-                isActive: false,
-                currentTaskId: undefined,
-                currentTaskTitle: undefined,
-                timeRemaining: POMODORO_MINUTES * 60,
-                isBreak: false,
-                sessionPomodoroCount: 0,
-              },
-            };
-          }
-          return {
-            focusState: {
-              ...state.focusState,
-              isActive: false,
-              currentTaskId: undefined,
-              currentTaskTitle: undefined,
-              timeRemaining: POMODORO_MINUTES * 60,
-              isBreak: false,
-              sessionPomodoroCount: 0,
-            },
+          const baseFocusState = {
+            ...state.focusState,
+            isActive: false,
+            currentTaskId: undefined,
+            currentTaskTitle: undefined,
+            timeRemaining: POMODORO_MINUTES * 60,
+            isBreak: false,
+            sessionPomodoroCount: 0,
+            lastTickAt: undefined,
+            focusElapsedSeconds: 0,
           };
-        }),
+
+          if (!currentSession || currentSession.endedAt) {
+            return { focusState: baseFocusState };
+          }
+
+          const endedAt = new Date().toISOString();
+          const sessions = [...state.sessions];
+          sessions[sessions.length - 1] = {
+            ...currentSession,
+            endedAt,
+            totalFocusMinutes: Math.round((state.focusState.focusElapsedSeconds ?? 0) / 60),
+          };
+          return { sessions, focusState: baseFocusState };
+        });
+      },
 
       abandonPomodoro: () =>
         set((state) => {
           const currentSession = state.sessions[state.sessions.length - 1];
-          if (currentSession && !currentSession.endedAt) {
-            const updatedSessions = [...state.sessions];
-            updatedSessions[updatedSessions.length - 1] = {
-              ...currentSession,
-              pomodorosAbandoned: currentSession.pomodorosAbandoned + 1,
-            };
-            return {
-              sessions: updatedSessions,
-              focusState: {
-                ...state.focusState,
-                isActive: false,
-              },
-            };
-          }
-          return state;
+          if (!currentSession || currentSession.endedAt) return state;
+          const sessions = [...state.sessions];
+          sessions[sessions.length - 1] = {
+            ...currentSession,
+            pomodorosAbandoned: currentSession.pomodorosAbandoned + 1,
+          };
+          return {
+            sessions,
+            focusState: { ...state.focusState, isActive: false, lastTickAt: undefined },
+          };
         }),
 
-      tick: () =>
+      tick: () => get().syncTimer(),
+
+      syncTimer: (now = Date.now()) =>
         set((state) => {
-          if (!state.focusState.isActive || state.focusState.timeRemaining <= 0) {
-            return state;
-          }
-          const newTime = state.focusState.timeRemaining - 1;
-          if (newTime === 0 && !state.focusState.isBreak) {
-            const currentSession = state.sessions[state.sessions.length - 1];
-            const updatedSessions = currentSession && !currentSession.endedAt
-              ? state.sessions.map((s, i) =>
-                  i === state.sessions.length - 1
-                    ? { ...s, pomodorosCompleted: s.pomodorosCompleted + 1 }
-                    : s
-                )
-              : state.sessions;
-            useDayScoreStore.getState().incrementPomodoro(todayISO());
+          const { focusState } = state;
+          if (!focusState.isActive) return state;
+          if (focusState.lastTickAt === undefined) {
             return {
-              sessions: updatedSessions,
               focusState: {
-                ...state.focusState,
-                timeRemaining: BREAK_MINUTES * 60,
-                isBreak: true,
-                sessionPomodoroCount: state.focusState.sessionPomodoroCount + 1,
-                dailyPomodoroCount: state.focusState.dailyPomodoroCount + 1,
+                ...focusState,
+                lastTickAt: now,
+                focusElapsedSeconds: focusState.focusElapsedSeconds ?? 0,
               },
             };
           }
-          if (newTime === 0 && state.focusState.isBreak) {
-            return {
-              focusState: {
-                ...state.focusState,
-                timeRemaining: POMODORO_MINUTES * 60,
-                isBreak: false,
-              },
-            };
+
+          let elapsed = Math.max(0, Math.floor((now - focusState.lastTickAt) / 1000));
+          if (elapsed === 0) return { focusState: { ...focusState, lastTickAt: now } };
+          let elapsedAt = focusState.lastTickAt;
+
+          let timeRemaining = focusState.timeRemaining;
+          let isBreak = focusState.isBreak;
+          let sessionPomodoroCount = focusState.sessionPomodoroCount;
+          let dailyPomodoroCount = focusState.dailyPomodoroCount;
+          let focusElapsedSeconds = focusState.focusElapsedSeconds ?? 0;
+          let sessions = state.sessions;
+
+          while (elapsed > 0) {
+            const consumed = Math.min(elapsed, timeRemaining);
+            if (!isBreak) focusElapsedSeconds += consumed;
+            timeRemaining -= consumed;
+            elapsed -= consumed;
+            elapsedAt += consumed * 1000;
+            if (timeRemaining > 0) continue;
+
+            if (isBreak) {
+              timeRemaining = POMODORO_MINUTES * 60;
+              isBreak = false;
+              continue;
+            }
+
+            const completedDate = dateKey(new Date(elapsedAt));
+            const currentSession = sessions[sessions.length - 1];
+            if (currentSession && !currentSession.endedAt) {
+              sessions = sessions.map((session, index) =>
+                index === sessions.length - 1
+                  ? {
+                      ...session,
+                      pomodorosCompleted: session.pomodorosCompleted + 1,
+                      pomodoroCompletedDates: [...(session.pomodoroCompletedDates ?? []), completedDate],
+                    }
+                  : session
+              );
+            }
+            useDayScoreStore.getState().incrementPomodoro(completedDate);
+            sessionPomodoroCount += 1;
+            dailyPomodoroCount += 1;
+            timeRemaining = BREAK_MINUTES * 60;
+            isBreak = true;
           }
+
           return {
+            sessions,
             focusState: {
-              ...state.focusState,
-              timeRemaining: newTime,
+              ...focusState,
+              timeRemaining,
+              isBreak,
+              sessionPomodoroCount,
+              dailyPomodoroCount,
+              focusElapsedSeconds,
+              lastTickAt: now,
             },
           };
         }),
 
-      setDailyGoal: (goal) =>
-        set((state) => ({
-          focusState: { ...state.focusState, dailyPomodoroGoal: goal },
-        })),
+      setDailyGoal: (goal) => {
+        if (!Number.isFinite(goal) || goal < 0) return;
+        set((state) => ({ focusState: { ...state.focusState, dailyPomodoroGoal: Math.floor(goal) } }));
+      },
 
       getTodaySessions: () => {
         const today = dateKey();
-        return get().sessions.filter((s) => s.startedAt.startsWith(today));
+        return get().sessions.filter((session) =>
+          dateKey(new Date(session.startedAt)) === today
+          || session.pomodoroCompletedDates?.includes(today)
+        );
       },
 
       getTodayPomodoroCount: () => {
-        return get()
-          .getTodaySessions()
-          .reduce((sum, s) => sum + s.pomodorosCompleted, 0);
+        const today = dateKey();
+        return get().getTodaySessions().reduce((sum, session) => {
+          if (session.pomodoroCompletedDates) {
+            return sum + session.pomodoroCompletedDates.filter((date) => date === today).length;
+          }
+          return sum + session.pomodorosCompleted;
+        }, 0);
       },
     }),
     {

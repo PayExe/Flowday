@@ -176,6 +176,13 @@ Possible future improvements include:
 - refining the focus and planning workflows;
 - publishing a production build.
 
+## Known limitations
+
+- The application is a test version and stores data locally on the device.
+- There is no account, cloud synchronization, backend or data recovery flow.
+- Automated coverage focuses on stores and business logic; full device UI and accessibility testing is still limited.
+- `npm audit` currently reports transitive dependency vulnerabilities. Some fixes require breaking upgrades to Expo Router, Vitest or Expo, so they are not applied automatically with `--force`.
+
 ## Learning resources
 
 - [Expo documentation](https://docs.expo.dev/)

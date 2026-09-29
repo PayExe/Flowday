@@ -22,4 +22,16 @@ describe('life blocks', () => {
     expect(useLifeBlocksStore.getState().getActiveBlocks()).toHaveLength(4);
     expect(useLifeBlocksStore.getState().getBlockById(block.id)?.isArchived).toBe(true);
   });
+
+  it('rejects a negative weekly goal', () => {
+    useLifeBlocksStore.getState().addBlock({
+      name: 'Invalid',
+      emoji: 'x',
+      color: '#0A84FF',
+      isArchived: false,
+      weeklyGoalMinutes: -10,
+    });
+
+    expect(useLifeBlocksStore.getState().blocks).toHaveLength(0);
+  });
 });

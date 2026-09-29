@@ -40,7 +40,12 @@ export function PageInfo({ title, description, points }: PageInfoProps) {
         animationType="fade"
         onRequestClose={() => setVisible(false)}
       >
-        <Pressable style={styles.backdrop} onPress={() => setVisible(false)}>
+        <Pressable
+          style={styles.backdrop}
+          onPress={() => setVisible(false)}
+          accessibilityRole="button"
+          accessibilityLabel="Fermer l’aide"
+        >
           <Pressable
             style={[styles.card, { backgroundColor: colors.bg.elevated }]}
             onPress={(e) => e.stopPropagation()}
@@ -65,6 +70,8 @@ export function PageInfo({ title, description, points }: PageInfoProps) {
 
             <Pressable
               onPress={() => setVisible(false)}
+              accessibilityRole="button"
+              accessibilityLabel="Fermer l’aide"
               style={[styles.closeBtn, { backgroundColor: colors.system.blue }]}
             >
               <Text style={[styles.closeText, { color: colors.text.inverse }]}>Compris</Text>
