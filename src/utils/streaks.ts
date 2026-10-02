@@ -1,5 +1,5 @@
 import { DayScore } from '../types/dayScore';
-import { addDays, dateKey } from './dates';
+import { addDays, calendarDayDifference, dateKey } from './dates';
 
 export interface StreakResult {
   currentStreak: number;
@@ -36,11 +36,7 @@ export function calculateStreaks(
     if (i > 0 && tempStreak > 0) {
       const prev = sorted[i - 1];
       if (prev.total >= threshold) {
-        const prevDate = new Date(prev.date);
-        const currDate = new Date(score.date);
-        const diffDays = Math.round(
-          (currDate.getTime() - prevDate.getTime()) / 86400000
-        );
+        const diffDays = calendarDayDifference(prev.date, score.date);
         if (diffDays > maxGapDays + 1) {
           tempStreak = 0;
         }

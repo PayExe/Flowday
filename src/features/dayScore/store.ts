@@ -10,6 +10,7 @@ interface DayScoreState {
   setPomodoroGoal: (goal: number) => void;
   recalculateScore: (date: string) => void;
   getScoreForDate: (date: string) => DayScore | undefined;
+  getAllScores: () => DayScore[];
 
   incrementPomodoro: (date: string) => void;
   setMorningRitualDone: (date: string) => void;
@@ -40,9 +41,7 @@ export function computeTotal(score: DayScore, pomodoroGoal: number): number {
 }
 
 function getOrCreateScore(state: DayScoreState, date: string): DayScore {
-  const existing = state.scores.find((s) => s.date === date);
-  if (existing) return { ...existing };
-  return {
+  const defaults: DayScore = {
     date,
     total: 0,
     blocksPercent: 0,
@@ -54,6 +53,8 @@ function getOrCreateScore(state: DayScoreState, date: string): DayScore {
     morningRitualDone: false,
     eveningWrapDone: false,
   };
+  const existing = state.scores.find((s) => s.date === date);
+  return existing ? { ...defaults, ...existing } : defaults;
 }
 
 function updateScore(
@@ -117,7 +118,19 @@ export const useDayScoreStore = create<DayScoreState>()(
         ),
 
       getScoreForDate: (date) => {
-        return get().scores.find((s) => s.date === date);
+        const score = get().scores.find((s) => s.date === date);
+        if (!score) return undefined;
+        const normalized = getOrCreateScore(get(), date);
+        normalized.total = computeTotal(normalized, get().pomodoroGoal);
+        return normalized;
+      },
+
+      getAllScores: () => {
+        return get().scores.map((score) => {
+          const normalized = getOrCreateScore(get(), score.date);
+          normalized.total = computeTotal(normalized, get().pomodoroGoal);
+          return normalized;
+        });
       },
 
        setPomodoroGoal: (goal) => {

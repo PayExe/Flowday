@@ -69,4 +69,21 @@ describe('tasks', () => {
       total: 30,
     });
   });
+
+  it('resynchronizes task percentages when a task changes day', () => {
+    const today = dateKey();
+    const tomorrow = '2099-01-01';
+    useTaskStore.getState().addTask({
+      title: 'Move me',
+      completed: true,
+      priority: 'medium',
+      scheduledDate: today,
+    });
+    const task = useTaskStore.getState().tasks[0];
+
+    useTaskStore.getState().rescheduleTask(task.id, tomorrow);
+
+    expect(useDayScoreStore.getState().getScoreForDate(today)).toMatchObject({ tasksPercent: 0 });
+    expect(useDayScoreStore.getState().getScoreForDate(tomorrow)).toMatchObject({ tasksPercent: 100 });
+  });
 });

@@ -11,13 +11,13 @@
 - Le bouton navigue vers l’accueil et l’état `skippedForToday` empêche la réouverture automatique pour la journée. ✅
 - Ajouter un état du type `skippedForToday`. ✅
 
-〽️ 3. Corriger la synchronisation du score 
+✅ 3. Corriger la synchronisation du score 
 - Le score des tâches se met maintenant à jour lorsqu’une tâche est cochée ou décochée. ✅
-- Vérifier encore les scores affichés avec d’anciennes données sur tous les écrans. 〽️
+- Les scores affichés sont normalisés avec les anciennes données sur tous les écrans. ✅
 
-〽️ 4. Corriger les dates et changements de jour 
+✅ 4. Corriger les dates et changements de jour 
 - La gestion utilise maintenant la date locale de manière cohérente. ✅
-- Vérifier encore les cas autour de minuit. 〽️
+- Les cas autour de minuit et des changements d’heure sont couverts. ✅
 - Les compteurs quotidiens sont réinitialisés au démarrage d’un nouveau jour. ✅
 
 ✅ 5. Améliorer les tests Ajoute quelques tests pour :

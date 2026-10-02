@@ -23,6 +23,7 @@ interface FocusStoreState {
   abandonPomodoro: () => void;
   tick: () => void;
   syncTimer: (now?: number) => void;
+  resetDailyCountIfNeeded: () => void;
   setDailyGoal: (goal: number) => void;
   getTodaySessions: () => FocusSession[];
   getTodayPomodoroCount: () => number;
@@ -144,6 +145,19 @@ export const useFocusStore = create<FocusStoreState>()(
         }),
 
       tick: () => get().syncTimer(),
+
+      resetDailyCountIfNeeded: () =>
+        set((state) => {
+          const today = todayISO();
+          if (state.focusState.lastResetDate === today) return state;
+          return {
+            focusState: {
+              ...state.focusState,
+              dailyPomodoroCount: 0,
+              lastResetDate: today,
+            },
+          };
+        }),
 
       syncTimer: (now = Date.now()) =>
         set((state) => {

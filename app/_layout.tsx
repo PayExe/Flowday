@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Stack, useRouter, usePathname } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { BottomSheetModalProvider } from '@gorhom/bottom-sheet';
@@ -8,6 +8,7 @@ import { useRitualStore } from '../src/features/rituals/store';
 import { useLifeBlocksStore } from '../src/features/lifeBlocks/store';
 import { useTemplateStore } from '../src/features/templates/store';
 import { useThemeStore } from '../src/features/theme/store';
+import { useFocusStore } from '../src/features/focus/store';
 import { dateKey } from '../src/utils/dates';
 
 function todayISO(): string {
@@ -17,6 +18,7 @@ function todayISO(): string {
 export default function RootLayout() {
   const router = useRouter();
   const pathname = usePathname();
+  const [currentDate, setCurrentDate] = useState(todayISO());
 
   const logs = useRitualStore((state) => state.logs);
   const skippedForToday = useRitualStore((state) => state.skippedForToday);
@@ -30,6 +32,19 @@ export default function RootLayout() {
   const initializeTemplates = useTemplateStore((state) => state.initializeDefaults);
 
   const themeName = useThemeStore((state) => state.themeName);
+  const resetDailyCountIfNeeded = useFocusStore((state) => state.resetDailyCountIfNeeded);
+
+  useEffect(() => {
+    const now = new Date();
+    const nextDay = new Date(now);
+    nextDay.setHours(24, 0, 0, 0);
+    const timer = setTimeout(() => setCurrentDate(todayISO()), nextDay.getTime() - now.getTime() + 10);
+    return () => clearTimeout(timer);
+  }, [currentDate]);
+
+  useEffect(() => {
+    resetDailyCountIfNeeded();
+  }, [currentDate, resetDailyCountIfNeeded]);
 
   const hasDoneMorning = logs.some(
     (log) => log.date === todayISO() && log.type === 'morning'

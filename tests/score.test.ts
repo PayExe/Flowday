@@ -32,4 +32,19 @@ describe('day score', () => {
 
     expect(useDayScoreStore.getState().pomodoroGoal).toBe(6);
   });
+
+  it('normalizes scores persisted with missing fields before displaying them', () => {
+    useDayScoreStore.setState({
+      scores: [{ date: '2026-01-02', total: 999 } as never],
+      currentDayScore: null,
+      pomodoroGoal: 6,
+    });
+
+    expect(useDayScoreStore.getState().getScoreForDate('2026-01-02')).toMatchObject({
+      total: 0,
+      tasksPercent: 0,
+      blocksPercent: 0,
+      morningRitualDone: false,
+    });
+  });
 });

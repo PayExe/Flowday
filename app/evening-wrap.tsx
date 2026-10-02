@@ -62,6 +62,7 @@ export default function EveningWrapScreen() {
   const getTodayTasks = useTaskStore((state) => state.getTodayTasks);
 
   const scores = useDayScoreStore((state) => state.scores);
+  const getScoreForDate = useDayScoreStore((state) => state.getScoreForDate);
   const setEveningWrapDone = useDayScoreStore((state) => state.setEveningWrapDone);
 
   const logEveningWrap = useRitualStore((state) => state.logEveningWrap);
@@ -71,12 +72,12 @@ export default function EveningWrapScreen() {
   const incompleteTasks = useMemo(() => todayTasks.filter((t) => !t.completed), [todayTasks]);
 
   const dayScore = useMemo(() => {
-    const score = scores.find((s) => s.date === today);
+    const score = getScoreForDate(today);
     return score?.total || 0;
-  }, [scores, today]);
+  }, [scores, getScoreForDate, today]);
 
   const scoreDetail = useMemo(() => {
-    const score = scores.find((s) => s.date === today);
+    const score = getScoreForDate(today);
     if (!score) return null;
     return {
       blocks: score.blocksPercent,
@@ -84,7 +85,7 @@ export default function EveningWrapScreen() {
       pomodoros: score.pomodorosPercent,
       rituals: score.ritualsPercent,
     };
-  }, [scores, today]);
+  }, [scores, getScoreForDate, today]);
 
   const handleRescheduleTomorrow = (taskId: string) => {
     rescheduleTask(taskId, tomorrowISO());

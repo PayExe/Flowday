@@ -88,4 +88,15 @@ describe('pomodoro transitions', () => {
     expect(useFocusStore.getState().getTodaySessions()).toHaveLength(1);
     expect(useFocusStore.getState().getTodayPomodoroCount()).toBe(1);
   });
+
+  it('resets the daily count when a new local day starts', () => {
+    useFocusStore.setState((state) => ({
+      focusState: { ...state.focusState, dailyPomodoroCount: 3, lastResetDate: '2026-01-01' },
+    }));
+
+    useFocusStore.getState().resetDailyCountIfNeeded();
+
+    expect(useFocusStore.getState().focusState.dailyPomodoroCount).toBe(0);
+    expect(useFocusStore.getState().focusState.lastResetDate).toBe(dateKey());
+  });
 });

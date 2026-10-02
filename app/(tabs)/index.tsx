@@ -10,6 +10,7 @@ import { useDayScoreStore } from '../../src/features/dayScore/store';
 import { useRitualStore } from '../../src/features/rituals/store';
 import { useTheme } from '../../src/theme';
 import { dateKey } from '../../src/utils/dates';
+import { addDays } from '../../src/utils/dates';
 import { Symbol, SymbolNames } from '../../src/components/ui/Symbol';
 import { AddButton } from '../../src/components/ui/AddButton';
 import { PageInfo } from '../../src/components/ui/PageInfo';
@@ -45,7 +46,9 @@ export default function HomeScreen() {
   const insets = useSafeAreaInsets();
 
   const scores = useDayScoreStore((state) => state.scores);
-  const todayScore = useMemo(() => scores.find((s) => s.date === todayISO()), [scores]);
+  const getScoreForDate = useDayScoreStore((state) => state.getScoreForDate);
+  const getAllScores = useDayScoreStore((state) => state.getAllScores);
+  const todayScore = useMemo(() => getScoreForDate(todayISO()), [scores, getScoreForDate]);
 
   const hasDoneMorningToday = useRitualStore((state) => state.hasDoneMorningToday);
   const getTodayLog = useRitualStore((state) => state.getTodayLog);
@@ -117,19 +120,20 @@ export default function HomeScreen() {
     return null;
   }, [templateBlocks, getBlockById]);
 
-  const streaks = useMemo(() => calculateStreaks(scores), [scores]);
+  const normalizedScores = useMemo(() => getAllScores(), [scores, getAllScores]);
+  const streaks = useMemo(() => calculateStreaks(normalizedScores), [normalizedScores]);
 
   const last7Days = useMemo(() => {
     const dayShort = ['D', 'L', 'M', 'M', 'J', 'V', 'S'];
     const result = [];
     for (let i = 6; i >= 0; i--) {
-      const d = new Date(Date.now() - i * 86400000);
+      const d = addDays(new Date(), -i);
       const iso = dateKey(d);
-      const s = scores.find((sc) => sc.date === iso);
+      const s = normalizedScores.find((sc) => sc.date === iso);
       result.push({ key: iso, label: dayShort[d.getDay()], score: s?.total || 0 });
     }
     return result;
-  }, [scores]);
+  }, [normalizedScores]);
 
   const handleQuickAdd = () => {
     setQuickAddTitle('');

@@ -26,26 +26,43 @@ export const useTaskStore = create<TaskState>()(
       tasks: [],
 
       addTask: (taskData) =>
-        set((state) => ({
-          tasks: [
+        set((state) => {
+          const tasks = [
             ...state.tasks,
             {
               ...taskData,
               id: generateId(),
               createdAt: new Date().toISOString(),
             },
-          ],
-        })),
+          ];
+          const date = taskData.scheduledDate || dateKey();
+          const dateTasks = tasks.filter((task) => (task.scheduledDate || dateKey()) === date);
+          useDayScoreStore.getState().updateTasksPercent(
+            date,
+            dateTasks.filter((task) => task.completed).length,
+            dateTasks.length
+          );
+          return { tasks };
+        }),
 
       toggleTask: (id) => {
         const task = get().tasks.find((candidate) => candidate.id === id);
         if (task) get().updateTask(id, { completed: !task.completed });
       },
 
-      deleteTask: (id) =>
-        set((state) => ({
-          tasks: state.tasks.filter((task) => task.id !== id),
-        })),
+      deleteTask: (id) => {
+        const task = get().tasks.find((candidate) => candidate.id === id);
+        if (!task) return;
+        const tasks = get().tasks.filter((candidate) => candidate.id !== id);
+        const date = task.scheduledDate || dateKey();
+        const dateTasks = tasks.filter((candidate) => (candidate.scheduledDate || dateKey()) === date);
+        useDayScoreStore.getState().updateTasksPercent(
+          date,
+          dateTasks.filter((candidate) => candidate.completed).length,
+          dateTasks.length
+        );
+        set({ tasks });
+      },
 
       updateTask: (id, updates) => {
         const task = get().tasks.find((candidate) => candidate.id === id);
@@ -114,12 +131,23 @@ export const useTaskStore = create<TaskState>()(
         );
       },
 
-      rescheduleTask: (id, newDate) =>
-        set((state) => ({
-          tasks: state.tasks.map((task) =>
-            task.id === id ? { ...task, scheduledDate: newDate } : task
-          ),
-        })),
+      rescheduleTask: (id, newDate) => {
+        const task = get().tasks.find((candidate) => candidate.id === id);
+        if (!task) return;
+        const oldDate = task.scheduledDate || dateKey();
+        const tasks = get().tasks.map((candidate) =>
+          candidate.id === id ? { ...candidate, scheduledDate: newDate } : candidate
+        );
+        for (const date of new Set([oldDate, newDate])) {
+          const dateTasks = tasks.filter((candidate) => (candidate.scheduledDate || dateKey()) === date);
+          useDayScoreStore.getState().updateTasksPercent(
+            date,
+            dateTasks.filter((candidate) => candidate.completed).length,
+            dateTasks.length
+          );
+        }
+        set({ tasks });
+      },
     }),
     {
       name: 'flowday-tasks',

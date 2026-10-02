@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { addDays, dateKey, isValidTime } from '../src/utils/dates';
+import { addDays, calendarDayDifference, dateKey, isValidTime } from '../src/utils/dates';
 
 describe('dates', () => {
   it('uses the local calendar day, including month and year boundaries', () => {
@@ -13,5 +13,11 @@ describe('dates', () => {
     expect(isValidTime('24:00')).toBe(false);
     expect(isValidTime('12:60')).toBe(false);
     expect(isValidTime('99:99')).toBe(false);
+  });
+
+  it('compares calendar days without timezone or daylight-saving drift', () => {
+    expect(calendarDayDifference('2026-03-28', '2026-03-29')).toBe(1);
+    expect(calendarDayDifference('2026-03-29', '2026-03-30')).toBe(1);
+    expect(calendarDayDifference('2026-03-30', '2026-03-28')).toBe(-2);
   });
 });
