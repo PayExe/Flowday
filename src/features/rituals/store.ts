@@ -6,11 +6,15 @@ import { dateKey, isValidTime } from '../../utils/dates';
 
 interface RitualState {
   logs: RitualLog[];
+  skippedForToday: boolean;
+  skippedDate: string | null;
   morningConfig: MorningRitualConfig;
   eveningConfig: EveningWrapConfig;
   hasDoneMorningToday: () => boolean;
+  hasSkippedMorningToday: () => boolean;
   hasDoneEveningToday: () => boolean;
   logMorningRitual: (data: { mood?: Mood; intention?: string }) => void;
+  skipMorningRitualForToday: () => void;
   logEveningWrap: (data: { note?: string }) => void;
   updateMorningConfig: (config: Partial<MorningRitualConfig>) => void;
   updateEveningConfig: (config: Partial<EveningWrapConfig>) => void;
@@ -25,6 +29,8 @@ export const useRitualStore = create<RitualState>()(
   persist(
     (set, get) => ({
       logs: [],
+      skippedForToday: false,
+      skippedDate: null,
       morningConfig: {
         enabled: true,
         time: '08:00',
@@ -45,6 +51,10 @@ export const useRitualStore = create<RitualState>()(
         return get().logs.some(
           (log) => log.date === todayISO() && log.type === 'morning'
         );
+      },
+
+      hasSkippedMorningToday: () => {
+        return get().skippedForToday && get().skippedDate === todayISO();
       },
 
       hasDoneEveningToday: () => {
@@ -68,6 +78,9 @@ export const useRitualStore = create<RitualState>()(
           );
           return { logs: [...filtered, log] };
         }),
+
+      skipMorningRitualForToday: () =>
+        set({ skippedForToday: true, skippedDate: todayISO() }),
 
       logEveningWrap: (data) =>
         set((state) => {

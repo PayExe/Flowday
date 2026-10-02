@@ -49,6 +49,7 @@ export default function MorningRitualScreen() {
   const [intention, setIntention] = useState('');
 
   const logMorningRitual = useRitualStore((state) => state.logMorningRitual);
+  const skipMorningRitualForToday = useRitualStore((state) => state.skipMorningRitualForToday);
   const morningConfig = useRitualStore((state) => state.morningConfig);
 
   const tasks = useTaskStore((state) => state.tasks);
@@ -350,7 +351,10 @@ export default function MorningRitualScreen() {
         <View style={styles.header}>
           <Pressable
             style={{ padding: 8 }}
-            onPress={() => skipMorningRitual(router)}
+            onPress={() => {
+              skipMorningRitualForToday();
+              skipMorningRitual(router);
+            }}
           >
             <Text style={{ fontSize: typography.sizes.lg, color: colors.system.blue }}>Plus tard</Text>
           </Pressable>

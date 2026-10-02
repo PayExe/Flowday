@@ -19,6 +19,8 @@ export default function RootLayout() {
   const pathname = usePathname();
 
   const logs = useRitualStore((state) => state.logs);
+  const skippedForToday = useRitualStore((state) => state.skippedForToday);
+  const skippedDate = useRitualStore((state) => state.skippedDate);
   const morningConfig = useRitualStore((state) => state.morningConfig);
   const eveningConfig = useRitualStore((state) => state.eveningConfig);
 
@@ -32,6 +34,7 @@ export default function RootLayout() {
   const hasDoneMorning = logs.some(
     (log) => log.date === todayISO() && log.type === 'morning'
   );
+  const hasSkippedMorning = skippedForToday && skippedDate === todayISO();
 
   const didInitBlocks = useRef(false);
   useEffect(() => {
@@ -55,6 +58,7 @@ export default function RootLayout() {
   useEffect(() => {
     if (!morningConfig.enabled) return;
     if (hasDoneMorning) return;
+    if (hasSkippedMorning) return;
     if (pathname === '/morning-ritual') return;
 
     const now = new Date();
@@ -69,7 +73,7 @@ export default function RootLayout() {
       router.replace('/morning-ritual');
     }, delay);
     return () => clearTimeout(timer);
-  }, [hasDoneMorning, pathname, router, morningConfig.enabled, morningConfig.time]);
+  }, [hasDoneMorning, hasSkippedMorning, pathname, router, morningConfig.enabled, morningConfig.time]);
 
   const eveningRedirected = useRef(false);
   const hasDoneEvening = logs.some(

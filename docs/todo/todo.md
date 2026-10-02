@@ -7,9 +7,9 @@
 - Corriger le timer quand l’application passe en arrière-plan.✅
 - Ne compter que le vrai temps de concentration, pas les pauses.✅
 
-〽️ 2. Corriger le bouton « Plus tard »
-- Le bouton navigue bien vers l’accueil, mais l’état `skippedForToday` reste à ajouter pour éviter la réouverture automatique. 〽️
-- Ajoute un état du type skippedForToday. 〽️​
+✅ 2. Corriger le bouton « Plus tard »
+- Le bouton navigue vers l’accueil et l’état `skippedForToday` empêche la réouverture automatique pour la journée. ✅
+- Ajouter un état du type `skippedForToday`. ✅
 
 〽️ 3. Corriger la synchronisation du score 
 - Le score des tâches se met maintenant à jour lorsqu’une tâche est cochée ou décochée. ✅
@@ -30,7 +30,7 @@
 
 
 〽️ -  Uniformiser la langue de l’application
-〽️ -  Ajouter l’état skippedForToday au Morning Ritual
+✅ -  Ajouter l’état skippedForToday au Morning Ritual
 〽️ -  Décider comment un Life Block est validé
 〽️ -  Ajouter les labels d’accessibilité manquants
 〽️ -  Ajouter quelques tests UI ou d’intégration

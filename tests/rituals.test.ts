@@ -12,7 +12,7 @@ vi.mock('@react-native-async-storage/async-storage', () => ({
 
 describe('rituals', () => {
   beforeEach(() => {
-    useRitualStore.setState({ logs: [] });
+    useRitualStore.setState({ logs: [], skippedForToday: false, skippedDate: null });
   });
 
   it('logs one morning ritual for the current day', () => {
@@ -49,5 +49,12 @@ describe('rituals', () => {
     skipMorningRitual({ replace });
 
     expect(replace).toHaveBeenCalledWith('/');
+  });
+
+  it('marks the morning ritual as skipped for today', () => {
+    useRitualStore.getState().skipMorningRitualForToday();
+
+    expect(useRitualStore.getState().skippedForToday).toBe(true);
+    expect(useRitualStore.getState().hasSkippedMorningToday()).toBe(true);
   });
 });
