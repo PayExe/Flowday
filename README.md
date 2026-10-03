@@ -2,7 +2,7 @@
 
 Flowday is a personal planning mobile application built with React Native and Expo.
 
-> **Portfolio and learning project**: I am currently a second-year student, and this repository reflects my learning journey with React Native. It is not a commercial product or a finished application.
+> **Portfolio and learning project**: I am currently a second-year student, and this repository reflects my learning journey with React Native. It is currently not a commercial product and is still under developmentn.
 
 ## Showcase
 
@@ -158,7 +158,18 @@ Possible future improvements include:
 
 ## License
 
-This project is distributed under the [Creative Commons Attribution-
-NonCommercial 4.0 International License (CC BY-NC 4.0)](LICENSE). Commercial
-use, including selling the project or incorporating it into a paid product or
-service, is not permitted.
+The source code is licensed under the
+[PolyForm Noncommercial License 1.0.0](./LICENSE).
+
+You are free to read, run, modify and share this project for noncommercial
+purposes (learning, research, personal use), as long as you keep the
+`Required Notice` line and a copy of the license.
+
+Commercial use is not permitted without written permission, including
+publishing this app or a derivative on an app store, selling it, or
+incorporating it into a paid product or service.
+
+The name "Flowday", the logo, icons and other brand assets are not covered by
+this license.
+
+Contact for commercial licensing: [github.com/PayExe](https://github.com/PayExe)
