@@ -3,12 +3,13 @@ import { Stack, useRouter, usePathname } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { BottomSheetModalProvider } from '@gorhom/bottom-sheet';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
-import { StyleSheet } from 'react-native';
+import { Appearance, StyleSheet } from 'react-native';
 import { useRitualStore } from '../src/features/rituals/store';
 import { useLifeBlocksStore } from '../src/features/lifeBlocks/store';
 import { useTemplateStore } from '../src/features/templates/store';
 import { useThemeStore } from '../src/features/theme/store';
 import { useFocusStore } from '../src/features/focus/store';
+import { useTheme } from '../src/theme';
 import { dateKey } from '../src/utils/dates';
 
 function todayISO(): string {
@@ -31,8 +32,14 @@ export default function RootLayout() {
 
   const initializeTemplates = useTemplateStore((state) => state.initializeDefaults);
 
-  const themeName = useThemeStore((state) => state.themeName);
+  const themePreference = useThemeStore((state) => state.themeName);
+  const { colors, isDark } = useTheme();
   const resetDailyCountIfNeeded = useFocusStore((state) => state.resetDailyCountIfNeeded);
+
+  // Native surfaces (tab bar, sheets, pickers, alerts) follow the in-app theme.
+  useEffect(() => {
+    Appearance.setColorScheme?.(themePreference === 'system' ? 'unspecified' : themePreference);
+  }, [themePreference]);
 
   useEffect(() => {
     const now = new Date();
@@ -118,8 +125,14 @@ export default function RootLayout() {
   return (
     <GestureHandlerRootView style={styles.container}>
       <BottomSheetModalProvider>
-        <StatusBar style={themeName === 'dark' ? 'light' : 'dark'} />
-        <Stack screenOptions={{ headerShown: false, animation: 'slide_from_right' }}>
+        <StatusBar style={isDark ? 'light' : 'dark'} />
+        <Stack
+          screenOptions={{
+            headerShown: false,
+            animation: 'slide_from_right',
+            contentStyle: { backgroundColor: colors.bg.primary },
+          }}
+        >
           <Stack.Screen name="morning-ritual" options={{ animation: 'slide_from_bottom' }} />
           <Stack.Screen name="evening-wrap" options={{ animation: 'slide_from_bottom' }} />
           <Stack.Screen name="focus" options={{ animation: 'slide_from_bottom' }} />

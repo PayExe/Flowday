@@ -2,17 +2,24 @@ import { useEffect, useRef } from 'react';
 import {
   View,
   Text,
-  Pressable,
   StyleSheet,
   StatusBar,
   AppState,
 } from 'react-native';
 import { useRouter } from 'expo-router';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useFocusStore } from '../src/features/focus/store';
 import { useTheme } from '../src/theme';
-import { hapticLight, hapticWarning } from '../src/utils/haptics';
+import { hapticWarning } from '../src/utils/haptics';
 import { PageInfo } from '../src/components/ui/PageInfo';
+import { Button, IconButton } from '../src/components/ui/Glass';
+import { ProgressRing } from '../src/components/ui/ProgressRing';
+import { SymbolNames } from '../src/components/ui/Symbol';
+import { EmptyState } from '../src/components/shared/EmptyState';
+import { useTranslation } from '../src/i18n';
+
+const FOCUS_SECONDS = 25 * 60;
+const BREAK_SECONDS = 5 * 60;
 
 function formatTime(seconds: number): string {
   const m = Math.floor(seconds / 60);
@@ -23,6 +30,8 @@ function formatTime(seconds: number): string {
 export default function FocusScreen() {
   const router = useRouter();
   const { colors, typography } = useTheme();
+  const { t, language } = useTranslation();
+  const insets = useSafeAreaInsets();
 
   const focusState = useFocusStore((state) => state.focusState);
   const tick = useFocusStore((state) => state.tick);
@@ -67,59 +76,62 @@ export default function FocusScreen() {
     router.back();
   };
 
-  const maxDots = 8;
-  const dots = Array.from({ length: maxDots }, (_, i) => i < focusState.sessionPomodoroCount);
+  const containerStyle = [
+    styles.container,
+    { backgroundColor: colors.bg.primary, paddingTop: insets.top, paddingBottom: Math.max(insets.bottom, 16) },
+  ];
 
   if (!focusState.currentTaskId) {
     return (
-      <SafeAreaView style={[styles.container, { backgroundColor: colors.bg.primary }]} edges={['top']}>
-        <View style={styles.center}>
-          <Text style={[styles.noTask, { color: colors.text.secondary }]}>Aucune tâche en cours</Text>
-          <Pressable style={styles.backBtn} onPress={() => router.back()}>
-            <Text style={[styles.backBtnText, { color: colors.system.blue }]}>← Retour</Text>
-          </Pressable>
-        </View>
-      </SafeAreaView>
+      <View style={containerStyle}>
+        <EmptyState
+          icon={SymbolNames.timer}
+          title={t('Aucune tâche en cours')}
+          subtitle={t('Le minuteur démarre avec la tâche choisie depuis Planning.')}
+          action={<Button title={t('Retour')} variant="secondary" onPress={() => router.back()} />}
+        />
+      </View>
     );
   }
 
+  const maxDots = 8;
+  const dots = Array.from({ length: maxDots }, (_, i) => i < focusState.sessionPomodoroCount);
+  const total = focusState.isBreak ? BREAK_SECONDS : FOCUS_SECONDS;
+  const ringColor = focusState.isBreak ? colors.system.green : colors.accent;
+  const remainingPercent = (focusState.timeRemaining / total) * 100;
+
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: colors.bg.primary }]} edges={['top']}>
+    <View style={containerStyle}>
       <StatusBar hidden />
 
       <View style={styles.header}>
         <PageInfo
-          title="Focus"
-          description="Travaille sur une seule tâche pendant une session de 25 minutes, puis prends une pause."
+          title={t('Focus')}
+          description={t('Travaille sur une seule tâche pendant une session de 25 minutes, puis prends une pause.')}
           points={[
-            'Le minuteur démarre avec la tâche choisie depuis Planning.',
-            'Mets la session en pause ou reprends-la à tout moment.',
-            'Abandonner arrête la session sans la comptabiliser comme terminée.',
+            t('Le minuteur démarre avec la tâche choisie depuis Planning.'),
+            t('Mets la session en pause ou reprends-la à tout moment.'),
+            t('Abandonner arrête la session sans la comptabiliser comme terminée.'),
           ]}
         />
       </View>
 
       <View style={styles.content}>
-        <Text style={[styles.taskTitle, { color: colors.text.primary }]} numberOfLines={2}>
+        <Text style={typography.eyebrow}>
+          {focusState.isBreak ? `${t('Pause')} · 5 min` : `${t('Focus')} · 25 min`}
+        </Text>
+        <Text style={[typography.title2, styles.taskTitle]} numberOfLines={2}>
           {focusState.currentTaskTitle}
         </Text>
 
-        <View style={{
-          width: 200,
-          height: 200,
-          borderRadius: 100,
-          borderWidth: 4,
-          borderColor: focusState.isBreak ? colors.system.green : colors.system.blue,
-          alignItems: 'center',
-          justifyContent: 'center',
-          marginBottom: 12,
-        }}>
-          <Text style={[styles.timer, { color: colors.text.primary }]}>{formatTime(focusState.timeRemaining)}</Text>
-        </View>
-
-        <Text style={[styles.modeLabel, { color: colors.text.secondary }]}>
-          {focusState.isBreak ? 'Pause · 5 min' : 'Focus · 25 min'}
-        </Text>
+        <ProgressRing value={remainingPercent} size={272} strokeWidth={12} color={ringColor}>
+          <Text
+            style={[styles.timer, { color: colors.text.primary }]}
+            accessibilityRole="timer"
+          >
+            {formatTime(focusState.timeRemaining)}
+          </Text>
+        </ProgressRing>
 
         <View style={styles.dotsRow}>
           {dots.map((filled, i) => (
@@ -127,40 +139,28 @@ export default function FocusScreen() {
               key={i}
               style={[
                 styles.dot,
-                { backgroundColor: filled ? colors.system.blue : colors.separator.default },
+                { backgroundColor: filled ? colors.accent : colors.bg.tertiary },
               ]}
             />
           ))}
         </View>
 
-        <Text style={[styles.dailyGoal, { color: colors.text.secondary }]}>
-          {focusState.dailyPomodoroCount} / {focusState.dailyPomodoroGoal} aujourd'hui
+        <Text style={typography.footnote}>
+          {focusState.dailyPomodoroCount} / {focusState.dailyPomodoroGoal} {language === 'fr' ? "aujourd'hui" : 'today'}
         </Text>
       </View>
 
       <View style={styles.footer}>
-        <Pressable
-          style={({ pressed }) => ({
-            backgroundColor: pressed ? colors.system.gray4 : colors.bg.secondary,
-            borderRadius: 13,
-            paddingVertical: 14,
-            paddingHorizontal: 32,
-            alignItems: 'center',
-            borderWidth: 1,
-            borderColor: colors.separator.default,
-          })}
-          onPress={() => { hapticLight(); focusState.isActive ? pauseFocus() : resumeFocus(); }}
-        >
-          <Text style={{ fontSize: typography.sizes.lg, fontWeight: '600', color: colors.text.primary }}>
-            {focusState.isActive ? 'Pause' : 'Reprendre'}
-          </Text>
-        </Pressable>
-
-        <Pressable onPress={handleAbandon} style={{ padding: 12 }}>
-          <Text style={{ fontSize: typography.sizes.base, color: colors.system.red }}>Abandonner</Text>
-        </Pressable>
+        <IconButton
+          symbol={focusState.isActive ? SymbolNames.pause : SymbolNames.play}
+          onPress={() => (focusState.isActive ? pauseFocus() : resumeFocus())}
+          accessibilityLabel={focusState.isActive ? t('Pause') : t('Reprendre')}
+          size={76}
+          prominent={!focusState.isActive}
+        />
+        <Button title={t('Abandonner')} variant="destructive" onPress={handleAbandon} style={styles.abandon} />
       </View>
-    </SafeAreaView>
+    </View>
   );
 }
 
@@ -170,65 +170,43 @@ const styles = StyleSheet.create({
   },
   header: {
     paddingHorizontal: 16,
-    paddingTop: 12,
+    paddingTop: 4,
     alignItems: 'flex-end',
   },
   content: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    paddingHorizontal: 20,
+    paddingHorizontal: 24,
   },
   taskTitle: {
-    fontSize: 20,
-    fontWeight: '500',
     textAlign: 'center',
-    lineHeight: 28,
-    marginBottom: 32,
-    letterSpacing: -0.4,
+    marginTop: 8,
+    marginBottom: 36,
   },
   timer: {
-    fontSize: 56,
+    fontSize: 64,
     fontWeight: '300',
-    letterSpacing: -2,
+    letterSpacing: -1,
     fontVariant: ['tabular-nums'],
-  },
-  modeLabel: {
-    fontSize: 13,
-    marginTop: 12,
   },
   dotsRow: {
     flexDirection: 'row',
     gap: 8,
-    marginTop: 24,
+    marginTop: 32,
+    marginBottom: 12,
   },
   dot: {
     width: 8,
     height: 8,
     borderRadius: 4,
   },
-  dailyGoal: {
-    fontSize: 13,
-    marginTop: 16,
-  },
   footer: {
     alignItems: 'center',
-    gap: 8,
-    paddingVertical: 32,
+    gap: 12,
+    paddingTop: 8,
   },
-  center: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    gap: 16,
-  },
-  noTask: {
-    fontSize: 17,
-  },
-  backBtn: {
-    padding: 12,
-  },
-  backBtnText: {
-    fontSize: 17,
+  abandon: {
+    alignSelf: 'center',
   },
 });

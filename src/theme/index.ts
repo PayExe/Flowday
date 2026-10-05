@@ -1,20 +1,28 @@
 
 import { useMemo } from 'react';
+import { useColorScheme } from 'react-native';
 import { useThemeStore } from '../features/theme/store';
 import {
   ColorsDark,
   ColorsLight,
   getTypography,
+  radius,
+  resolveBlockColor,
+  spacing,
+  withAlpha,
   type ColorPalette,
   type ThemeName,
+  type ThemePreference,
 } from './colors';
 
-export { ColorsDark, ColorsLight, getTypography };
-export type { ColorPalette, ThemeName };
+export { ColorsDark, ColorsLight, getTypography, radius, resolveBlockColor, spacing, withAlpha };
+export type { ColorPalette, ThemeName, ThemePreference };
 
 export function useTheme() {
-  const themeName = useThemeStore((s) => s.themeName);
-  const isDark = themeName === 'dark';
+  const preference = useThemeStore((s) => s.themeName);
+  const systemScheme = useColorScheme();
+  const isDark = preference === 'system' ? systemScheme === 'dark' : preference === 'dark';
+  const themeName: ThemeName = isDark ? 'dark' : 'light';
 
   const colors: ColorPalette = useMemo(
     () => (isDark ? ColorsDark : ColorsLight),
@@ -25,6 +33,7 @@ export function useTheme() {
 
   return {
     themeName,
+    preference,
     isDark,
     colors,
     typography,

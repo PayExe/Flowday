@@ -1,12 +1,14 @@
 import { useRef } from 'react';
-import { View, Text, Pressable, Alert, Animated, type GestureResponderEvent } from 'react-native';
+import { View, Text, Pressable, Alert, StyleSheet } from 'react-native';
 import { Swipeable } from 'react-native-gesture-handler';
 import { Task } from '../../types/task';
 import { hapticLight, hapticWarning } from '../../utils/haptics';
-import { useTheme, type ColorPalette } from '../../theme';
+import { resolveBlockColor, useTheme } from '../../theme';
 import { Symbol, SymbolNames } from '../ui/Symbol';
 import { ContextMenu } from '../ui/ContextMenu';
+import { Checkbox } from '../ui/Checkbox';
 import { LifeBlock } from '../../types/lifeBlock';
+import { useTranslation } from '../../i18n';
 
 interface TaskCardProps {
   task: Task;
@@ -16,31 +18,11 @@ interface TaskCardProps {
   lifeBlock?: LifeBlock;
 }
 
-function priorityColor(priority: string, colors: ColorPalette): string {
-  switch (priority) {
-    case 'high': return colors.system.red;
-    case 'medium': return colors.system.yellow;
-    case 'low': return colors.system.gray;
-    default: return colors.system.gray;
-  }
-}
-
 export function TaskCard({ task, onToggle, onDelete, onPress, lifeBlock }: TaskCardProps) {
-  const { colors, typography } = useTheme();
+  const { colors, typography, isDark } = useTheme();
+  const { t } = useTranslation();
   const done = task.completed;
-  const pColor = priorityColor(task.priority, colors);
   const swipeableRef = useRef<Swipeable>(null);
-  const checkboxScale = useRef(new Animated.Value(1)).current;
-
-  const handleCheckboxPress = (event: GestureResponderEvent) => {
-    event.stopPropagation();
-    hapticLight();
-    onToggle(task.id);
-    Animated.sequence([
-      Animated.spring(checkboxScale, { toValue: 1.3, useNativeDriver: true, speed: 20 }),
-      Animated.spring(checkboxScale, { toValue: 1, useNativeDriver: true, speed: 20 }),
-    ]).start();
-  };
 
   const handleSwipeOpen = (direction: 'left' | 'right') => {
     if (direction === 'left') {
@@ -49,14 +31,14 @@ export function TaskCard({ task, onToggle, onDelete, onPress, lifeBlock }: TaskC
       swipeableRef.current?.close();
     } else if (direction === 'right') {
       hapticWarning();
-        Alert.alert('Supprimer cette tâche ?', 'Cette action est irréversible.', [
+      Alert.alert(t('Supprimer cette tâche ?'), t('Cette action est irréversible.'), [
         {
-          text: 'Annuler',
+          text: t('Annuler'),
           style: 'cancel',
           onPress: () => swipeableRef.current?.close(),
         },
         {
-          text: 'Supprimer',
+          text: t('Supprimer'),
           style: 'destructive',
           onPress: () => {
             onDelete(task.id);
@@ -70,113 +52,109 @@ export function TaskCard({ task, onToggle, onDelete, onPress, lifeBlock }: TaskC
   const cardContent = (
     <Pressable
       onPress={onPress}
-      style={{
-        flexDirection: 'row',
-        alignItems: 'flex-start',
-        paddingHorizontal: 16,
-        paddingVertical: 10,
-        backgroundColor: 'transparent',
-        gap: 12,
-      }}
+      style={({ pressed }) => [
+        styles.row,
+        { backgroundColor: pressed && onPress ? colors.bg.hover : colors.bg.secondary },
+      ]}
     >
-      <Pressable
-        onPress={handleCheckboxPress}
-        hitSlop={8}
-      >
-        <Animated.View style={{
-          width: 22,
-          height: 22,
-          borderRadius: 11,
-          borderWidth: done ? 0 : 2,
-          borderColor: done ? 'transparent' : pColor,
-          backgroundColor: done ? pColor : 'transparent',
-          alignItems: 'center',
-          justifyContent: 'center',
-          marginTop: 1,
-          transform: [{ scale: checkboxScale }],
-        }}>
-          {done && (
-            <Symbol name={SymbolNames.checkmark} size={13} color={colors.text.inverse} />
-          )}
-        </Animated.View>
-      </Pressable>
+      <Checkbox
+        checked={done}
+        onToggle={() => onToggle(task.id)}
+        color={task.priority === 'high' ? colors.system.red : undefined}
+        accessibilityLabel={task.title}
+      />
 
-      <View style={{ flex: 1 }}>
+      <View style={styles.text}>
         <Text
-          style={{
-            fontSize: typography.sizes.lg,
-            color: done ? colors.text.quaternary : colors.text.primary,
-            letterSpacing: -0.41,
-            textDecorationLine: done ? 'line-through' : 'none',
-          }}
+          style={[
+            typography.body,
+            done && { color: colors.text.tertiary, textDecorationLine: 'line-through' },
+          ]}
+          numberOfLines={2}
         >
           {task.title}
         </Text>
-        <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 3, gap: 5 }}>
-          {lifeBlock && <View style={{ width: 6, height: 6, borderRadius: 3, backgroundColor: lifeBlock.color }} />}
-          <Text style={{ fontSize: typography.sizes.xs, color: colors.text.secondary }}>
-            {lifeBlock?.name || 'Sans bloc'}
-          </Text>
-        </View>
+        {lifeBlock && (
+          <View style={styles.meta}>
+            <View
+              style={[styles.dot, { backgroundColor: resolveBlockColor(lifeBlock.color, isDark) }]}
+            />
+            <Text style={typography.footnote} numberOfLines={1}>
+              {lifeBlock.name}
+            </Text>
+          </View>
+        )}
       </View>
 
       {task.priority === 'high' && !done && (
-        <Symbol name={SymbolNames.flag} size={14} color={colors.system.red} style={{ marginTop: 3 }} />
+        <Symbol name={SymbolNames.flag} size={15} color={colors.system.red} />
       )}
     </Pressable>
-  );
-
-  const swipeActions = (
-    <Swipeable
-      ref={swipeableRef}
-      friction={2}
-      overshootFriction={8}
-      renderLeftActions={() => (
-        <View style={{
-          width: 80,
-          backgroundColor: colors.system.green,
-          borderRadius: 13,
-          marginLeft: 4,
-          alignItems: 'center',
-          justifyContent: 'center',
-        }}>
-          <Symbol name={SymbolNames.checkmark} size={22} color={colors.text.inverse} />
-        </View>
-      )}
-      onSwipeableOpen={handleSwipeOpen}
-      renderRightActions={() => (
-        <View style={{
-          width: 80,
-          backgroundColor: colors.system.red,
-          borderRadius: 13,
-          marginRight: 4,
-          alignItems: 'center',
-          justifyContent: 'center',
-        }}>
-          <Symbol name={SymbolNames.trash} size={22} color={colors.text.inverse} />
-        </View>
-      )}
-    >
-      {cardContent}
-    </Swipeable>
   );
 
   return (
     <ContextMenu
       actions={[
         {
-          title: done ? 'Annuler' : 'Terminer',
+          title: done ? t('Annuler') : t('Terminer'),
           systemIcon: done ? 'xmark.circle' : 'checkmark.circle',
         },
       ]}
       onPress={(name) => {
-        if (name === 'Terminer' || name === 'Annuler') {
+        if (name === t('Terminer') || name === t('Annuler')) {
           hapticLight();
           onToggle(task.id);
         }
       }}
     >
-      {swipeActions}
+      <Swipeable
+        ref={swipeableRef}
+        friction={2}
+        overshootFriction={8}
+        onSwipeableOpen={handleSwipeOpen}
+        renderLeftActions={() => (
+          <View style={[styles.swipeAction, { backgroundColor: colors.system.green }]}>
+            <Symbol name={SymbolNames.checkmark} size={22} weight="semibold" color={colors.text.inverse} />
+          </View>
+        )}
+        renderRightActions={() => (
+          <View style={[styles.swipeAction, { backgroundColor: colors.system.red }]}>
+            <Symbol name={SymbolNames.trash} size={22} weight="semibold" color={colors.text.inverse} />
+          </View>
+        )}
+      >
+        {cardContent}
+      </Swipeable>
     </ContextMenu>
   );
 }
+
+const styles = StyleSheet.create({
+  row: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    minHeight: 52,
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+  },
+  text: {
+    flex: 1,
+  },
+  meta: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    marginTop: 2,
+  },
+  dot: {
+    width: 7,
+    height: 7,
+    borderRadius: 4,
+  },
+  swipeAction: {
+    width: 80,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+});

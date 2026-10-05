@@ -1,28 +1,21 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { ThemeName } from '../../theme';
+import type { ThemePreference } from '../../theme/colors';
 
 interface ThemeState {
-  themeName: ThemeName;
-  setTheme: (name: ThemeName) => void;
-  toggleTheme: () => void;
+  themeName: ThemePreference;
+  setTheme: (name: ThemePreference) => void;
 }
 
 export const useThemeStore = create<ThemeState>()(
   persist(
     (set) => ({
-      themeName: 'dark',
+      themeName: 'system',
 
       setTheme: (name) =>
         set({
           themeName: name,
-        }),
-
-      toggleTheme: () =>
-        set((state) => {
-          const next = state.themeName === 'dark' ? 'light' : 'dark';
-          return { themeName: next };
         }),
     }),
     {

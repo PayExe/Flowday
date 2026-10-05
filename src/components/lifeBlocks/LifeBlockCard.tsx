@@ -1,9 +1,12 @@
-import { View, Text, Pressable, Alert } from 'react-native';
+import { View, Text, Pressable, Alert, StyleSheet } from 'react-native';
 import { LifeBlock } from '../../types/lifeBlock';
-import { hapticWarning } from '../../utils/haptics';
+import { hapticLight, hapticWarning } from '../../utils/haptics';
 import { useTheme } from '../../theme';
 import { Symbol, SymbolNames } from '../ui/Symbol';
-import { ContextMenu } from '../ui/ContextMenu';
+import { useActionMenu, type ContextMenuAction } from '../ui/ContextMenu';
+import { Card, IconTile, ProgressBar } from '../ui/List';
+import { useTranslation } from '../../i18n';
+import { formatDuration } from '../../utils/time';
 
 interface LifeBlockCardProps {
   block: LifeBlock;
@@ -15,14 +18,6 @@ interface LifeBlockCardProps {
   onArchive: () => void;
   canMoveUp: boolean;
   canMoveDown: boolean;
-}
-
-function formatMinutes(min: number): string {
-  const h = Math.floor(min / 60);
-  const m = min % 60;
-  if (h > 0 && m > 0) return `${h}h${m}`;
-  if (h > 0) return `${h}h`;
-  return `${m}min`;
 }
 
 export function LifeBlockCard({
@@ -37,134 +32,117 @@ export function LifeBlockCard({
   canMoveDown,
 }: LifeBlockCardProps) {
   const { colors, typography } = useTheme();
-  const progress = Math.min(progressPercent, 100);
+  const { t } = useTranslation();
+  const openMenu = useActionMenu();
+  const hasGoal = block.weeklyGoalMinutes > 0;
 
   const handleArchive = () => {
     hapticWarning();
     Alert.alert(
-      'Archiver ce bloc ?',
-      `${block.emoji} ${block.name} sera masqué mais l'historique sera conservé.`,
+      t('Archiver ce bloc ?'),
+      `${block.emoji} ${block.name} ${t('sera masqué mais l\'historique sera conservé.')}`,
       [
-        { text: 'Annuler', style: 'cancel' },
-        { text: 'Archiver', style: 'destructive', onPress: onArchive },
+        { text: t('Annuler'), style: 'cancel' },
+        { text: t('Archiver'), style: 'destructive', onPress: onArchive },
       ]
     );
   };
 
-  const cardContent = (
-    <Pressable
-      onPress={onEdit}
-      style={{
-        backgroundColor: colors.bg.secondary,
-        borderRadius: 13,
-        padding: 16,
-        marginHorizontal: 16,
-        marginBottom: 12,
-      }}
-    >
-      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12, marginBottom: 14 }}>
-        <View
-          style={{
-            width: 40,
-            height: 40,
-            borderRadius: 10,
-            backgroundColor: block.color,
-            alignItems: 'center',
-            justifyContent: 'center',
-          }}
-        >
-          <Text style={{ fontSize: typography.sizes.xl }}>{block.emoji}</Text>
-        </View>
+  const actions: ContextMenuAction[] = [
+    { id: 'edit', title: t('Modifier'), systemIcon: 'pencil' },
+    { id: 'up', title: t('Monter'), systemIcon: 'arrow.up', disabled: !canMoveUp },
+    { id: 'down', title: t('Descendre'), systemIcon: 'arrow.down', disabled: !canMoveDown },
+    { id: 'archive', title: t('Archiver'), systemIcon: 'archivebox', destructive: true },
+  ];
 
-        <View style={{ flex: 1 }}>
-          <Text style={{ fontSize: typography.sizes.lg, fontWeight: typography.weights.semibold, color: colors.text.primary, letterSpacing: -0.41 }}>
-            {block.name}
-          </Text>
-          <Text style={{ fontSize: typography.sizes.sm, color: colors.text.secondary, marginTop: 1 }}>
-            {formatMinutes(timeSpentMinutes)} cette semaine
-          </Text>
-        </View>
-
-        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 2 }}>
-          <Pressable
-            onPress={canMoveUp ? (event) => { event.stopPropagation(); onMoveUp(); } : undefined}
-            disabled={!canMoveUp}
-            hitSlop={6}
-            accessibilityRole="button"
-            accessibilityLabel={`Monter ${block.name}`}
-            style={[styles.iconBtn, !canMoveUp && styles.iconBtnDisabled]}
-          >
-            <Symbol name={SymbolNames.chevronUp} size={16} color={colors.text.tertiary} />
-          </Pressable>
-          <Pressable
-            onPress={canMoveDown ? (event) => { event.stopPropagation(); onMoveDown(); } : undefined}
-            disabled={!canMoveDown}
-            hitSlop={6}
-            accessibilityRole="button"
-            accessibilityLabel={`Descendre ${block.name}`}
-            style={[styles.iconBtn, !canMoveDown && styles.iconBtnDisabled]}
-          >
-            <Symbol name={SymbolNames.chevronDown} size={16} color={colors.text.tertiary} />
-          </Pressable>
-          <Pressable
-            onPress={(event) => { event.stopPropagation(); handleArchive(); }}
-            hitSlop={6}
-            accessibilityRole="button"
-            accessibilityLabel={`Archiver ${block.name}`}
-            style={styles.iconBtn}
-          >
-            <Symbol name={SymbolNames.archive} size={16} color={colors.text.tertiary} />
-          </Pressable>
-        </View>
-      </View>
-
-      <View style={{ height: 4, backgroundColor: colors.bg.hover, borderRadius: 2, overflow: 'hidden' }}>
-        <View
-          style={{
-            height: '100%',
-            width: `${progress}%`,
-            backgroundColor: block.color,
-            borderRadius: 2,
-          }}
-        />
-      </View>
-
-      <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginTop: 8 }}>
-        <Text style={{ fontSize: typography.sizes.xs, color: colors.text.quaternary }}>
-          {formatMinutes(timeSpentMinutes)}
-        </Text>
-        <Text style={{ fontSize: typography.sizes.xs, color: colors.text.quaternary }}>
-          objectif {formatMinutes(block.weeklyGoalMinutes)}
-        </Text>
-      </View>
-    </Pressable>
-  );
+  const showMenu = () => {
+    hapticLight();
+    openMenu(actions, (id) => {
+      if (id === 'edit') onEdit();
+      else if (id === 'up') onMoveUp();
+      else if (id === 'down') onMoveDown();
+      else if (id === 'archive') handleArchive();
+    });
+  };
 
   return (
-    <ContextMenu
-      actions={[
-        { title: 'Modifier', systemIcon: 'pencil' },
-        { title: 'Monter', systemIcon: 'arrow.up', disabled: !canMoveUp },
-        { title: 'Descendre', systemIcon: 'arrow.down', disabled: !canMoveDown },
-        { title: 'Archiver', systemIcon: 'archivebox', destructive: true },
-      ]}
-      onPress={(name) => {
-        if (name === 'Modifier') onEdit();
-        else if (name === 'Monter') canMoveUp && onMoveUp();
-        else if (name === 'Descendre') canMoveDown && onMoveDown();
-        else if (name === 'Archiver') handleArchive();
-      }}
-    >
-      {cardContent}
-    </ContextMenu>
+    <Card style={styles.card}>
+      <Pressable
+        onPress={onEdit}
+        onLongPress={showMenu}
+        accessibilityRole="button"
+        accessibilityLabel={`${t('Modifier')} ${block.name}`}
+        style={({ pressed }) => [
+          styles.content,
+          { backgroundColor: pressed ? colors.bg.hover : 'transparent' },
+        ]}
+      >
+        <View style={styles.header}>
+          <IconTile color={block.color} emoji={block.emoji} size={44} />
+
+          <View style={styles.headerText}>
+            <Text style={typography.headline} numberOfLines={1}>
+              {block.name}
+            </Text>
+            <Text style={[typography.footnote, styles.subtitle]}>
+              {hasGoal
+                ? t('plannedOfGoal', {
+                    planned: formatDuration(timeSpentMinutes),
+                    goal: formatDuration(block.weeklyGoalMinutes),
+                  })
+                : t('plannedWeekDuration', { duration: formatDuration(timeSpentMinutes) })}
+            </Text>
+          </View>
+
+          <View style={styles.moreSpacer} />
+        </View>
+
+        {hasGoal && <ProgressBar value={progressPercent} color={block.color} />}
+      </Pressable>
+
+      <Pressable
+        onPress={showMenu}
+        hitSlop={10}
+        accessibilityRole="button"
+        accessibilityLabel={`${t('Actions')} ${block.name}`}
+        style={[styles.more, { backgroundColor: colors.bg.tertiary }]}
+      >
+        <Symbol name={SymbolNames.more} size={16} weight="semibold" color={colors.text.secondary} />
+      </Pressable>
+    </Card>
   );
 }
 
-const styles = {
-  iconBtn: {
-    padding: 6,
+const styles = StyleSheet.create({
+  card: {
+    marginBottom: 12,
   },
-  iconBtnDisabled: {
-    opacity: 0.3,
+  content: {
+    padding: 16,
+    gap: 14,
   },
-};
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  headerText: {
+    flex: 1,
+  },
+  subtitle: {
+    marginTop: 2,
+  },
+  moreSpacer: {
+    width: 30,
+  },
+  more: {
+    position: 'absolute',
+    top: 23,
+    right: 16,
+    width: 30,
+    height: 30,
+    borderRadius: 15,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+});

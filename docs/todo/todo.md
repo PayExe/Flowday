@@ -29,7 +29,7 @@
 - la mise à jour du score après modification d’une tâche. ✅
 
 
-〽️ -  Uniformiser la langue de l’application
+✅ -  Uniformiser la langue de l’application
 ✅ -  Ajouter l’état skippedForToday au Morning Ritual
 〽️ -  Décider comment un Life Block est validé
 〽️ -  Ajouter les labels d’accessibilité manquants

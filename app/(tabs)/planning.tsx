@@ -1,13 +1,5 @@
 import { useEffect, useMemo, useRef, useState, useCallback } from 'react';
-import {
-  View,
-  Text,
-  TextInput,
-  ScrollView,
-  StyleSheet,
-  Pressable,
-} from 'react-native';
-import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
+import { View, Text, ScrollView, StyleSheet } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useTaskStore } from '../../src/features/tasks/store';
 import { useTemplateStore } from '../../src/features/templates/store';
@@ -17,45 +9,34 @@ import { useRitualStore } from '../../src/features/rituals/store';
 import { useFocusStore } from '../../src/features/focus/store';
 import { useTheme } from '../../src/theme';
 import { dateKey } from '../../src/utils/dates';
-import { Symbol, SymbolNames } from '../../src/components/ui/Symbol';
+import { formatDuration, formatLongDate, timeToMinutes } from '../../src/utils/time';
+import { SymbolNames } from '../../src/components/ui/Symbol';
+import { Button, IconButton } from '../../src/components/ui/Glass';
+import { IconTile, List, Row, SectionHeader } from '../../src/components/ui/List';
+import { Screen } from '../../src/components/ui/Screen';
 import { PageInfo } from '../../src/components/ui/PageInfo';
 import { TimelineBlock } from '../../src/components/timeline/TimelineBlock';
 import { FreeSlot } from '../../src/components/timeline/FreeSlot';
 import { HourMarker, HOUR_HEIGHT, START_HOUR, END_HOUR, MINUTES_PER_HOUR, HOUR_LABEL_WIDTH, timelineY } from '../../src/components/timeline/HourMarker';
 import { TaskCard } from '../../src/components/tasks/TaskCard';
 import { TaskDetailSheet } from '../../src/components/tasks/TaskDetailSheet';
+import { NewTaskSheet } from '../../src/components/tasks/NewTaskSheet';
 import { BlockDetailSheet } from '../../src/components/timeline/BlockDetailSheet';
 import { EmptyState } from '../../src/components/shared/EmptyState';
+import { RitualPrompt } from '../../src/components/rituals/RitualPrompt';
 import { hapticLight } from '../../src/utils/haptics';
 import { Task } from '../../src/types/task';
 import { TemplateBlock } from '../../src/types/template';
+import { useTranslation } from '../../src/i18n';
 
 
 function todayISO(): string {
   return dateKey();
 }
 
-function formatDateFr(date: Date): string {
-  const days = ['dimanche', 'lundi', 'mardi', 'mercredi', 'jeudi', 'vendredi', 'samedi'];
-  const months = ['janvier', 'février', 'mars', 'avril', 'mai', 'juin', 'juillet', 'août', 'septembre', 'octobre', 'novembre', 'décembre'];
-  return `${days[date.getDay()]} ${date.getDate()} ${months[date.getMonth()]}`;
-}
-
-function timeToMinutes(time: string): number {
-  const [h, m] = time.split(':').map(Number);
-  return h * 60 + m;
-}
-
-function currentMinutesSinceStart(): number {
+function currentMinutes(): number {
   const now = new Date();
-  return now.getHours() * 60 + now.getMinutes() - START_HOUR * 60;
-}
-
-function formatDuration(min: number): string {
-  const h = Math.floor(min / 60);
-  const m = min % 60;
-  if (m === 0) return `${h}h`;
-  return `${h}h${m.toString().padStart(2, '0')}`;
+  return now.getHours() * 60 + now.getMinutes();
 }
 
 type TimelineItem = {
@@ -69,19 +50,25 @@ type TimelineItem = {
   data: TemplateBlock;
 };
 
+const TIMELINE_START = START_HOUR * MINUTES_PER_HOUR;
+const TIMELINE_END = END_HOUR * MINUTES_PER_HOUR;
+
 
 export default function PlanningScreen() {
   const router = useRouter();
   const { colors, typography } = useTheme();
-  const insets = useSafeAreaInsets();
+  const { t } = useTranslation();
   const scrollRef = useRef<ScrollView>(null);
-  const [newTaskTitle, setNewTaskTitle] = useState('');
-  const [selectedBlockId, setSelectedBlockId] = useState<string | undefined>(undefined);
+  const timelineOffset = useRef(0);
+  const didScrollToNow = useRef(false);
+  const [nowMinutes, setNowMinutes] = useState(currentMinutes);
+  const [newTaskVisible, setNewTaskVisible] = useState(false);
   const [selectedTaskId, setSelectedTaskId] = useState<string | undefined>(undefined);
   const [selectedTimelineBlock, setSelectedTimelineBlock] = useState<{
     title: string;
     timeRange: string;
     color: string;
+    emoji: string;
     tasks: Task[];
   }>();
 
@@ -130,27 +117,22 @@ export default function PlanningScreen() {
   }, [tasks, activeBlocks, todayTasks, templateBlocks, updateTasksPercent, updateBlockValidation]);
 
   useEffect(() => {
-    if (!hasTemplate || activeBlocks.length === 0) return;
-    const y = timelineY(currentMinutesSinceStart()) - 120;
-    const timer = setTimeout(() => {
-      scrollRef.current?.scrollTo({ y: Math.max(0, y), animated: true });
-    }, 300);
-    return () => clearTimeout(timer);
-  }, [hasTemplate, activeBlocks.length]);
+    const timer = setInterval(() => setNowMinutes(currentMinutes()), 30000);
+    return () => clearInterval(timer);
+  }, []);
 
-  const handleAddTask = useCallback(() => {
-    if (!newTaskTitle.trim()) return;
-    hapticLight();
-    addTask({
-      title: newTaskTitle.trim(),
-      completed: false,
-      priority: 'medium',
-      lifeBlockId: selectedBlockId,
-      scheduledDate: todayISO(),
-    });
-    setNewTaskTitle('');
-    setSelectedBlockId(undefined);
-  }, [newTaskTitle, selectedBlockId, addTask]);
+  // Brings the current hour into view the first time the timeline is laid out.
+  const handleTimelineLayout = useCallback((y: number) => {
+    timelineOffset.current = y;
+    if (didScrollToNow.current) return;
+    didScrollToNow.current = true;
+    const now = currentMinutes();
+    if (now < TIMELINE_START + 120 || now > TIMELINE_END) return;
+    const target = y + timelineY(now - TIMELINE_START) - 220;
+    setTimeout(() => {
+      scrollRef.current?.scrollTo({ y: Math.max(0, target), animated: true });
+    }, 300);
+  }, []);
 
   const timelineItems = useMemo(() => {
     const sorted = [...templateBlocks].sort((a, b) =>
@@ -158,7 +140,7 @@ export default function PlanningScreen() {
     );
 
     const items: TimelineItem[] = [];
-    let cursor = START_HOUR * 60;
+    let cursor = TIMELINE_START;
 
     for (const block of sorted) {
       const blockStart = timeToMinutes(block.startTime);
@@ -182,12 +164,11 @@ export default function PlanningScreen() {
       cursor = Math.max(cursor, blockEnd);
     }
 
-    const endMinutes = END_HOUR * 60;
-    if (cursor < endMinutes) {
+    if (cursor < TIMELINE_END) {
       items.push({
         type: 'free',
         startMinutes: cursor,
-        endMinutes,
+        endMinutes: TIMELINE_END,
       });
     }
 
@@ -211,285 +192,157 @@ export default function PlanningScreen() {
 
   const handleFocusTask = useCallback((task: Task) => {
     hapticLight();
+    setSelectedTaskId(undefined);
     if (startFocus(task.id, task.title)) router.push('/focus');
   }, [router, startFocus]);
 
   const selectedTask = todayTasks.find((task) => task.id === selectedTaskId);
+  const completedCount = todayTasks.filter((task) => task.completed).length;
+  const dateLabel = formatLongDate(new Date(), t);
 
-  if (!hasTemplate) {
+  if (!hasTemplate || activeBlocks.length === 0) {
+    const missingBlocks = activeBlocks.length === 0;
     return (
-      <SafeAreaView style={[styles.container, { backgroundColor: colors.bg.primary }]} edges={['top']}>
-        <View style={styles.header}>
-          <Text style={[typography.screenTitle, { color: colors.text.primary }]}>Planning</Text>
-          <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-            <Text style={[typography.subheadline, { color: colors.text.secondary }]}>{formatDateFr(new Date())}</Text>
-            <PageInfo
-              title="Planning"
-              description="Organise ta journée avec une timeline, des tâches et des blocs de vie."
-              points={[
-                'Ajoute une tâche en haut, puis choisis éventuellement son bloc de vie.',
-                'Appuie sur une tâche pour la modifier ou lancer une session Focus.',
-                'Appuie sur un bloc pour voir ses tâches et valider ce qui est fait.',
-              ]}
-            />
-          </View>
-        </View>
-        <EmptyState
-          icon="calendar-outline"
-          title="Aucun template actif"
-          subtitle="Aucun planning pour le moment"
-        />
-      </SafeAreaView>
-    );
-  }
-
-  if (activeBlocks.length === 0) {
-    return (
-      <SafeAreaView style={[styles.container, { backgroundColor: colors.bg.primary }]} edges={['top']}>
-        <View style={styles.header}>
-          <Text style={[typography.screenTitle, { color: colors.text.primary }]}>Planning</Text>
-          <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-            <Text style={[typography.subheadline, { color: colors.text.secondary }]}>{formatDateFr(new Date())}</Text>
-            <PageInfo
-              title="Planning"
-              description="Organise ta journée avec une timeline, des tâches et des blocs de vie."
-              points={[
-                'Crée d’abord un template dans Semaine et des blocs de vie dans Blocs.',
-                'Une fois configuré, ajoute tes tâches et associe-les au bon bloc.',
-              ]}
-            />
-          </View>
-        </View>
-        <EmptyState
-          icon="cube-outline"
-          title="Aucun Life Block"
-          subtitle="Aucun bloc de vie pour le moment"
-        />
-      </SafeAreaView>
-    );
-  }
-
-  return (
-    <SafeAreaView style={[styles.container, { backgroundColor: colors.bg.primary }]} edges={['top']}>
-      <View style={styles.header}>
-        <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-          <Text style={[typography.screenTitle, { color: colors.text.primary }]}>{formatDateFr(new Date())}</Text>
+      <Screen
+        eyebrow={dateLabel}
+        title={t('Planning')}
+        actions={
           <PageInfo
-            title="Planning"
-            description="La timeline de ta journée, heure par heure, avec tes tâches et tes blocs."
+            title={t('Planning')}
+            description={t('Organise ta journée avec une timeline, des tâches et des blocs de vie.')}
             points={[
-              'Appuie sur un bloc pour voir son détail et ses tâches.',
-              'Ajoute une tâche en haut, puis associe-la à un bloc si besoin.',
+              t('Crée d’abord un template dans Semaine et des blocs de vie dans Blocs.'),
+              t('Une fois configuré, ajoute tes tâches et associe-les au bon bloc.'),
             ]}
           />
-        </View>
-        <Text style={[typography.subheadline, { color: colors.text.secondary, marginTop: 2 }]}>
-          {formatDuration(plannedMinutes)} planifiées
-        </Text>
-      </View>
+        }
+      >
+        <EmptyState
+          icon={missingBlocks ? SymbolNames.blocks : SymbolNames.calendar}
+          title={missingBlocks ? t('Aucun Life Block') : t('Aucun template actif')}
+          subtitle={missingBlocks ? t('Aucun bloc de vie pour le moment') : t('Aucun planning pour le moment')}
+          action={
+            <Button
+              title={missingBlocks ? t('Créer un bloc de vie') : t('Préparer ma semaine')}
+              onPress={() => router.push(missingBlocks ? '/blocks' : '/week')}
+            />
+          }
+        />
+      </Screen>
+    );
+  }
 
-      <View style={{ height: 0.5, backgroundColor: colors.separator.default, marginHorizontal: 16 }} />
+  const showNowLine = nowMinutes >= TIMELINE_START && nowMinutes <= TIMELINE_END;
 
-      <ScrollView
-        ref={scrollRef}
-        style={styles.scroll}
-        showsVerticalScrollIndicator={false}
-        scrollEventThrottle={32}
-        contentContainerStyle={[styles.scrollContent, { paddingBottom: 112 + insets.bottom }]}
+  return (
+    <>
+      <Screen
+        scrollRef={scrollRef}
+        eyebrow={dateLabel}
+        title={t('Planning')}
+        subtitle={plannedMinutes > 0 ? t('plannedDuration', { duration: formatDuration(plannedMinutes) }) : undefined}
+        actions={
+          <>
+            <PageInfo
+              title={t('Planning')}
+              description={t('La timeline de ta journée, heure par heure, avec tes tâches et tes blocs.')}
+              points={[
+                t('Utilise + pour ajouter une tâche et l’associer à un bloc.'),
+                t('Appuie sur une tâche pour la modifier ou lancer une session Focus.'),
+                t('Appuie sur un bloc pour voir ses tâches et valider ce qui est fait.'),
+              ]}
+            />
+            <IconButton
+              symbol={SymbolNames.add}
+              onPress={() => setNewTaskVisible(true)}
+              accessibilityLabel={t('Ajouter une tâche')}
+              prominent
+            />
+          </>
+        }
       >
         {!morningDone && (
-          <Pressable
-            style={({ pressed }) => ({
-              flexDirection: 'row',
-              alignItems: 'center',
-              backgroundColor: pressed ? colors.bg.hover : colors.bg.secondary,
-              borderRadius: 13,
-              marginHorizontal: 16,
-              marginTop: 16,
-              paddingHorizontal: 16,
-              paddingVertical: 14,
-              borderLeftWidth: 3,
-              borderLeftColor: colors.system.orange,
-            })}
-            onPress={() => router.push('/morning-ritual')}
-          >
-            <Symbol name={SymbolNames.sun} size={18} color={colors.system.orange} style={{ marginRight: 10 }} />
-            <Text style={{ flex: 1, fontSize: typography.sizes.base, color: colors.text.primary, fontWeight: typography.weights.medium }}>
-              Commencer la journée
-            </Text>
-            <Symbol name={SymbolNames.chevronRight} size={14} color={colors.text.tertiary} />
-          </Pressable>
+          <View style={styles.prompt}>
+            <RitualPrompt />
+          </View>
         )}
 
-        <View style={{ marginHorizontal: 16, marginTop: 16 }}>
-          <View
-            style={{
-              backgroundColor: colors.bg.secondary,
-              borderRadius: 13,
-              overflow: 'hidden',
-            }}
-          >
-            <View style={{ flexDirection: 'row', alignItems: 'center', paddingHorizontal: 12, paddingVertical: 4 }}>
-              <Pressable
-                onPress={handleAddTask}
-                hitSlop={8}
-                accessibilityRole="button"
-                accessibilityLabel="Ajouter la tâche"
-              >
-                <Symbol name={SymbolNames.add} size={22} color={colors.system.blue} />
-              </Pressable>
-              <TextInput
-                style={{
-                  flex: 1,
-                  fontSize: typography.sizes.lg,
-                  color: colors.text.primary,
-                  letterSpacing: -0.41,
-                  paddingVertical: 10,
-                  marginLeft: 4,
-                }}
-                placeholder="Nouvelle tâche..."
-                placeholderTextColor={colors.text.secondary}
-                value={newTaskTitle}
-                onChangeText={setNewTaskTitle}
-                onSubmitEditing={handleAddTask}
-                returnKeyType="done"
+        <SectionHeader
+          title={t('Tâches')}
+          trailing={
+            todayTasks.length > 0 ? (
+              <Text style={[typography.subheadline, styles.tabular]}>
+                {completedCount}/{todayTasks.length}
+              </Text>
+            ) : undefined
+          }
+        />
+        {todayTasks.length > 0 ? (
+          <List separatorInset={52}>
+            {todayTasks.map((task) => (
+              <TaskCard
+                key={task.id}
+                task={task}
+                onToggle={handleToggleTask}
+                onDelete={handleDeleteTask}
+                lifeBlock={task.lifeBlockId ? getBlockById(task.lifeBlockId) : undefined}
+                onPress={() => setSelectedTaskId(task.id)}
               />
-            </View>
-
-          </View>
-
-          <ScrollView
-              horizontal
-              showsHorizontalScrollIndicator={false}
-              contentContainerStyle={{ paddingHorizontal: 12, paddingVertical: 8, paddingRight: 20 }}
-              style={{ marginTop: 8, backgroundColor: colors.bg.secondary, borderRadius: 13 }}
-            >
-              <Pressable
-                style={{
-                  flexDirection: 'row',
-                  alignItems: 'center',
-                  paddingHorizontal: 10,
-                  paddingVertical: 5,
-                  backgroundColor: selectedBlockId === undefined ? colors.bg.hover : 'transparent',
-                  borderRadius: 8,
-                  marginRight: 6,
-                }}
-                onPress={() => setSelectedBlockId(undefined)}
-              >
-                <Text style={{ fontSize: typography.sizes.sm, color: selectedBlockId === undefined ? colors.text.primary : colors.text.secondary }}>
-                  Sans bloc
-                </Text>
-              </Pressable>
-              {activeBlocks.map((block) => (
-                <Pressable
-                  key={block.id}
-                  style={{
-                    flexDirection: 'row',
-                    alignItems: 'center',
-                    gap: 4,
-                    paddingHorizontal: 10,
-                    paddingVertical: 5,
-                    backgroundColor: selectedBlockId === block.id ? colors.bg.hover : 'transparent',
-                    borderRadius: 8,
-                    marginRight: 6,
-                  }}
-                  onPress={() =>
-                    setSelectedBlockId(selectedBlockId === block.id ? undefined : block.id)
-                  }
-                >
-                  <View style={{ width: 6, height: 6, borderRadius: 3, backgroundColor: block.color }} />
-                  <Text style={{ fontSize: typography.sizes.sm, color: selectedBlockId === block.id ? colors.text.primary : colors.text.secondary }}>
-                    {block.name}
-                  </Text>
-                </Pressable>
-              ))}
-          </ScrollView>
-        </View>
-
-        {todayTasks.length > 0 && (
-          <View style={{ marginTop: 24 }}>
-            <Text
-              style={[
-                typography.sectionHeader,
-                { paddingHorizontal: 32, paddingBottom: 8 },
-              ]}
-            >
-              Tâches
-            </Text>
-            <View
-              style={{
-                backgroundColor: colors.bg.secondary,
-                borderRadius: 13,
-                marginHorizontal: 16,
-                overflow: 'hidden',
-              }}
-            >
-              {todayTasks.map((task, index) => (
-                <View key={task.id}>
-                  <TaskCard
-                    task={task}
-                    onToggle={handleToggleTask}
-                    onDelete={handleDeleteTask}
-                    lifeBlock={task.lifeBlockId ? getBlockById(task.lifeBlockId) : undefined}
-                    onPress={() => setSelectedTaskId(task.id)}
-                  />
-                  {index < todayTasks.length - 1 && (
-                    <View style={{ height: 0.5, backgroundColor: colors.separator.hairline, marginLeft: 57 }} />
-                  )}
-                </View>
-              ))}
-            </View>
-          </View>
+            ))}
+          </List>
+        ) : (
+          <List>
+            <Row
+              leading={<IconTile color={colors.accent} symbol={SymbolNames.add} />}
+              title={t('Ajouter une tâche')}
+              subtitle={t('Aucune tâche pour aujourd’hui.')}
+              tint={colors.accent}
+              onPress={() => setNewTaskVisible(true)}
+            />
+          </List>
         )}
 
-        <View style={{ marginTop: 24 }}>
-          <Text
-            style={[
-              typography.sectionHeader,
-              { paddingHorizontal: 32, paddingBottom: 8 },
-            ]}
-          >
-            Planning
-          </Text>
+        <SectionHeader title={t('Horaires')} />
+        <View
+          style={styles.timelineContainer}
+          onLayout={(event) => handleTimelineLayout(event.nativeEvent.layout.y)}
+        >
+          <View style={styles.hourLabels} pointerEvents="none">
+            {Array.from({ length: END_HOUR - START_HOUR + 1 }, (_, i) => (
+              <View key={i} style={{ position: 'absolute', top: timelineY(i * MINUTES_PER_HOUR), left: 0 }}>
+                <HourMarker hour={START_HOUR + i} />
+              </View>
+            ))}
+          </View>
 
-          <View style={styles.timelineContainer}>
-            <View style={styles.hourLabels} pointerEvents="none">
-              {Array.from({ length: END_HOUR - START_HOUR + 1 }, (_, i) => (
-                <View key={i} style={{ position: 'absolute', top: timelineY(i * MINUTES_PER_HOUR), left: 0 }}>
-                  <HourMarker hour={START_HOUR + i} />
-                </View>
-              ))}
-            </View>
+          <View style={styles.timelineContent}>
+            {Array.from({ length: END_HOUR - START_HOUR + 1 }, (_, i) => (
+              <View key={`line-${i}`} style={[styles.hourLine, { top: timelineY(i * MINUTES_PER_HOUR), backgroundColor: colors.separator.hairline }]} />
+            ))}
 
-            <View style={styles.timelineContent}>
-              {Array.from({ length: END_HOUR - START_HOUR + 1 }, (_, i) => (
-                <View key={`line-${i}`} style={[styles.hourLine, { top: timelineY(i * MINUTES_PER_HOUR), backgroundColor: colors.separator.hairline }]} />
-              ))}
+            {timelineItems.map((item, index) => {
+              const top = timelineY(item.startMinutes - TIMELINE_START);
+              const height = timelineY(item.endMinutes - item.startMinutes);
 
-              {timelineItems.map((item, index) => {
-                const top = timelineY(item.startMinutes - START_HOUR * MINUTES_PER_HOUR);
-                const height = timelineY(item.endMinutes - item.startMinutes);
+              if (item.type === 'free') {
+                return (
+                  <View
+                    key={`free-${index}`}
+                    style={[styles.itemAbsolute, { top, height }]}
+                    pointerEvents="none"
+                  >
+                    <FreeSlot height={height} duration={item.endMinutes - item.startMinutes} />
+                  </View>
+                );
+              }
 
-                if (item.type === 'free') {
-                  return (
-                    <View
-                      key={`free-${index}`}
-                      style={[styles.itemAbsolute, { top, height }]}
-                    >
-                      <FreeSlot height={height} duration={item.endMinutes - item.startMinutes} />
-                    </View>
-                  );
-                }
-
-                const block = item.data;
-                const lifeBlock = getBlockById(block.lifeBlockId);
-                const blockTasks = lifeBlock
-                  ? getTodayTasksByLifeBlock(lifeBlock.id)
-                  : [];
-
-                const nowMin = currentMinutesSinceStart() + START_HOUR * 60;
-                const isActive =
-                  nowMin >= item.startMinutes && nowMin < item.endMinutes;
+              const block = item.data;
+              const lifeBlock = getBlockById(block.lifeBlockId);
+              const blockTasks = lifeBlock
+                ? getTodayTasksByLifeBlock(lifeBlock.id)
+                : [];
+              const isActive =
+                nowMinutes >= item.startMinutes && nowMinutes < item.endMinutes;
 
               return (
                 <View
@@ -498,78 +351,83 @@ export default function PlanningScreen() {
                 >
                   <TimelineBlock
                     emoji={lifeBlock?.emoji || '⬜'}
-                    name={lifeBlock?.name || 'Bloc'}
+                    name={lifeBlock?.name || t('Bloc')}
                     title={block.title}
-                    color={lifeBlock?.color || '#8E8E93'}
+                    color={lifeBlock?.color || colors.system.gray}
                     startTime={block.startTime}
                     endTime={block.endTime}
                     height={height}
                     tasks={blockTasks}
                     isActive={isActive}
-                     onToggleTask={handleToggleTask}
-                     onTaskPress={(task) => setSelectedTaskId(task.id)}
-                     onFocusTask={handleFocusTask}
-                     onPress={() => setSelectedTimelineBlock({
-                      title: block.title || lifeBlock?.name || 'Bloc',
-                      timeRange: `${block.startTime}–${block.endTime}`,
-                      color: lifeBlock?.color || '#8E8E93',
+                    onToggleTask={handleToggleTask}
+                    onTaskPress={(task) => setSelectedTaskId(task.id)}
+                    onFocusTask={handleFocusTask}
+                    onPress={() => setSelectedTimelineBlock({
+                      title: block.title || lifeBlock?.name || t('Bloc'),
+                      timeRange: `${block.startTime} – ${block.endTime}`,
+                      color: lifeBlock?.color || colors.system.gray,
+                      emoji: lifeBlock?.emoji || '⬜',
                       tasks: blockTasks,
                     })}
                   />
                 </View>
-                );
-              })}
-            </View>
+              );
+            })}
 
+            {showNowLine && (
+              <View
+                pointerEvents="none"
+                style={[styles.nowLine, { top: timelineY(nowMinutes - TIMELINE_START) }]}
+              >
+                <View style={[styles.nowDot, { backgroundColor: colors.system.red }]} />
+                <View style={[styles.nowRule, { backgroundColor: colors.system.red }]} />
+              </View>
+            )}
           </View>
         </View>
-      </ScrollView>
+      </Screen>
 
+      <NewTaskSheet
+        visible={newTaskVisible}
+        blocks={activeBlocks}
+        onClose={() => setNewTaskVisible(false)}
+        onAdd={(task) => addTask({ ...task, completed: false, scheduledDate: todayISO() })}
+      />
       <TaskDetailSheet
         task={selectedTask}
         blocks={activeBlocks}
         onClose={() => setSelectedTaskId(undefined)}
         onUpdate={updateTask}
         onDelete={handleDeleteTask}
+        onFocus={handleFocusTask}
       />
-      {selectedTimelineBlock && (
-        <BlockDetailSheet
-          visible
-          title={selectedTimelineBlock.title}
-          timeRange={selectedTimelineBlock.timeRange}
-          color={selectedTimelineBlock.color}
-          tasks={selectedTimelineBlock.tasks.map((task) => tasks.find((currentTask) => currentTask.id === task.id) || task)}
-          onClose={() => setSelectedTimelineBlock(undefined)}
-          onToggleTask={handleToggleTask}
-        />
-      )}
-
-    </SafeAreaView>
+      <BlockDetailSheet
+        visible={!!selectedTimelineBlock}
+        title={selectedTimelineBlock?.title ?? ''}
+        timeRange={selectedTimelineBlock?.timeRange ?? ''}
+        color={selectedTimelineBlock?.color ?? colors.system.gray}
+        emoji={selectedTimelineBlock?.emoji}
+        tasks={(selectedTimelineBlock?.tasks ?? []).map((task) => tasks.find((currentTask) => currentTask.id === task.id) || task)}
+        onClose={() => setSelectedTimelineBlock(undefined)}
+        onToggleTask={handleToggleTask}
+      />
+    </>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
+  prompt: {
+    marginTop: 8,
   },
-  header: {
-    paddingHorizontal: 16,
-    paddingTop: 12,
-    paddingBottom: 8,
-  },
-
-
-  scroll: {
-    flex: 1,
-  },
-  scrollContent: {
-    paddingBottom: 140,
+  tabular: {
+    fontVariant: ['tabular-nums'],
   },
   timelineContainer: {
     position: 'relative',
     height: (END_HOUR - START_HOUR) * HOUR_HEIGHT,
-    marginHorizontal: 16,
-    marginTop: 16,
+    marginHorizontal: 20,
+    marginTop: 12,
+    marginBottom: 16,
   },
   hourLabels: {
     position: 'absolute',
@@ -589,11 +447,29 @@ const styles = StyleSheet.create({
     position: 'absolute',
     left: 0,
     right: 0,
-    height: 0.5,
+    height: StyleSheet.hairlineWidth,
   },
   itemAbsolute: {
     position: 'absolute',
     left: 0,
     right: 0,
+  },
+  nowLine: {
+    position: 'absolute',
+    left: -5,
+    right: 0,
+    height: 10,
+    marginTop: -5,
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  nowDot: {
+    width: 10,
+    height: 10,
+    borderRadius: 5,
+  },
+  nowRule: {
+    flex: 1,
+    height: 1.5,
   },
 });

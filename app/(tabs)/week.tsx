@@ -1,11 +1,6 @@
 import { useState, useCallback, useMemo, useEffect, useRef } from 'react';
-import {
-  View,
-  Text,
-  ScrollView,
-  StyleSheet,
-} from 'react-native';
-import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
+import { Text, View, StyleSheet } from 'react-native';
+import { useRouter } from 'expo-router';
 import { useTemplateStore } from '../../src/features/templates/store';
 import { useLifeBlocksStore } from '../../src/features/lifeBlocks/store';
 import { TemplateBlock } from '../../src/types/template';
@@ -14,19 +9,26 @@ import { EditTemplateBlockModal } from '../../src/components/templates/EditTempl
 import { EmptyState } from '../../src/components/shared/EmptyState';
 import { useTheme } from '../../src/theme';
 import { hapticLight } from '../../src/utils/haptics';
+import { formatDuration, timeToMinutes } from '../../src/utils/time';
 import { PageInfo } from '../../src/components/ui/PageInfo';
-import { AddButton } from '../../src/components/ui/AddButton';
+import { Button } from '../../src/components/ui/Glass';
+import { IconTile, List, Row, SectionHeader } from '../../src/components/ui/List';
+import { Screen } from '../../src/components/ui/Screen';
+import { SymbolNames } from '../../src/components/ui/Symbol';
+import { useTranslation } from '../../src/i18n';
 
 const DAY_LABELS = ['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi', 'Dimanche'];
 
-function timeToMinutes(time: string): number {
-  const [h, m] = time.split(':').map(Number);
-  return h * 60 + m;
+/** Monday-based index of today, matching `TemplateBlock.dayOfWeek`. */
+function todayIndex(): number {
+  const day = new Date().getDay();
+  return day === 0 ? 6 : day - 1;
 }
 
 export default function WeekScreen() {
+  const router = useRouter();
   const { colors, typography } = useTheme();
-  const insets = useSafeAreaInsets();
+  const { t } = useTranslation();
   const [modalVisible, setModalVisible] = useState(false);
   const [editingBlock, setEditingBlock] = useState<TemplateBlock | null>(null);
   const [editingDay, setEditingDay] = useState(0);
@@ -60,6 +62,7 @@ export default function WeekScreen() {
   const template = activeTemplate;
 
   const handleCreate = useCallback((dayOfWeek: number) => {
+    hapticLight();
     setEditingBlock(null);
     setEditingDay(dayOfWeek);
     setModalVisible(true);
@@ -97,122 +100,109 @@ export default function WeekScreen() {
     }, 0);
   }, [template]);
 
-  const formatDuration = (min: number): string => {
-    const h = Math.floor(min / 60);
-    return `${h}h`;
-  };
-
   if (lifeBlocks.length === 0) {
     return (
-      <SafeAreaView style={[styles.container, { backgroundColor: colors.bg.primary }]} edges={['top']}>
-        <View style={styles.header}>
-          <View style={styles.headerTop}>
-            <View>
-              <Text style={[typography.screenTitle, { color: colors.text.primary }]}>Semaine</Text>
-              <Text style={[typography.subheadline, { color: colors.text.secondary }]}>Définis ton template hebdomadaire</Text>
-            </View>
-            <PageInfo
-              title="Semaine"
-              description="Construis une semaine type qui servira de base à ton planning quotidien."
-              points={[
-                'Crée d’abord tes blocs de vie dans l’onglet Blocs.',
-                'Utilise + pour ajouter un créneau à un jour.',
-                'Appuie sur un créneau pour modifier ses horaires ou le supprimer.',
-              ]}
-            />
-          </View>
-        </View>
+      <Screen
+        title={t('Semaine')}
+        subtitle={t('Définis ton template hebdomadaire')}
+        actions={
+          <PageInfo
+            title={t('Semaine')}
+            description={t('Construis une semaine type qui servira de base à ton planning quotidien.')}
+            points={[
+              t('Crée d’abord tes blocs de vie dans l’onglet Blocs.'),
+              t('Ajoute ensuite des créneaux à chaque jour.'),
+              t('Appuie sur un créneau pour modifier ses horaires ou le supprimer.'),
+            ]}
+          />
+        }
+      >
         <EmptyState
-          icon="cube-outline"
-          title="Aucun Life Block"
-          subtitle="Aucun bloc de vie pour le moment"
+          icon={SymbolNames.blocks}
+          title={t('Aucun Life Block')}
+          subtitle={t('Aucun bloc de vie pour le moment')}
+          action={<Button title={t('Créer un bloc de vie')} onPress={() => router.push('/blocks')} />}
         />
-      </SafeAreaView>
+      </Screen>
     );
   }
 
+  const today = todayIndex();
+
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: colors.bg.primary }]} edges={['top']}>
-      <View style={styles.header}>
-        <View style={styles.headerTop}>
-          <View>
-            <Text style={[typography.screenTitle, { color: colors.text.primary }]}>Semaine</Text>
-            <Text style={[typography.subheadline, { color: colors.text.secondary }]}>
-              {template?.name || 'Template'}
-            </Text>
-          </View>
+    <>
+      <Screen
+        title={t('Semaine')}
+        subtitle={
+          totalPlannedMinutes > 0
+            ? t('plannedWeekDuration', { duration: formatDuration(totalPlannedMinutes) })
+            : t('Ton planning type, répété chaque semaine.')
+        }
+        actions={
           <PageInfo
-            title="Semaine"
-            description="Ton planning type, répété chaque semaine."
+            title={t('Semaine')}
+            description={t('Ton planning type, répété chaque semaine.')}
             points={[
-              'Ajoute des blocs pour chaque jour avec le bouton +.',
-              'Les créneaux apparaissent ensuite dans Planning le jour correspondant.',
-              'Le total indique le temps planifié sur toute la semaine.',
+              t('Ajoute des créneaux à chaque jour avec « Ajouter un créneau ».'),
+              t('Les créneaux apparaissent ensuite dans Planning le jour correspondant.'),
+              t('Le total indique le temps planifié sur toute la semaine.'),
             ]}
           />
-        </View>
-        {totalPlannedMinutes > 0 && (
-          <Text style={[typography.footnote, { color: colors.text.quaternary }]}>
-            {formatDuration(totalPlannedMinutes)} planifiées cette semaine
-          </Text>
-        )}
-      </View>
-
-      <ScrollView
-        style={styles.scroll}
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={[styles.scrollContent, { paddingBottom: 96 + insets.bottom }]}
+        }
       >
-        {DAY_LABELS.map((dayLabel, dayIndex) => {
+        {DAY_LABELS.map((day, dayIndex) => {
+          const dayLabel = t(day);
           const dayBlocks = template
             ? getBlocksForDay(dayIndex).sort((a, b) =>
                 a.startTime.localeCompare(b.startTime)
               )
             : [];
+          const dayMinutes = dayBlocks.reduce(
+            (sum, b) => sum + (timeToMinutes(b.endTime) - timeToMinutes(b.startTime)),
+            0
+          );
 
           return (
-            <View key={dayIndex} style={{ marginBottom: 24 }}>
-              <View style={styles.dayHeader}>
-                <Text style={[typography.sectionHeader, { color: colors.text.primary }]}>{dayLabel}</Text>
-                <AddButton
-                  onPress={() => handleCreate(dayIndex)}
-                  accessibilityLabel={`Ajouter un bloc le ${dayLabel}`}
-                />
-              </View>
-
-              {dayBlocks.length === 0 ? null : (
-                <View
-                  style={{
-                    backgroundColor: colors.bg.secondary,
-                    borderRadius: 13,
-                    marginHorizontal: 16,
-                    overflow: 'hidden',
-                  }}
-                >
-                  {dayBlocks.map((block, index) => {
-                    const lifeBlock = lifeBlocks.find(
-                      (lb) => lb.id === block.lifeBlockId
-                    );
-                    return (
-                      <View key={block.id}>
-                        <TemplateBlockCard
-                          block={block}
-                          lifeBlock={lifeBlock}
-                          onPress={() => handleEdit(block)}
-                        />
-                        {index < dayBlocks.length - 1 && (
-                          <View style={{ height: 0.5, backgroundColor: colors.separator.hairline, marginLeft: 57 }} />
-                        )}
+            <View key={dayIndex}>
+              <SectionHeader
+                title={dayLabel}
+                trailing={
+                  <View style={styles.dayMeta}>
+                    {dayIndex === today && (
+                      <View style={[styles.todayBadge, { backgroundColor: colors.accent }]}>
+                        <Text style={[typography.caption, styles.todayText, { color: colors.text.inverse }]}>
+                          {t('Aujourd’hui')}
+                        </Text>
                       </View>
-                    );
-                  })}
-                </View>
-              )}
+                    )}
+                    {dayMinutes > 0 && (
+                      <Text style={typography.subheadline}>{formatDuration(dayMinutes)}</Text>
+                    )}
+                  </View>
+                }
+              />
+
+              <List separatorInset={64}>
+                {dayBlocks.map((block) => (
+                  <TemplateBlockCard
+                    key={block.id}
+                    block={block}
+                    lifeBlock={lifeBlocks.find((lb) => lb.id === block.lifeBlockId)}
+                    onPress={() => handleEdit(block)}
+                  />
+                ))}
+                <Row
+                  leading={<IconTile color={colors.accent} symbol={SymbolNames.add} />}
+                  title={t('Ajouter un créneau')}
+                  tint={colors.accent}
+                  onPress={() => handleCreate(dayIndex)}
+                  accessibilityLabel={`${t('Ajouter un bloc le')} ${dayLabel}`}
+                />
+              </List>
             </View>
           );
         })}
-        <View style={{ height: 40 }} />
-      </ScrollView>
+      </Screen>
 
       {template && (
         <EditTemplateBlockModal
@@ -226,38 +216,22 @@ export default function WeekScreen() {
           onDelete={editingBlock ? handleDelete : undefined}
         />
       )}
-    </SafeAreaView>
+    </>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-  header: {
-    paddingHorizontal: 16,
-    paddingTop: 16,
-    paddingBottom: 8,
-  },
-  headerTop: {
+  dayMeta: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-end',
-  },
-
-
-  scroll: {
-    flex: 1,
-  },
-  scrollContent: {
-    paddingBottom: 40,
-  },
-  dayHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
-    marginHorizontal: 16,
-    marginBottom: 8,
+    gap: 10,
   },
-
+  todayBadge: {
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 10,
+  },
+  todayText: {
+    fontWeight: '600',
+  },
 });

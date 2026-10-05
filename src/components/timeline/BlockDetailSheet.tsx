@@ -1,38 +1,97 @@
-import { Modal, Pressable, ScrollView, Text, View } from 'react-native';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { Task } from '../../types/task';
 import { useTheme } from '../../theme';
+import { useTranslation } from '../../i18n';
+import { Checkbox } from '../ui/Checkbox';
+import { Card, IconTile, List, SectionHeader } from '../ui/List';
+import { Sheet } from '../ui/Sheet';
 
 interface BlockDetailSheetProps {
   title: string;
   timeRange: string;
   color: string;
+  emoji?: string;
   tasks: Task[];
   visible: boolean;
   onClose: () => void;
   onToggleTask: (id: string) => void;
 }
 
-export function BlockDetailSheet({ title, timeRange, color, tasks, visible, onClose, onToggleTask }: BlockDetailSheetProps) {
+export function BlockDetailSheet({ title, timeRange, color, emoji, tasks, visible, onClose, onToggleTask }: BlockDetailSheetProps) {
   const { colors, typography } = useTheme();
+  const { t } = useTranslation();
+
   return (
-    <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
-      <Pressable style={{ flex: 1, justifyContent: 'flex-end', backgroundColor: '#00000088' }} onPress={onClose}>
-        <Pressable style={{ backgroundColor: colors.bg.secondary, borderTopLeftRadius: 16, borderTopRightRadius: 16, padding: 20, paddingBottom: 34, maxHeight: '70%' }} onPress={() => {}}>
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-            <View style={{ width: 8, height: 8, borderRadius: 4, backgroundColor: color }} />
-            <Text style={{ flex: 1, color: colors.text.primary, fontSize: typography.sizes.lg, fontWeight: typography.weights.medium }}>{title}</Text>
-            <Text style={{ color: colors.text.secondary, fontSize: typography.sizes.sm }}>{timeRange}</Text>
+    <Sheet visible={visible} title={t('Bloc')} onClose={onClose}>
+      <Card padded>
+        <View style={styles.header}>
+          <IconTile color={color} emoji={emoji} size={48} />
+          <View style={styles.headerText}>
+            <Text style={typography.title3}>{title}</Text>
+            <Text style={[typography.subheadline, styles.time]}>{timeRange}</Text>
           </View>
-          <ScrollView style={{ marginTop: 16 }}>
-            {tasks.map((task) => (
-              <Pressable key={task.id} onPress={() => onToggleTask(task.id)} style={{ flexDirection: 'row', alignItems: 'center', gap: 8, paddingVertical: 10 }}>
-                <View style={{ width: 8, height: 8, borderRadius: 4, backgroundColor: task.completed ? colors.system.green : colors.system.gray3 }} />
-                <Text style={{ color: task.completed ? colors.text.quaternary : colors.text.primary, textDecorationLine: task.completed ? 'line-through' : 'none', fontSize: typography.sizes.base }}>{task.title}</Text>
-              </Pressable>
-            ))}
-          </ScrollView>
-        </Pressable>
-      </Pressable>
-    </Modal>
+        </View>
+      </Card>
+
+      <SectionHeader title={t('Tâches')} />
+      {tasks.length === 0 ? (
+        <Card padded>
+          <Text style={typography.subheadline}>{t('Aucune tâche dans ce bloc.')}</Text>
+        </Card>
+      ) : (
+        <List separatorInset={52}>
+          {tasks.map((task) => (
+            <Pressable
+              key={task.id}
+              onPress={() => onToggleTask(task.id)}
+              style={({ pressed }) => [
+                styles.task,
+                { backgroundColor: pressed ? colors.bg.hover : 'transparent' },
+              ]}
+            >
+              <Checkbox
+                checked={task.completed}
+                onToggle={() => onToggleTask(task.id)}
+                accessibilityLabel={task.title}
+              />
+              <Text
+                style={[
+                  typography.body,
+                  styles.taskTitle,
+                  task.completed && { color: colors.text.tertiary, textDecorationLine: 'line-through' },
+                ]}
+              >
+                {task.title}
+              </Text>
+            </Pressable>
+          ))}
+        </List>
+      )}
+    </Sheet>
   );
 }
+
+const styles = StyleSheet.create({
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 14,
+  },
+  headerText: {
+    flex: 1,
+  },
+  time: {
+    marginTop: 2,
+  },
+  task: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    minHeight: 52,
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+  },
+  taskTitle: {
+    flex: 1,
+  },
+});

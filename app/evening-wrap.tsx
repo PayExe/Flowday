@@ -1,18 +1,6 @@
-import { useState, useMemo, useRef, useEffect } from 'react';
-import {
-  View,
-  Text,
-  Pressable,
-  TextInput,
-  StyleSheet,
-  ScrollView,
-  Alert,
-  Animated,
-  KeyboardAvoidingView,
-} from 'react-native';
+import { useState, useMemo } from 'react';
+import { View, Text, TextInput, Pressable, StyleSheet, Alert } from 'react-native';
 import { useRouter } from 'expo-router';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { Ionicons } from '@expo/vector-icons';
 import { useTaskStore } from '../src/features/tasks/store';
 import { useDayScoreStore } from '../src/features/dayScore/store';
 import { useRitualStore } from '../src/features/rituals/store';
@@ -20,6 +8,13 @@ import { useTheme } from '../src/theme';
 import { dateKey } from '../src/utils/dates';
 import { hapticLight, hapticWarning } from '../src/utils/haptics';
 import { PageInfo } from '../src/components/ui/PageInfo';
+import { Button } from '../src/components/ui/Glass';
+import { Card } from '../src/components/ui/List';
+import { ProgressRing } from '../src/components/ui/ProgressRing';
+import { Symbol, SymbolNames } from '../src/components/ui/Symbol';
+import { ScoreCard, getScoreLabel } from '../src/components/dayScore/ScoreCard';
+import { RitualScaffold, StepHeading } from '../src/components/rituals/RitualScaffold';
+import { useTranslation } from '../src/i18n';
 
 function todayISO(): string {
   return dateKey();
@@ -39,18 +34,12 @@ function endOfWeekISO(): string {
   return dateKey(d);
 }
 
-function getScoreLabel(score: number): string {
-  if (score >= 90) return 'Journée parfaite';
-  if (score >= 75) return 'Bonne journée';
-  if (score >= 60) return 'Journée correcte';
-  if (score >= 45) return 'Journée mitigée';
-  if (score >= 30) return 'Journée difficile';
-  return 'Ça arrive';
-}
+const STEP_COUNT = 4;
 
 export default function EveningWrapScreen() {
   const router = useRouter();
   const { colors, typography } = useTheme();
+  const { t } = useTranslation();
   const [step, setStep] = useState(1);
   const [note, setNote] = useState('');
 
@@ -71,37 +60,16 @@ export default function EveningWrapScreen() {
   const todayTasks = useMemo(() => getTodayTasks(), [tasks, getTodayTasks]);
   const incompleteTasks = useMemo(() => todayTasks.filter((t) => !t.completed), [todayTasks]);
 
-  const dayScore = useMemo(() => {
-    const score = getScoreForDate(today);
-    return score?.total || 0;
-  }, [scores, getScoreForDate, today]);
-
-  const scoreDetail = useMemo(() => {
-    const score = getScoreForDate(today);
-    if (!score) return null;
-    return {
-      blocks: score.blocksPercent,
-      tasks: score.tasksPercent,
-      pomodoros: score.pomodorosPercent,
-      rituals: score.ritualsPercent,
-    };
-  }, [scores, getScoreForDate, today]);
-
-  const handleRescheduleTomorrow = (taskId: string) => {
-    rescheduleTask(taskId, tomorrowISO());
-  };
-
-  const handleRescheduleWeek = (taskId: string) => {
-    rescheduleTask(taskId, endOfWeekISO());
-  };
+  const score = useMemo(() => getScoreForDate(today), [scores, getScoreForDate, today]);
+  const dayScore = score?.total || 0;
 
   const handleDelete = (taskId: string) => {
     Alert.alert(
-      'Supprimer cette tâche ?',
-      'Cette action est irréversible.',
+      t('Supprimer cette tâche ?'),
+      t('Cette action est irréversible.'),
       [
-        { text: 'Annuler', style: 'cancel' },
-        { text: 'Supprimer', style: 'destructive', onPress: () => deleteTask(taskId) },
+        { text: t('Annuler'), style: 'cancel' },
+        { text: t('Supprimer'), style: 'destructive', onPress: () => deleteTask(taskId) },
       ]
     );
   };
@@ -114,23 +82,11 @@ export default function EveningWrapScreen() {
 
   const allTasksHandled = incompleteTasks.length === 0 || tasksSkipped;
 
-  const dotWidths = useRef([24, 8, 8, 8].map((w) => new Animated.Value(w))).current;
-
-  useEffect(() => {
-    dotWidths.forEach((dot, i) => {
-      Animated.spring(dot, {
-        toValue: i === step - 1 ? 24 : 8,
-        useNativeDriver: false,
-        friction: 8,
-      }).start();
-    });
-  }, [step]);
-
   const nextStep = () => {
     hapticLight();
-    if (step < 4) {
+    if (step < STEP_COUNT) {
       if (step === 2 && !allTasksHandled) {
-        Alert.alert('Tâches en attente', 'Tu dois décider de chaque tâche non faite.');
+        Alert.alert(t('Tâches en attente'), t('Tu dois décider de chaque tâche non faite.'));
         return;
       }
       setStep(step + 1);
@@ -139,319 +95,204 @@ export default function EveningWrapScreen() {
     }
   };
 
-  const renderStep1 = () => (
-    <View style={styles.stepContent}>
-      <Text style={[styles.stepTitle, { color: colors.text.primary }]}>Bilan de la journée</Text>
-
-      <View style={{ alignItems: 'center', marginTop: 32, marginBottom: 16 }}>
-        <Text style={{ fontSize: 72, fontWeight: '700', color: colors.text.primary, letterSpacing: -2 }}>
-          {dayScore}
-        </Text>
-        <Text style={{ fontSize: typography.sizes.lg, color: colors.text.secondary, marginTop: 4 }}>
-          {getScoreLabel(dayScore)}
-        </Text>
-      </View>
-
-      {scoreDetail && (
-        <View style={{ width: '100%', gap: 10, marginTop: 8 }}>
-          {[
-            { label: 'Blocs', value: scoreDetail.blocks, color: colors.system.blue },
-            { label: 'Tâches', value: scoreDetail.tasks, color: colors.system.green },
-            { label: 'Focus', value: scoreDetail.pomodoros, color: colors.system.purple },
-            { label: 'Rituels', value: scoreDetail.rituals, color: colors.system.orange },
-          ].map(({ label, value, color }) => (
-            <View key={label} style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
-              <Text style={{ fontSize: typography.sizes.sm, color: colors.text.quaternary, width: 52, textAlign: 'right' }}>
-                {label}
-              </Text>
-              <View style={{ flex: 1, height: 3, backgroundColor: colors.bg.hover, borderRadius: 2, overflow: 'hidden' }}>
-                <View style={{ width: `${Math.min(Math.max(value, 0), 100)}%`, height: '100%', backgroundColor: color, borderRadius: 2 }} />
-              </View>
-              <Text style={{ fontSize: typography.sizes.sm, color: colors.text.quaternary, width: 36, textAlign: 'right' }}>
-                {Math.round(value)}%
-              </Text>
-            </View>
-          ))}
-        </View>
-      )}
-    </View>
+  const renderReview = () => (
+    <>
+      <StepHeading title={t('Bilan de la journée')} />
+      <ScoreCard
+        score={dayScore}
+        blocksPercent={score?.blocksPercent}
+        tasksPercent={score?.tasksPercent}
+        pomodorosPercent={score?.pomodorosPercent}
+        ritualsPercent={score?.ritualsPercent}
+      />
+    </>
   );
 
-  const renderStep2 = () => (
-    <View style={styles.stepContent}>
-      <Text style={[styles.stepTitle, { color: colors.text.primary }]}>Tâches non faites</Text>
-      <Text style={[styles.stepSubtitle, { color: colors.text.secondary }]}>
-        {incompleteTasks.length === 0
-          ? "Toutes les tâches sont cochées. Bravo !"
-          : `${incompleteTasks.length} tâche${incompleteTasks.length > 1 ? 's' : ''} en attente`}
-      </Text>
+  const renderTasks = () => (
+    <>
+      <StepHeading
+        title={t('Tâches non faites')}
+        subtitle={
+          incompleteTasks.length === 0
+            ? t('Toutes les tâches sont cochées. Bravo !')
+            : t('pendingTasksCount', { count: incompleteTasks.length })
+        }
+      />
 
       {incompleteTasks.length === 0 ? (
-        <View style={{ alignItems: 'center', marginTop: 40 }}>
-          <Ionicons name="checkmark-done-circle-outline" size={64} color={colors.system.green} />
-          <Text style={{ fontSize: typography.sizes.lg, color: colors.system.green, marginTop: 16, fontWeight: '600' }}>
-            Journée complète !
+        <View style={styles.allDone}>
+          <Symbol name={SymbolNames.checkmarkCircle} size={64} color={colors.system.green} />
+          <Text style={[typography.headline, { color: colors.system.green }]}>
+            {t('Journée complète !')}
           </Text>
         </View>
       ) : (
-        <View style={{ width: '100%', marginTop: 24, gap: 10 }}>
+        <View style={styles.taskList}>
           {incompleteTasks.map((task) => (
-            <View
-              key={task.id}
-              style={{
-                backgroundColor: colors.bg.secondary,
-                borderRadius: 13,
-                padding: 16,
-              }}
-            >
-              <Text style={{ fontSize: typography.sizes.lg, color: colors.text.primary, fontWeight: '500', letterSpacing: -0.41, marginBottom: 12 }} numberOfLines={2}>
+            <Card key={task.id} padded>
+              <Text style={typography.headline} numberOfLines={2}>
                 {task.title}
               </Text>
-              <View style={{ flexDirection: 'row', gap: 8 }}>
+              <View style={styles.reschedule}>
+                {[
+                  { label: t('Demain'), onPress: () => rescheduleTask(task.id, tomorrowISO()) },
+                  { label: t('Cette semaine'), onPress: () => rescheduleTask(task.id, endOfWeekISO()) },
+                ].map((action) => (
+                  <Pressable
+                    key={action.label}
+                    accessibilityRole="button"
+                    style={({ pressed }) => [
+                      styles.rescheduleButton,
+                      { backgroundColor: pressed ? colors.bg.hover : colors.bg.tertiary },
+                    ]}
+                    onPress={() => { hapticLight(); action.onPress(); }}
+                  >
+                    <Text style={[typography.footnote, styles.rescheduleLabel, { color: colors.accent }]}>
+                      {action.label}
+                    </Text>
+                  </Pressable>
+                ))}
                 <Pressable
-                  style={({ pressed }) => ({
-                    flex: 1,
-                    backgroundColor: pressed ? colors.system.gray4 : colors.bg.hover,
-                    borderRadius: 10,
-                    paddingVertical: 10,
-                    alignItems: 'center',
-                  })}
-                  onPress={() => { hapticLight(); handleRescheduleTomorrow(task.id); }}
-                >
-                  <Text style={{ fontSize: typography.sizes.sm, color: colors.text.primary, fontWeight: '500' }}>Demain</Text>
-                </Pressable>
-                <Pressable
-                  style={({ pressed }) => ({
-                    flex: 1,
-                    backgroundColor: pressed ? colors.system.gray4 : colors.bg.hover,
-                    borderRadius: 10,
-                    paddingVertical: 10,
-                    alignItems: 'center',
-                  })}
-                  onPress={() => { hapticLight(); handleRescheduleWeek(task.id); }}
-                >
-                  <Text style={{ fontSize: typography.sizes.sm, color: colors.text.primary, fontWeight: '500' }}>Cette semaine</Text>
-                </Pressable>
-                <Pressable
-                  style={({ pressed }) => ({
-                    flex: 1,
-                    backgroundColor: pressed ? colors.system.gray4 : colors.bg.hover,
-                    borderRadius: 10,
-                    paddingVertical: 10,
-                    alignItems: 'center',
-                  })}
+                  accessibilityRole="button"
+                  style={({ pressed }) => [
+                    styles.rescheduleButton,
+                    { backgroundColor: pressed ? colors.bg.hover : colors.bg.tertiary },
+                  ]}
                   onPress={() => { hapticWarning(); handleDelete(task.id); }}
                 >
-                  <Text style={{ fontSize: typography.sizes.sm, color: colors.system.red, fontWeight: '500' }}>Supprimer</Text>
+                  <Text style={[typography.footnote, styles.rescheduleLabel, { color: colors.system.red }]}>
+                    {t('Supprimer')}
+                  </Text>
                 </Pressable>
               </View>
-            </View>
+            </Card>
           ))}
         </View>
       )}
-    </View>
+    </>
   );
 
-  const renderStep3 = () => (
-    <View style={styles.stepContent}>
-      <Text style={[styles.stepTitle, { color: colors.text.primary }]}>Note du jour</Text>
-      <Text style={[styles.stepSubtitle, { color: colors.text.secondary }]}>Qu'est-ce qui s'est passé aujourd'hui ?</Text>
-
-      <TextInput
-        style={{
-          marginTop: 32,
-          backgroundColor: colors.bg.secondary,
-          borderRadius: 13,
-          paddingHorizontal: 16,
-          paddingVertical: 14,
-          fontSize: typography.sizes.lg,
-          color: colors.text.primary,
-          width: '100%',
-          height: 120,
-          textAlignVertical: 'top',
-          letterSpacing: -0.41,
-        }}
-        placeholder="1-3 phrases max..."
-        placeholderTextColor={colors.text.placeholder}
-        value={note}
-        onChangeText={setNote}
-        multiline
-        maxLength={200}
-        autoFocus
-      />
-
-      <Pressable onPress={nextStep} style={{ marginTop: 12, padding: 12 }}>
-        <Text style={{ fontSize: typography.sizes.base, color: colors.text.secondary }}>Passer →</Text>
-      </Pressable>
-    </View>
+  const renderNote = () => (
+    <>
+      <StepHeading title={t('Note du jour')} subtitle={t("Qu'est-ce qui s'est passé aujourd'hui ?")} />
+      <Card>
+        <TextInput
+          style={[typography.body, styles.noteInput]}
+          placeholder={t('1-3 phrases max...')}
+          placeholderTextColor={colors.text.placeholder}
+          value={note}
+          onChangeText={setNote}
+          multiline
+          maxLength={200}
+          autoFocus
+        />
+      </Card>
+    </>
   );
 
-  const renderStep4 = () => (
-    <View style={styles.stepContent}>
-      <Text style={[styles.stepTitle, { color: colors.text.primary }]}>Journée validée.</Text>
-
-      <View style={{ alignItems: 'center', marginTop: 32, marginBottom: 16 }}>
-        <Text style={{ fontSize: 64, fontWeight: '700', color: colors.system.blue, letterSpacing: -2 }}>
-          {dayScore}
-        </Text>
-        <Text style={{ fontSize: typography.sizes.lg, color: colors.text.secondary, marginTop: 4 }}>
-          {getScoreLabel(dayScore)}
-        </Text>
+  const renderDone = () => (
+    <>
+      <StepHeading title={t('Journée validée.')} subtitle={t('Bonne nuit 🌙')} />
+      <View style={styles.finalScore}>
+        <ProgressRing value={dayScore} size={168} strokeWidth={14} color={colors.accent}>
+          <Text style={[styles.finalScoreValue, { color: colors.text.primary }]}>{dayScore}</Text>
+          <Text style={typography.footnote}>{getScoreLabel(dayScore, t)}</Text>
+        </ProgressRing>
       </View>
 
-      {note.trim() && (
-        <View
-          style={{
-            backgroundColor: colors.bg.secondary,
-            borderRadius: 13,
-            padding: 16,
-            width: '100%',
-            marginTop: 8,
-          }}
-        >
-          <Text style={{ fontSize: typography.sizes.xs, color: colors.text.quaternary, textTransform: 'uppercase', letterSpacing: 1, marginBottom: 6 }}>
-            Ta note
-          </Text>
-          <Text style={{ fontSize: typography.sizes.base, color: colors.text.primary, fontStyle: 'italic' }}>{note.trim()}</Text>
-        </View>
+      {note.trim().length > 0 && (
+        <Card padded style={styles.noteCard}>
+          <Text style={[typography.footnote, styles.noteLabel]}>{t('Ta note')}</Text>
+          <Text style={typography.body}>{note.trim()}</Text>
+        </Card>
       )}
-
-      <Text style={{ fontSize: typography.sizes.xl, color: colors.text.secondary, marginTop: 32 }}>Bonne nuit 🌙</Text>
-    </View>
-  );
-
-  const renderStepIndicator = () => (
-    <View style={{ flexDirection: 'row', gap: 6 }}>
-      {[1, 2, 3, 4].map((s) => (
-        <Animated.View
-          key={s}
-          style={{
-            width: dotWidths[s - 1],
-            height: 8,
-            borderRadius: 4,
-            backgroundColor: s <= step ? colors.system.blue : colors.separator.default,
-          }}
-        />
-      ))}
-    </View>
+    </>
   );
 
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: colors.bg.primary }]} edges={['top']}>
-      <KeyboardAvoidingView style={styles.keyboardAvoiding} behavior="padding">
-        <View style={styles.header}>
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-            <Text style={{ fontSize: typography.sizes.lg, fontWeight: '700', color: colors.text.primary }}>Flowday</Text>
-            <PageInfo
-              title="Evening Wrap"
-              description="Termine ta journée proprement et prépare la suivante."
-              points={[
-                'Consulte ton score et le détail de ta journée.',
-                'Décide quoi faire des tâches non terminées : demain, cette semaine ou supprimer.',
-                'Ajoute une courte note avant de valider ta journée.',
-              ]}
-            />
-          </View>
-          {renderStepIndicator()}
-        </View>
-
-        <ScrollView
-          style={styles.scroll}
-          contentContainerStyle={styles.scrollContent}
-          showsVerticalScrollIndicator={false}
-          keyboardDismissMode="interactive"
-        >
-          {step === 1 && renderStep1()}
-          {step === 2 && renderStep2()}
-          {step === 3 && renderStep3()}
-          {step === 4 && renderStep4()}
-        </ScrollView>
-
-        <View style={[styles.footer, { borderTopColor: colors.separator.default }]}>
-          {step > 1 && (
-            <Pressable
-              style={{ padding: 12 }}
-              onPress={() => setStep(step - 1)}
-            >
-              <Text style={{ fontSize: typography.sizes.lg, color: colors.text.secondary }}>← Retour</Text>
-            </Pressable>
-          )}
-
-          {step === 2 && incompleteTasks.length > 0 && !tasksSkipped && (
-            <Pressable
-              style={{ padding: 12 }}
-              onPress={() => setTasksSkipped(true)}
-            >
-              <Text style={{ fontSize: typography.sizes.base, color: colors.system.orange }}>Ignorer les tâches</Text>
-            </Pressable>
-          )}
-
-          <Pressable
-            style={({ pressed }) => ({
-              backgroundColor: pressed ? colors.system.blue + 'CC' : colors.system.blue,
-              borderRadius: 13,
-              paddingHorizontal: 24,
-              paddingVertical: 14,
-              opacity: step === 2 && !allTasksHandled ? 0.4 : 1,
-            })}
-            onPress={nextStep}
-            disabled={step === 2 && !allTasksHandled}
-          >
-            <Text style={{ fontSize: typography.sizes.lg, fontWeight: '600', color: colors.text.inverse }}>
-              {step === 4 ? 'Bonne nuit →' : 'Suivant →'}
-            </Text>
-          </Pressable>
-        </View>
-      </KeyboardAvoidingView>
-    </SafeAreaView>
+    <RitualScaffold
+      step={step}
+      stepCount={STEP_COUNT}
+      leading={<Text style={typography.headline}>{t('Evening Wrap')}</Text>}
+      trailing={
+        <PageInfo
+          title={t('Evening Wrap')}
+          description={t('Termine ta journée proprement et prépare la suivante.')}
+          points={[
+            t('Consulte ton score et le détail de ta journée.'),
+            t('Décide quoi faire des tâches non terminées : demain, cette semaine ou supprimer.'),
+            t('Ajoute une courte note avant de valider ta journée.'),
+          ]}
+        />
+      }
+      onBack={step > 1 ? () => setStep(step - 1) : undefined}
+      primaryTitle={
+        step === STEP_COUNT
+          ? t('Terminer la journée')
+          : step === 3 && !note.trim()
+            ? t('Passer')
+            : t('Suivant')
+      }
+      onPrimary={nextStep}
+      primaryDisabled={step === 2 && !allTasksHandled}
+      secondary={
+        step === 2 && incompleteTasks.length > 0 && !tasksSkipped ? (
+          <Button title={t('Ignorer les tâches')} variant="plain" onPress={() => setTasksSkipped(true)} />
+        ) : undefined
+      }
+    >
+      {step === 1 && renderReview()}
+      {step === 2 && renderTasks()}
+      {step === 3 && renderNote()}
+      {step === 4 && renderDone()}
+    </RitualScaffold>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-  keyboardAvoiding: {
-    flex: 1,
-  },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
+  allDone: {
     alignItems: 'center',
-    paddingHorizontal: 16,
-    paddingTop: 16,
-    paddingBottom: 12,
+    gap: 16,
   },
-  scroll: {
+  taskList: {
+    gap: 12,
+  },
+  reschedule: {
+    flexDirection: 'row',
+    gap: 8,
+    marginTop: 14,
+  },
+  rescheduleButton: {
     flex: 1,
-  },
-  scrollContent: {
-    flexGrow: 1,
+    height: 36,
+    borderRadius: 18,
+    alignItems: 'center',
     justifyContent: 'center',
+    paddingHorizontal: 8,
+  },
+  rescheduleLabel: {
+    fontWeight: '600',
+  },
+  noteInput: {
+    minHeight: 140,
     paddingHorizontal: 16,
-    paddingBottom: 32,
+    paddingVertical: 14,
+    textAlignVertical: 'top',
   },
-  stepContent: {
+  finalScore: {
     alignItems: 'center',
-    width: '100%',
   },
-  stepTitle: {
-    fontSize: 32,
+  finalScoreValue: {
+    fontSize: 54,
     fontWeight: '700',
-    textAlign: 'center',
-    letterSpacing: -0.5,
+    letterSpacing: -1,
+    fontVariant: ['tabular-nums'],
   },
-  stepSubtitle: {
-    fontSize: 17,
-    textAlign: 'center',
-    marginTop: 8,
+  noteCard: {
+    marginTop: 28,
   },
-  footer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 16,
-    paddingVertical: 16,
-    borderTopWidth: 0.5,
+  noteLabel: {
+    fontWeight: '600',
+    marginBottom: 6,
   },
 });

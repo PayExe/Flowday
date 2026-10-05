@@ -1,19 +1,13 @@
 import { useState, useEffect } from 'react';
-import {
-  View,
-  Text,
-  TextInput,
-  Pressable,
-  Modal,
-  ScrollView,
-  StyleSheet,
-  KeyboardAvoidingView,
-  Platform,
-} from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { View, Text, TextInput, Pressable, StyleSheet } from 'react-native';
 import { LifeBlock, LifeBlockColors, LifeBlockColor } from '../../types/lifeBlock';
-import { useTheme } from '../../theme';
-import { hapticSuccess } from '../../utils/haptics';
+import { resolveBlockColor, useTheme } from '../../theme';
+import { hapticLight, hapticSuccess } from '../../utils/haptics';
+import { useTranslation } from '../../i18n';
+import { Button } from '../ui/Glass';
+import { Card, IconTile } from '../ui/List';
+import { FieldLabel, Sheet } from '../ui/Sheet';
+import { Symbol, SymbolNames } from '../ui/Symbol';
 
 interface EditBlockModalProps {
   visible: boolean;
@@ -30,10 +24,9 @@ interface EditBlockModalProps {
 }
 
 const EMOJIS = [
-  '💻', '🏃', '🍳', '📚', '🧘',
-  '🎸', '✍️', '🌱', '🎨', '🎮',
-  '💤', '💰', '🧹', '🎯', '🧠',
-  '🏠', '✈️', '🐕', '📸', '🎧',
+  '💻', '🏃', '🍳', '📚', '🧘', '🎸', '✍️',
+  '🌱', '🎨', '🎮', '💤', '💰', '🧹', '🎯',
+  '🧠', '🏠', '✈️', '🐕', '📸', '🎧', '❤️',
 ];
 
 function parseGoalInput(input: string): number {
@@ -52,12 +45,12 @@ function parseGoalInput(input: string): number {
   return isNaN(num) ? 0 : num;
 }
 
-function formatGoal(minutes: number): string {
+function formatGoal(minutes: number, t: (key: string) => string): string {
   const h = Math.floor(minutes / 60);
   const m = minutes % 60;
-  if (h > 0 && m > 0) return `${h}h${m}`;
-  if (h > 0) return `${h}h`;
-  return `${m}min`;
+  if (h > 0 && m > 0) return `${h}${t('h')}${m}`;
+  if (h > 0) return `${h}${t('h')}`;
+  return `${m}${t('min')}`;
 }
 
 export function EditBlockModal({
@@ -68,7 +61,8 @@ export function EditBlockModal({
   onArchive,
   onUnarchive,
 }: EditBlockModalProps) {
-  const { colors, typography } = useTheme();
+  const { colors, typography, isDark } = useTheme();
+  const { t } = useTranslation();
   const isEditing = block !== null;
 
   const [name, setName] = useState('');
@@ -81,7 +75,7 @@ export function EditBlockModal({
       setName(block.name);
       setSelectedEmoji(block.emoji);
       setSelectedColor(block.color);
-      setGoalInput(formatGoal(block.weeklyGoalMinutes));
+      setGoalInput(formatGoal(block.weeklyGoalMinutes, t));
     } else {
       setName('');
       setSelectedEmoji('💻');
@@ -90,8 +84,10 @@ export function EditBlockModal({
     }
   }, [block, visible]);
 
+  const canSave = name.trim().length > 0;
+
   const handleSave = () => {
-    if (!name.trim()) return;
+    if (!canSave) return;
     hapticSuccess();
     const weeklyGoalMinutes = parseGoalInput(goalInput) || 0;
     onSave({
@@ -104,243 +100,188 @@ export function EditBlockModal({
   };
 
   return (
-    <Modal
+    <Sheet
       visible={visible}
-      animationType="slide"
-      transparent
-      onRequestClose={onClose}
+      title={isEditing ? t('Modifier le bloc') : t('Nouveau bloc')}
+      onClose={onClose}
+      onConfirm={handleSave}
+      confirmLabel={isEditing ? t('Enregistrer') : t('Créer')}
+      confirmDisabled={!canSave}
     >
-      <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        style={[styles.overlay, { backgroundColor: colors.bg.primary + 'CC' }]}
-      >
-        <View style={[styles.modal, { backgroundColor: colors.bg.elevated }]}>
-          <View style={styles.header}>
-            <Text style={[styles.title, { color: colors.text.primary }]}>
-              {isEditing ? 'Modifier le bloc' : 'Nouveau bloc'}
-            </Text>
-            <Pressable onPress={onClose} style={styles.closeBtn}>
-              <Ionicons name="close" size={24} color={colors.text.secondary} />
+      <View style={styles.preview}>
+        <IconTile color={selectedColor} emoji={selectedEmoji} size={84} />
+      </View>
+
+      <Card>
+        <TextInput
+          style={[typography.body, styles.input]}
+          placeholder={t('Ex: Deep Work, Sport...')}
+          placeholderTextColor={colors.text.placeholder}
+          value={name}
+          onChangeText={setName}
+          autoFocus={!isEditing}
+          accessibilityLabel={t('Nom')}
+        />
+      </Card>
+
+      <FieldLabel>{t('Emoji')}</FieldLabel>
+      <Card padded>
+        <View style={styles.grid}>
+          {EMOJIS.map((emoji) => (
+            <Pressable
+              key={emoji}
+              accessibilityRole="button"
+              accessibilityState={{ selected: selectedEmoji === emoji }}
+              style={[
+                styles.emoji,
+                selectedEmoji === emoji && { backgroundColor: colors.bg.tertiary },
+              ]}
+              onPress={() => {
+                hapticLight();
+                setSelectedEmoji(emoji);
+              }}
+            >
+              <Text style={styles.emojiText}>{emoji}</Text>
             </Pressable>
-          </View>
-
-          <ScrollView showsVerticalScrollIndicator={false}>
-            <View style={styles.section}>
-              <Text style={[styles.label, { color: colors.text.secondary }]}>Nom</Text>
-              <TextInput
-                style={[styles.input, { backgroundColor: colors.bg.input, color: colors.text.primary }]}
-                placeholder="Ex: Deep Work, Sport..."
-                placeholderTextColor={colors.text.placeholder}
-                value={name}
-                onChangeText={setName}
-                autoFocus={!isEditing}
-              />
-            </View>
-
-            <View style={styles.section}>
-              <Text style={[styles.label, { color: colors.text.secondary }]}>Emoji</Text>
-              <TextInput
-                style={{
-                  backgroundColor: colors.bg.input,
-                  borderRadius: 10,
-                  fontSize: typography.sizes.xxxl,
-                  color: colors.text.primary,
-                  textAlign: 'center',
-                  paddingVertical: 12,
-                }}
-                value={selectedEmoji}
-                onChangeText={(text) => setSelectedEmoji(text.slice(0, 2))}
-                maxLength={2}
-                keyboardType="default"
-              />
-              <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginTop: 10, justifyContent: 'center' }}>
-                {EMOJIS.map((emoji) => (
-                  <Pressable
-                    key={emoji}
-                    style={{
-                      width: 38,
-                      height: 38,
-                      borderRadius: 9,
-                      backgroundColor: selectedEmoji === emoji ? colors.bg.hover : 'transparent',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                    }}
-                    onPress={() => setSelectedEmoji(emoji)}
-                  >
-                    <Text style={{ fontSize: typography.sizes.xxl }}>{emoji}</Text>
-                  </Pressable>
-                ))}
-              </View>
-            </View>
-
-            <View style={styles.section}>
-              <Text style={[styles.label, { color: colors.text.secondary }]}>Couleur</Text>
-              <View style={styles.colorGrid}>
-                {LifeBlockColors.map((color) => (
-                  <Pressable
-                    key={color}
-                    style={[
-                      styles.colorItem,
-                      { backgroundColor: color },
-                      selectedColor === color && {
-                        borderWidth: 3,
-                        borderColor: colors.text.inverse,
-                      },
-                    ]}
-                    onPress={() => setSelectedColor(color)}
-                  />
-                ))}
-              </View>
-            </View>
-
-            <View style={styles.section}>
-              <Text style={[styles.label, { color: colors.text.secondary }]}>Objectif hebdomadaire</Text>
-              <TextInput
-                style={[styles.input, { backgroundColor: colors.bg.input, color: colors.text.primary }]}
-                placeholder="Ex: 5h, 1h30, 90min..."
-                placeholderTextColor={colors.text.placeholder}
-                value={goalInput}
-                onChangeText={setGoalInput}
-                keyboardType="default"
-              />
-              <Text style={[styles.goalHint, { color: colors.text.quaternary }]}>
-                {goalInput ? formatGoal(parseGoalInput(goalInput)) + ' / semaine' : '...'}
-              </Text>
-            </View>
-
-            <View style={styles.actions}>
-              <Pressable
-                style={[
-                  styles.saveBtn,
-                  { backgroundColor: name.trim() ? colors.system.blue : colors.bg.hover },
-                ]}
-                onPress={handleSave}
-                disabled={!name.trim()}
-              >
-                <Text style={[styles.saveBtnText, { color: colors.text.inverse }]}>
-                  {isEditing ? 'Enregistrer' : 'Créer'}
-                </Text>
-              </Pressable>
-
-              {isEditing && block && !block.isArchived && onArchive && (
-                <Pressable style={styles.archiveBtn} onPress={onArchive}>
-                  <Ionicons name="archive-outline" size={18} color={colors.system.orange} />
-                  <Text style={[styles.archiveBtnText, { color: colors.system.orange }]}>Archiver</Text>
-                </Pressable>
-              )}
-
-              {isEditing && block && block.isArchived && onUnarchive && (
-                <Pressable style={styles.archiveBtn} onPress={onUnarchive}>
-                  <Ionicons name="refresh-outline" size={18} color={colors.system.green} />
-                  <Text style={[styles.archiveBtnText, { color: colors.system.green }]}>
-                    Restaurer
-                  </Text>
-                </Pressable>
-              )}
-            </View>
-          </ScrollView>
+          ))}
         </View>
-      </KeyboardAvoidingView>
-    </Modal>
+        <View style={[styles.customEmoji, { borderTopColor: colors.separator.hairline }]}>
+          <Text style={[typography.body, styles.customEmojiLabel]}>{t('Autre emoji')}</Text>
+          <TextInput
+            style={[typography.title3, styles.customEmojiInput, { backgroundColor: colors.bg.tertiary }]}
+            value={selectedEmoji}
+            onChangeText={(text) => setSelectedEmoji(text.slice(0, 2))}
+            maxLength={2}
+            accessibilityLabel={t('Autre emoji')}
+          />
+        </View>
+      </Card>
+
+      <FieldLabel>{t('Couleur')}</FieldLabel>
+      <Card padded>
+        <View style={styles.grid}>
+          {LifeBlockColors.map((color) => {
+            const selected = selectedColor === color;
+            const swatch = resolveBlockColor(color, isDark);
+            return (
+              <Pressable
+                key={color}
+                accessibilityRole="button"
+                accessibilityState={{ selected }}
+                accessibilityLabel={color}
+                style={[styles.color, { backgroundColor: swatch }]}
+                onPress={() => {
+                  hapticLight();
+                  setSelectedColor(color);
+                }}
+              >
+                {selected && (
+                  <Symbol
+                    name={SymbolNames.checkmark}
+                    size={18}
+                    weight="bold"
+                    color={color === '#FFFFFF' && isDark ? '#000000' : colors.text.inverse}
+                  />
+                )}
+              </Pressable>
+            );
+          })}
+        </View>
+      </Card>
+
+      <FieldLabel>{t('Objectif hebdomadaire')}</FieldLabel>
+      <Card>
+        <TextInput
+          style={[typography.body, styles.input]}
+          placeholder={t('Ex: 5h, 1h30, 90min...')}
+          placeholderTextColor={colors.text.placeholder}
+          value={goalInput}
+          onChangeText={setGoalInput}
+          accessibilityLabel={t('Objectif hebdomadaire')}
+        />
+      </Card>
+      {goalInput.trim().length > 0 && (
+        <Text style={[typography.footnote, styles.hint]}>
+          {`${formatGoal(parseGoalInput(goalInput), t)} ${t('/ semaine')}`}
+        </Text>
+      )}
+
+      {isEditing && block && !block.isArchived && onArchive && (
+        <Button
+          title={t('Archiver')}
+          symbol={SymbolNames.archiveOutline}
+          variant="destructive"
+          onPress={onArchive}
+          style={styles.action}
+        />
+      )}
+
+      {isEditing && block && block.isArchived && onUnarchive && (
+        <Button
+          title={t('Restaurer')}
+          symbol={SymbolNames.undo}
+          variant="secondary"
+          onPress={onUnarchive}
+          style={styles.action}
+        />
+      )}
+    </Sheet>
   );
 }
 
 const styles = StyleSheet.create({
-  overlay: {
-    flex: 1,
-    justifyContent: 'flex-end',
-  },
-  modal: {
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
-    paddingHorizontal: 16,
-    paddingBottom: 44,
-    maxHeight: '90%',
-  },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
+  preview: {
     alignItems: 'center',
-    paddingVertical: 16,
-  },
-  title: {
-    fontSize: 20,
-    fontWeight: '700',
-  },
-  closeBtn: {
-    padding: 8,
-  },
-  section: {
-    marginBottom: 20,
-  },
-  label: {
-    fontSize: 13,
-    fontWeight: '400',
-    textTransform: 'uppercase',
-    letterSpacing: -0.08,
-    marginBottom: 8,
+    paddingBottom: 24,
   },
   input: {
-    borderRadius: 10,
     paddingHorizontal: 16,
-    paddingVertical: 12,
-    fontSize: 17,
-    letterSpacing: -0.41,
+    paddingVertical: 15,
   },
-  emojiGrid: {
+  grid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     gap: 8,
   },
-  emojiItem: {
-    width: 48,
-    height: 48,
-    borderRadius: 10,
-    borderWidth: 2,
+  emoji: {
+    width: 40,
+    height: 40,
+    borderRadius: 12,
     alignItems: 'center',
     justifyContent: 'center',
   },
   emojiText: {
     fontSize: 24,
   },
-  colorGrid: {
+  customEmoji: {
     flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 10,
+    alignItems: 'center',
+    marginTop: 14,
+    paddingTop: 14,
+    borderTopWidth: StyleSheet.hairlineWidth,
   },
-  colorItem: {
+  customEmojiLabel: {
+    flex: 1,
+  },
+  customEmojiInput: {
+    width: 56,
+    height: 40,
+    borderRadius: 10,
+    textAlign: 'center',
+  },
+  color: {
     width: 40,
     height: 40,
     borderRadius: 20,
-    borderWidth: 2,
-    borderColor: 'transparent',
-  },
-  goalHint: {
-    fontSize: 13,
-    marginTop: 6,
-  },
-  actions: {
-    marginTop: 8,
-    gap: 12,
-  },
-  saveBtn: {
-    borderRadius: 13,
-    paddingVertical: 14,
-    alignItems: 'center',
-  },
-  saveBtnText: {
-    fontSize: 17,
-    fontWeight: '600',
-  },
-  archiveBtn: {
-    flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 8,
-    paddingVertical: 12,
   },
-  archiveBtnText: {
-    fontSize: 17,
-    fontWeight: '400',
+  hint: {
+    paddingHorizontal: 32,
+    paddingTop: 8,
+  },
+  action: {
+    marginTop: 32,
+    marginHorizontal: 16,
   },
 });

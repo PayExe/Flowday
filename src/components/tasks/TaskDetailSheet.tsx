@@ -1,8 +1,14 @@
 import { useEffect, useState } from 'react';
-import { Alert, Modal, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
-import { Task } from '../../types/task';
+import { Alert, StyleSheet, Switch, Text, TextInput, View } from 'react-native';
+import { Priority, Task } from '../../types/task';
 import { LifeBlock } from '../../types/lifeBlock';
 import { useTheme } from '../../theme';
+import { useTranslation } from '../../i18n';
+import { Button } from '../ui/Glass';
+import { Card, Chip, List } from '../ui/List';
+import { SegmentedControl } from '../ui/SegmentedControl';
+import { FieldLabel, Sheet } from '../ui/Sheet';
+import { SymbolNames } from '../ui/Symbol';
 
 interface TaskDetailSheetProps {
   task?: Task;
@@ -10,67 +16,148 @@ interface TaskDetailSheetProps {
   onClose: () => void;
   onUpdate: (id: string, updates: Partial<Omit<Task, 'id' | 'createdAt'>>) => void;
   onDelete: (id: string) => void;
+  onFocus?: (task: Task) => void;
 }
 
-export function TaskDetailSheet({ task, blocks, onClose, onUpdate, onDelete }: TaskDetailSheetProps) {
+export function usePriorityOptions(): { value: Priority; label: string }[] {
+  const { t } = useTranslation();
+  return [
+    { value: 'low', label: t('Basse') },
+    { value: 'medium', label: t('Moyenne') },
+    { value: 'high', label: t('Haute') },
+  ];
+}
+
+export function TaskDetailSheet({ task, blocks, onClose, onUpdate, onDelete, onFocus }: TaskDetailSheetProps) {
   const { colors, typography } = useTheme();
+  const { t } = useTranslation();
+  const priorities = usePriorityOptions();
+  // Keeps the content on screen while the sheet animates out.
+  const [shown, setShown] = useState(task);
   const [title, setTitle] = useState(task?.title || '');
 
   useEffect(() => {
-    setTitle(task?.title || '');
-  }, [task?.id, task?.title]);
+    if (task) setShown(task);
+  }, [task]);
 
-  if (!task) return null;
+  useEffect(() => {
+    setTitle(task?.title || '');
+  }, [task?.id]);
+
+  const current = task ?? shown;
 
   const updateTitle = (value: string) => {
     setTitle(value);
-    onUpdate(task.id, { title: value });
+    if (current) onUpdate(current.id, { title: value });
   };
 
   const confirmDelete = () => {
-    Alert.alert('Supprimer cette tâche ?', undefined, [
-      { text: 'Annuler', style: 'cancel' },
-      { text: 'Supprimer', style: 'destructive', onPress: () => { onDelete(task.id); onClose(); } },
+    if (!current) return;
+    Alert.alert(t('Supprimer cette tâche ?'), t('Cette action est irréversible.'), [
+      { text: t('Annuler'), style: 'cancel' },
+      { text: t('Supprimer'), style: 'destructive', onPress: () => { onDelete(current.id); onClose(); } },
     ]);
   };
 
   return (
-    <Modal visible transparent animationType="slide" onRequestClose={onClose}>
-      <Pressable style={{ flex: 1, justifyContent: 'flex-end', backgroundColor: '#00000088' }} onPress={onClose}>
-        <Pressable style={{ backgroundColor: colors.bg.secondary, borderTopLeftRadius: 16, borderTopRightRadius: 16, padding: 20, paddingBottom: 34, gap: 16 }} onPress={() => {}}>
-          <Text style={{ fontSize: typography.sizes.lg, fontWeight: typography.weights.medium, color: colors.text.primary }}>Détail de la tâche</Text>
-          <TextInput
-            value={title}
-            onChangeText={updateTitle}
-            style={{ backgroundColor: colors.bg.tertiary, borderRadius: 10, paddingHorizontal: 12, paddingVertical: 10, color: colors.text.primary, fontSize: typography.sizes.base }}
-            placeholder="Titre"
-            placeholderTextColor={colors.text.secondary}
-          />
-          <Pressable onPress={() => onUpdate(task.id, { completed: !task.completed })} style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
-            <Text style={{ color: colors.text.primary, fontSize: typography.sizes.base }}>État</Text>
-            <Text style={{ color: task.completed ? colors.system.green : colors.text.secondary, fontSize: typography.sizes.base }}>{task.completed ? 'Fait' : 'À faire'}</Text>
-          </Pressable>
-          <Text style={{ color: colors.text.secondary, fontSize: typography.sizes.sm }}>Bloc lié</Text>
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 8 }}>
-            <Pressable onPress={() => onUpdate(task.id, { lifeBlockId: undefined })} style={[styles.choice, { backgroundColor: !task.lifeBlockId ? colors.bg.hover : colors.bg.tertiary }]}>
-              <Text style={{ color: colors.text.primary }}>Sans bloc</Text>
-            </Pressable>
+    <Sheet visible={!!task} title={t('Détail de la tâche')} onClose={onClose}>
+      {current && (
+        <>
+          <Card>
+            <TextInput
+              value={title}
+              onChangeText={updateTitle}
+              style={[typography.body, styles.input]}
+              placeholder={t('Titre de la tâche')}
+              placeholderTextColor={colors.text.placeholder}
+              returnKeyType="done"
+            />
+          </Card>
+
+          <List style={styles.group}>
+            <View style={styles.row}>
+              <Text style={[typography.body, styles.rowLabel]}>{t('Terminée')}</Text>
+              <Switch
+                value={current.completed}
+                onValueChange={(completed) => onUpdate(current.id, { completed })}
+                trackColor={{ true: colors.system.green }}
+              />
+            </View>
+          </List>
+
+          <FieldLabel>{t('Priorité')}</FieldLabel>
+          <View style={styles.inset}>
+            <SegmentedControl
+              options={priorities}
+              value={current.priority}
+              onChange={(priority) => onUpdate(current.id, { priority })}
+            />
+          </View>
+
+          <FieldLabel>{t('Bloc lié')}</FieldLabel>
+          <View style={styles.chips}>
+            <Chip
+              label={t('Sans bloc')}
+              selected={!current.lifeBlockId}
+              onPress={() => onUpdate(current.id, { lifeBlockId: undefined })}
+            />
             {blocks.map((block) => (
-              <Pressable key={block.id} onPress={() => onUpdate(task.id, { lifeBlockId: block.id })} style={[styles.choice, { backgroundColor: task.lifeBlockId === block.id ? colors.bg.hover : colors.bg.tertiary }]}>
-                <View style={{ width: 6, height: 6, borderRadius: 3, backgroundColor: block.color }} />
-                <Text style={{ color: colors.text.primary }}>{block.name}</Text>
-              </Pressable>
+              <Chip
+                key={block.id}
+                label={block.name}
+                emoji={block.emoji}
+                color={block.color}
+                selected={current.lifeBlockId === block.id}
+                onPress={() => onUpdate(current.id, { lifeBlockId: block.id })}
+              />
             ))}
-          </ScrollView>
-          <Pressable onPress={confirmDelete} style={{ paddingVertical: 10 }}>
-            <Text style={{ textAlign: 'center', color: colors.system.red, fontSize: typography.sizes.base }}>Supprimer</Text>
-          </Pressable>
-        </Pressable>
-      </Pressable>
-    </Modal>
+          </View>
+
+          <View style={styles.actions}>
+            {onFocus && !current.completed && (
+              <Button
+                title={t('Démarrer une session Focus')}
+                symbol={SymbolNames.timer}
+                onPress={() => onFocus(current)}
+              />
+            )}
+            <Button title={t('Supprimer la tâche')} variant="destructive" onPress={confirmDelete} />
+          </View>
+        </>
+      )}
+    </Sheet>
   );
 }
 
-const styles = {
-  choice: { flexDirection: 'row' as const, alignItems: 'center' as const, gap: 5, borderRadius: 8, paddingHorizontal: 10, paddingVertical: 8 },
-};
+const styles = StyleSheet.create({
+  input: {
+    paddingHorizontal: 16,
+    paddingVertical: 15,
+  },
+  group: {
+    marginTop: 16,
+  },
+  row: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    minHeight: 52,
+    paddingHorizontal: 16,
+  },
+  rowLabel: {
+    flex: 1,
+  },
+  inset: {
+    marginHorizontal: 16,
+  },
+  chips: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+    marginHorizontal: 16,
+  },
+  actions: {
+    marginTop: 32,
+    marginHorizontal: 16,
+    gap: 12,
+  },
+});

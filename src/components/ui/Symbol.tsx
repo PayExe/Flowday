@@ -171,6 +171,17 @@ const SF_TO_IONICON: Record<string, keyof typeof Ionicons.glyphMap> = {
   'restart': 'reload',
   'sleep': 'moon',
   'wake': 'sunny',
+  'questionmark': 'help',
+  'circle': 'ellipse-outline',
+  'arrow.up': 'arrow-up',
+  'arrow.down': 'arrow-down',
+  'archivebox': 'archive-outline',
+  'calendar.day.timeline.left': 'today-outline',
+  'calendar.day.timeline.leading': 'today',
+  'tray': 'file-tray-outline',
+  'square.stack.3d.up': 'layers-outline',
+  'checkmark.circle': 'checkmark-circle-outline',
+  'face.smiling': 'happy-outline',
 };
 
 export interface SymbolProps {
@@ -333,4 +344,11 @@ export const SymbolNames = {
   eject: 'eject.fill',
   power: 'power',
   reload: 'restart',
+  question: 'questionmark',
+  arrowUp: 'arrow.up',
+  arrowDown: 'arrow.down',
+  archiveOutline: 'archivebox',
+  timeline: 'calendar.day.timeline.left',
+  tray: 'tray',
+  stack: 'square.stack.3d.up',
 } as const;

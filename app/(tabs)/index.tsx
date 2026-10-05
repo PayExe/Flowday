@@ -1,7 +1,5 @@
 import { useMemo, useState } from 'react';
-import { View, Text, Pressable, ScrollView, StyleSheet, Modal, TextInput } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { View, Text, StyleSheet } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useTaskStore } from '../../src/features/tasks/store';
 import { useTemplateStore } from '../../src/features/templates/store';
@@ -11,27 +9,22 @@ import { useRitualStore } from '../../src/features/rituals/store';
 import { useTheme } from '../../src/theme';
 import { dateKey } from '../../src/utils/dates';
 import { addDays } from '../../src/utils/dates';
-import { Symbol, SymbolNames } from '../../src/components/ui/Symbol';
-import { AddButton } from '../../src/components/ui/AddButton';
+import { formatLongDate, timeToMinutes } from '../../src/utils/time';
+import { SymbolNames } from '../../src/components/ui/Symbol';
+import { IconButton } from '../../src/components/ui/Glass';
+import { Card, IconTile, List, Row, SectionHeader } from '../../src/components/ui/List';
+import { Screen } from '../../src/components/ui/Screen';
 import { PageInfo } from '../../src/components/ui/PageInfo';
-import { DayScoreHeader } from '../../src/components/dayScore/DayScoreHeader';
+import { ScoreCard } from '../../src/components/dayScore/ScoreCard';
 import { TaskCard } from '../../src/components/tasks/TaskCard';
+import { NewTaskSheet } from '../../src/components/tasks/NewTaskSheet';
+import { RitualPrompt } from '../../src/components/rituals/RitualPrompt';
 import { calculateStreaks } from '../../src/utils/streaks';
+import { useTranslation } from '../../src/i18n';
 
 
 function todayISO(): string {
   return dateKey();
-}
-
-function formatDateFr(date: Date): string {
-  const days = ['dimanche', 'lundi', 'mardi', 'mercredi', 'jeudi', 'vendredi', 'samedi'];
-  const months = ['janvier', 'février', 'mars', 'avril', 'mai', 'juin', 'juillet', 'août', 'septembre', 'octobre', 'novembre', 'décembre'];
-  return `${days[date.getDay()]} ${date.getDate()} ${months[date.getMonth()]}`;
-}
-
-function timeToMinutes(time: string): number {
-  const [h, m] = time.split(':').map(Number);
-  return h * 60 + m;
 }
 
 function currentMinutes(): number {
@@ -39,11 +32,13 @@ function currentMinutes(): number {
   return now.getHours() * 60 + now.getMinutes();
 }
 
+const CHART_HEIGHT = 96;
+
 
 export default function HomeScreen() {
   const router = useRouter();
   const { colors, typography } = useTheme();
-  const insets = useSafeAreaInsets();
+  const { t } = useTranslation();
 
   const scores = useDayScoreStore((state) => state.scores);
   const getScoreForDate = useDayScoreStore((state) => state.getScoreForDate);
@@ -59,6 +54,9 @@ export default function HomeScreen() {
   const templates = useTemplateStore((state) => state.templates);
   const activeTemplateId = useTemplateStore((state) => state.activeTemplateId);
   const getBlockById = useLifeBlocksStore((state) => state.getBlockById);
+  const getActiveBlocks = useLifeBlocksStore((state) => state.getActiveBlocks);
+  const lifeBlocks = useLifeBlocksStore((state) => state.blocks);
+  const activeBlocks = useMemo(() => getActiveBlocks(), [lifeBlocks, getActiveBlocks]);
   const templateBlocks = useMemo(() => getTodayBlocks(), [templates, activeTemplateId, getTodayBlocks]);
 
   const tasks = useTaskStore((state) => state.tasks);
@@ -67,18 +65,13 @@ export default function HomeScreen() {
   const addTask = useTaskStore((state) => state.addTask);
   const getIncompleteTodayTasks = useTaskStore((state) => state.getIncompleteTodayTasks);
 
-  const [quickAddVisible, setQuickAddVisible] = useState(false);
-  const [quickAddTitle, setQuickAddTitle] = useState('');
+  const [newTaskVisible, setNewTaskVisible] = useState(false);
 
   const incompleteTasks = useMemo(() => {
     const all = getIncompleteTodayTasks();
     const priorityOrder = { high: 0, medium: 1, low: 2 };
     return all.sort((a, b) => priorityOrder[a.priority] - priorityOrder[b.priority]).slice(0, 3);
   }, [tasks, getIncompleteTodayTasks]);
-
-  const handleDeleteTask = (taskId: string) => {
-    deleteTask(taskId);
-  };
 
   const nextBlockInfo = useMemo(() => {
     const now = currentMinutes();
@@ -89,42 +82,25 @@ export default function HomeScreen() {
       const end = timeToMinutes(b.endTime);
       return now >= start && now < end;
     });
+    const block = current ?? sorted.find((b) => timeToMinutes(b.startTime) > now);
+    if (!block) return null;
 
-    if (current) {
-      const lifeBlock = getBlockById(current.lifeBlockId);
-      return {
-        type: 'current' as const,
-        emoji: lifeBlock?.emoji || '⬜',
-        name: lifeBlock?.name || 'Bloc',
-        title: current.title,
-        color: lifeBlock?.color || '#8E8E93',
-        startTime: current.startTime,
-        endTime: current.endTime,
-      };
-    }
-
-    const next = sorted.find((b) => timeToMinutes(b.startTime) > now);
-    if (next) {
-      const lifeBlock = getBlockById(next.lifeBlockId);
-      return {
-        type: 'next' as const,
-        emoji: lifeBlock?.emoji || '⬜',
-        name: lifeBlock?.name || 'Bloc',
-        title: next.title,
-        color: lifeBlock?.color || '#8E8E93',
-        startTime: next.startTime,
-        endTime: next.endTime,
-      };
-    }
-
-    return null;
-  }, [templateBlocks, getBlockById]);
+    const lifeBlock = getBlockById(block.lifeBlockId);
+    return {
+      type: current ? ('current' as const) : ('next' as const),
+      emoji: lifeBlock?.emoji || '⬜',
+      title: block.title || lifeBlock?.name || t('Bloc'),
+      color: lifeBlock?.color || colors.system.gray,
+      startTime: block.startTime,
+      endTime: block.endTime,
+    };
+  }, [templateBlocks, getBlockById, t, colors]);
 
   const normalizedScores = useMemo(() => getAllScores(), [scores, getAllScores]);
   const streaks = useMemo(() => calculateStreaks(normalizedScores), [normalizedScores]);
 
   const last7Days = useMemo(() => {
-    const dayShort = ['D', 'L', 'M', 'M', 'J', 'V', 'S'];
+    const dayShort = ['daySunShort', 'dayMonShort', 'dayTueShort', 'dayWedShort', 'dayThuShort', 'dayFriShort', 'daySatShort'].map((key) => t(key));
     const result = [];
     for (let i = 6; i >= 0; i--) {
       const d = addDays(new Date(), -i);
@@ -133,356 +109,204 @@ export default function HomeScreen() {
       result.push({ key: iso, label: dayShort[d.getDay()], score: s?.total || 0 });
     }
     return result;
-  }, [normalizedScores]);
-
-  const handleQuickAdd = () => {
-    setQuickAddTitle('');
-    setQuickAddVisible(true);
-  };
-
-  const handleQuickAddSubmit = () => {
-    if (quickAddTitle.trim()) {
-      addTask({
-        title: quickAddTitle.trim(),
-        completed: false,
-        priority: 'medium',
-        scheduledDate: todayISO(),
-      });
-    }
-    setQuickAddVisible(false);
-    setQuickAddTitle('');
-  };
+  }, [normalizedScores, t]);
 
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: colors.bg.primary }]} edges={['top']}>
-      <ScrollView
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={{ paddingBottom: 96 + insets.bottom }}
+    <>
+      <Screen
+        eyebrow={formatLongDate(new Date(), t)}
+        title={t('Aujourd’hui')}
+        subtitle={
+          morningDone && morningLog?.intention
+            ? `${t('Intention :')} ${morningLog.intention}`
+            : undefined
+        }
+        actions={
+          <>
+            <PageInfo
+              title={t('Aujourd’hui')}
+              description={t('Ton tableau de bord du jour : score, prochain bloc, séries et tâches prioritaires.')}
+              points={[
+                t('Le score /100 résume ta journée (blocs, tâches, focus et rituels).'),
+                t('« En ce moment / Prochain bloc » reflète ton planning actuel.'),
+                t('Les Streaks comptent tes journées à 60+ points consécutives.'),
+                t('Les tâches prioritaires sont tes 3 tâches en cours les plus importantes.'),
+              ]}
+            />
+            <IconButton
+              symbol={SymbolNames.add}
+              onPress={() => setNewTaskVisible(true)}
+              accessibilityLabel={t('Ajouter une tâche')}
+              prominent
+            />
+          </>
+        }
       >
-        <View style={styles.header}>
-          <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-            <Text style={[typography.screenTitle, { color: colors.text.primary }]}>Accueil</Text>
-            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-              <PageInfo
-                title="Accueil"
-                description="Ton tableau de bord du jour : score, prochain bloc, séries et tâches prioritaires."
-                points={[
-                  'Le score /100 résume ta journée (blocs, tâches, focus et rituels).',
-                  '« En ce moment / Prochain bloc » reflète ton planning actuel.',
-                  'Les Streaks comptent tes journées à 60+ points consécutives.',
-                  'Les tâches prioritaires sont tes 3 tâches en cours les plus importantes.',
-                ]}
-              />
-              <AddButton onPress={handleQuickAdd} accessibilityLabel="Ajouter une tâche" />
-            </View>
-          </View>
-          <Text style={[typography.subheadline, { marginTop: 2 }]}>
-            {formatDateFr(new Date())}
-          </Text>
-          {morningDone && morningLog?.intention && (
-            <Text style={[typography.footnote, { marginTop: 4 }]}>
-              Intention : {morningLog.intention}
-            </Text>
-          )}
-        </View>
+        <View style={styles.top}>
+          {!morningDone && <RitualPrompt />}
 
-        <DayScoreHeader
-          score={todayScore?.total || 0}
-          blocksPercent={todayScore?.blocksPercent}
-          tasksPercent={todayScore?.tasksPercent}
-          pomodorosPercent={todayScore?.pomodorosPercent}
-          ritualsPercent={todayScore?.ritualsPercent}
-        />
+          <ScoreCard
+            score={todayScore?.total || 0}
+            blocksPercent={todayScore?.blocksPercent}
+            tasksPercent={todayScore?.tasksPercent}
+            pomodorosPercent={todayScore?.pomodorosPercent}
+            ritualsPercent={todayScore?.ritualsPercent}
+          />
+        </View>
 
         {nextBlockInfo && (
-          <View style={{ marginBottom: 24 }}>
-            <Text style={[typography.sectionHeader, { paddingHorizontal: 32, paddingBottom: 8 }]}>
-              {nextBlockInfo.type === 'current' ? 'En ce moment' : 'Prochain bloc'}
-            </Text>
-            <View
-              style={{
-                backgroundColor: colors.bg.secondary,
-                borderRadius: 13,
-                marginHorizontal: 16,
-                overflow: 'hidden',
-              }}
-            >
-              <Pressable
-                style={({ pressed }) => ({
-                  flexDirection: 'row',
-                  alignItems: 'center',
-                  paddingHorizontal: 16,
-                  paddingVertical: 14,
-                  backgroundColor: pressed ? colors.bg.hover : 'transparent',
-                  minHeight: 60,
-                })}
+          <>
+            <SectionHeader title={nextBlockInfo.type === 'current' ? t('En ce moment') : t('Prochain bloc')} />
+            <List>
+              <Row
+                leading={<IconTile color={nextBlockInfo.color} emoji={nextBlockInfo.emoji} size={44} />}
+                title={nextBlockInfo.title}
+                subtitle={`${nextBlockInfo.startTime} – ${nextBlockInfo.endTime}`}
+                chevron
                 onPress={() => router.push('/planning')}
-              >
-                <View
-                  style={{
-                    width: 36,
-                    height: 36,
-                    borderRadius: 9,
-                    backgroundColor: nextBlockInfo.color,
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    marginRight: 12,
-                  }}
-                >
-                  <Text style={{ fontSize: 18 }}>{nextBlockInfo.emoji}</Text>
-                </View>
-                <View style={{ flex: 1 }}>
-                  <Text style={[typography.headline, { color: colors.text.primary }]}>
-                    {nextBlockInfo.title || nextBlockInfo.name}
-                  </Text>
-                  <Text style={[typography.footnote, { marginTop: 2 }]}>
-                    {nextBlockInfo.startTime} – {nextBlockInfo.endTime}
-                  </Text>
-                </View>
-                <Symbol name={SymbolNames.chevronRight} size={14} color={colors.text.tertiary} />
-              </Pressable>
-            </View>
-          </View>
+              />
+            </List>
+          </>
         )}
 
-        <View style={{ marginBottom: 24 }}>
-          <Text style={[typography.sectionHeader, { paddingHorizontal: 32, paddingBottom: 8 }]}>
-            Streaks
-          </Text>
-          <View
-            style={{
-              backgroundColor: colors.bg.secondary,
-              borderRadius: 13,
-              marginHorizontal: 16,
-              overflow: 'hidden',
-              paddingHorizontal: 16,
-              paddingVertical: 14,
-            }}
-          >
-            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
-              <Symbol name={SymbolNames.flame} size={28} color={colors.system.orange} />
-              <View style={{ flex: 1 }}>
-                <Text style={[typography.headline, { color: colors.text.primary }]}>
-                  {streaks.currentStreak} jour{streaks.currentStreak !== 1 ? 's' : ''} consécutifs
-                </Text>
-                <Text style={[typography.footnote, { marginTop: 2 }]}>
-                  Record : {streaks.bestStreak} jour{streaks.bestStreak !== 1 ? 's' : ''}
-                </Text>
-              </View>
-            </View>
-            {streaks.bestStreak > 0 && (
-              <View style={{ marginTop: 10 }}>
-                <View
-                  style={{
-                    height: 4,
-                    backgroundColor: colors.bg.hover,
-                    borderRadius: 2,
-                    overflow: 'hidden',
-                  }}
-                >
-                  <View
-                    style={{
-                      width: `${Math.min(100, (streaks.currentStreak / Math.max(1, streaks.bestStreak)) * 100)}%`,
-                      height: '100%',
-                      backgroundColor: colors.system.orange,
-                      borderRadius: 2,
-                    }}
-                  />
-                </View>
-              </View>
-            )}
-          </View>
-        </View>
-
-        <View style={{ marginBottom: 24 }}>
-          <Text style={[typography.sectionHeader, { paddingHorizontal: 32, paddingBottom: 8 }]}>
-            Performance
-          </Text>
-          <View
-            style={{
-              backgroundColor: colors.bg.secondary,
-              borderRadius: 13,
-              marginHorizontal: 16,
-              paddingHorizontal: 16,
-              paddingVertical: 16,
-            }}
-          >
-            <View style={{ flexDirection: 'row', alignItems: 'flex-end', height: 120, gap: 8 }}>
-              {last7Days.map((day) => {
-                const isToday = day.key === todayISO();
-                const barHeight = day.score > 0 ? Math.max(4, (day.score / 100) * 100) : 2;
-                return (
-                  <View key={day.key} style={{ flex: 1, alignItems: 'center', gap: 6 }}>
-                    <Text style={{ fontSize: 10, color: day.score > 0 ? colors.text.secondary : colors.text.quaternary }}>
-                      {day.score > 0 ? day.score : '—'}
-                    </Text>
-                    <View style={{ width: '100%', maxWidth: 24, height: 100, justifyContent: 'flex-end' }}>
-                      <View
-                        style={{
-                          height: barHeight,
-                          borderRadius: 4,
-                          backgroundColor: isToday ? colors.system.blue : colors.system.gray3,
-                        }}
-                      />
-                    </View>
-                    <Text style={{ fontSize: 10, color: isToday ? colors.system.blue : colors.text.quaternary, fontWeight: isToday ? '600' : '400' }}>
-                      {day.label}
-                    </Text>
-                  </View>
-                );
-              })}
-            </View>
-          </View>
-        </View>
-
-        {incompleteTasks.length > 0 && (
-          <View style={{ marginBottom: 24 }}>
-            <Text style={[typography.sectionHeader, { paddingHorizontal: 32, paddingBottom: 8 }]}>
-              Tâches prioritaires
-            </Text>
-            <View
-              style={{
-                backgroundColor: colors.bg.secondary,
-                borderRadius: 13,
-                marginHorizontal: 16,
-                overflow: 'hidden',
-              }}
-            >
-              {incompleteTasks.map((task, index) => (
-                <View key={task.id}>
-                  <TaskCard
-                    task={task}
-                    onToggle={() => toggleTask(task.id)}
-                    onDelete={handleDeleteTask}
-                  />
-                  {index < incompleteTasks.length - 1 && (
-                    <View style={{ height: 0.5, backgroundColor: colors.separator.hairline, marginLeft: 57 }} />
-                  )}
-                </View>
-              ))}
-            </View>
-          </View>
-        )}
-
-        {!morningDone && (
-          <View style={{ marginBottom: 24, marginHorizontal: 16 }}>
-            <Pressable
-              style={({ pressed }) => ({
-                flexDirection: 'row',
-                alignItems: 'center',
-                backgroundColor: pressed ? colors.bg.hover : colors.bg.secondary,
-                borderRadius: 13,
-                paddingHorizontal: 16,
-                paddingVertical: 14,
-                borderLeftWidth: 3,
-                borderLeftColor: colors.system.orange,
-              })}
-              onPress={() => router.push('/morning-ritual')}
-            >
-              <Symbol name={SymbolNames.sun} size={18} color={colors.system.orange} style={{ marginRight: 10 }} />
-              <View style={{ flex: 1 }}>
-                <Text style={[typography.headline, { color: colors.text.primary }]}>
-                  Commencer la journée
-                </Text>
-                <Text style={[typography.footnote, { marginTop: 2 }]}>
-                  Morning Ritual · 5 étapes
-                </Text>
-              </View>
-              <Symbol name={SymbolNames.chevronRight} size={14} color={colors.text.tertiary} />
-            </Pressable>
-          </View>
-        )}
-
-      </ScrollView>
-
-      <Modal
-        visible={quickAddVisible}
-        transparent
-        animationType="fade"
-        onRequestClose={() => setQuickAddVisible(false)}
-      >
-        <Pressable
-          style={styles.modalBackdrop}
-          onPress={() => setQuickAddVisible(false)}
-        >
-          <Pressable
-            style={[styles.modalContent, { backgroundColor: colors.bg.secondary }]}
-            onPress={(e) => e.stopPropagation()}
-          >
-            <Text style={[typography.headline, { color: colors.text.primary, marginBottom: 12 }]}>
-              Nouvelle tâche
-            </Text>
-            <TextInput
-              style={[styles.modalInput, {
-                backgroundColor: colors.bg.hover,
-                color: colors.text.primary,
-                borderColor: colors.separator.default,
-              }]}
-              placeholder="Titre de la tâche"
-              placeholderTextColor={colors.text.placeholder}
-              value={quickAddTitle}
-              onChangeText={setQuickAddTitle}
-              onSubmitEditing={handleQuickAddSubmit}
-              autoFocus
-              returnKeyType="done"
+        <SectionHeader title={t('Tâches prioritaires')} />
+        {incompleteTasks.length > 0 ? (
+          <List separatorInset={52}>
+            {incompleteTasks.map((task) => (
+              <TaskCard
+                key={task.id}
+                task={task}
+                onToggle={toggleTask}
+                onDelete={deleteTask}
+                lifeBlock={task.lifeBlockId ? getBlockById(task.lifeBlockId) : undefined}
+              />
+            ))}
+          </List>
+        ) : (
+          <List>
+            <Row
+              leading={<IconTile color={colors.accent} symbol={SymbolNames.add} />}
+              title={t('Ajouter une tâche')}
+              subtitle={t('Aucune priorité pour le moment.')}
+              tint={colors.accent}
+              onPress={() => setNewTaskVisible(true)}
             />
-            <View style={styles.modalActions}>
-              <Pressable
-                style={[styles.modalButton, { backgroundColor: 'transparent' }]}
-                onPress={() => setQuickAddVisible(false)}
-              >
-                <Text style={[typography.headline, { color: colors.system.blue }]}>Annuler</Text>
-              </Pressable>
-              <Pressable
-                style={[styles.modalButton, { backgroundColor: colors.system.blue, borderRadius: 10 }]}
-                onPress={handleQuickAddSubmit}
-              >
-                <Text style={[typography.headline, { color: colors.text.inverse }]}>Ajouter</Text>
-              </Pressable>
+          </List>
+        )}
+
+        <SectionHeader title={t('Performance')} />
+        <Card padded>
+          <View style={styles.streak}>
+            <IconTile color={colors.system.orange} symbol={SymbolNames.flame} size={44} />
+            <View style={styles.streakText}>
+              <Text style={typography.headline}>{t('streakCount', { count: streaks.currentStreak })}</Text>
+              <Text style={[typography.footnote, styles.streakBest]}>
+                {t('bestStreakCount', { count: streaks.bestStreak })}
+              </Text>
             </View>
-          </Pressable>
-        </Pressable>
-      </Modal>
-    </SafeAreaView>
+          </View>
+
+          <View style={[styles.divider, { backgroundColor: colors.separator.hairline }]} />
+
+          <View style={styles.chart}>
+            {last7Days.map((day) => {
+              const isToday = day.key === todayISO();
+              const barHeight = day.score > 0 ? Math.max(6, (day.score / 100) * CHART_HEIGHT) : 4;
+              return (
+                <View
+                  key={day.key}
+                  style={styles.chartColumn}
+                  accessibilityLabel={`${day.label} ${day.score} ${t('/100')}`}
+                >
+                  <Text
+                    style={[
+                      typography.caption,
+                      styles.tabular,
+                      { color: isToday ? colors.text.primary : colors.text.secondary },
+                      isToday && styles.strong,
+                    ]}
+                  >
+                    {day.score > 0 ? day.score : '–'}
+                  </Text>
+                  <View style={styles.chartTrack}>
+                    <View
+                      style={{
+                        height: barHeight,
+                        borderRadius: 6,
+                        backgroundColor: isToday
+                          ? colors.accent
+                          : day.score > 0
+                            ? colors.system.gray3
+                            : colors.bg.tertiary,
+                      }}
+                    />
+                  </View>
+                  <Text
+                    style={[
+                      typography.caption,
+                      { color: isToday ? colors.accent : colors.text.secondary },
+                      isToday && styles.strong,
+                    ]}
+                  >
+                    {day.label}
+                  </Text>
+                </View>
+              );
+            })}
+          </View>
+        </Card>
+      </Screen>
+
+      <NewTaskSheet
+        visible={newTaskVisible}
+        blocks={activeBlocks}
+        onClose={() => setNewTaskVisible(false)}
+        onAdd={(task) => addTask({ ...task, completed: false, scheduledDate: todayISO() })}
+      />
+    </>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
+  top: {
+    gap: 12,
+    marginTop: 8,
   },
-  header: {
-    paddingHorizontal: 16,
-    paddingTop: 16,
-    paddingBottom: 8,
-  },
-  modalBackdrop: {
-    flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.4)',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  modalContent: {
-    width: '80%',
-    borderRadius: 13,
-    padding: 20,
-  },
-  modalInput: {
-    fontSize: 17,
-    borderWidth: 0.5,
-    borderRadius: 10,
-    paddingHorizontal: 12,
-    paddingVertical: 10,
-    marginBottom: 16,
-  },
-  modalActions: {
+  streak: {
     flexDirection: 'row',
-    justifyContent: 'flex-end',
+    alignItems: 'center',
+    gap: 12,
+  },
+  streakText: {
+    flex: 1,
+  },
+  streakBest: {
+    marginTop: 2,
+  },
+  divider: {
+    height: StyleSheet.hairlineWidth,
+    marginVertical: 16,
+  },
+  chart: {
+    flexDirection: 'row',
+    alignItems: 'flex-end',
     gap: 8,
   },
-  modalButton: {
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 10,
+  chartColumn: {
+    flex: 1,
+    alignItems: 'center',
+    gap: 6,
+  },
+  chartTrack: {
+    width: '100%',
+    maxWidth: 28,
+    height: CHART_HEIGHT,
+    justifyContent: 'flex-end',
+  },
+  tabular: {
+    fontVariant: ['tabular-nums'],
+  },
+  strong: {
+    fontWeight: '600',
   },
 });

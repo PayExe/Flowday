@@ -1,7 +1,11 @@
 import { useState } from 'react';
-import { View, Text, Pressable, Modal, StyleSheet } from 'react-native';
+import { View, Text, StyleSheet } from 'react-native';
 import { useTheme } from '../../theme';
-import { Symbol, SymbolNames } from './Symbol';
+import { SymbolNames } from './Symbol';
+import { useTranslation } from '../../i18n';
+import { Button, IconButton } from './Glass';
+import { Card, IconTile } from './List';
+import { Sheet } from './Sheet';
 
 interface PageInfoProps {
   title: string;
@@ -10,141 +14,65 @@ interface PageInfoProps {
 }
 
 export function PageInfo({ title, description, points }: PageInfoProps) {
-  const { colors } = useTheme();
+  const { colors, typography } = useTheme();
+  const { t } = useTranslation();
   const [visible, setVisible] = useState(false);
 
   return (
     <>
-      <Pressable
+      <IconButton
+        symbol={SymbolNames.question}
         onPress={() => setVisible(true)}
-        hitSlop={8}
-        accessibilityRole="button"
-        accessibilityLabel={`Aide : ${title}`}
-        style={({ pressed }) => ({
-          width: 32,
-          height: 32,
-          borderRadius: 16,
-          backgroundColor: pressed ? colors.bg.hover : colors.bg.secondary,
-          alignItems: 'center',
-          justifyContent: 'center',
-          borderWidth: 1,
-          borderColor: colors.separator.default,
-        })}
-      >
-        <Symbol name={SymbolNames.info} size={16} color={colors.text.secondary} />
-      </Pressable>
+        accessibilityLabel={`${t('Aide :')} ${title}`}
+      />
 
-      <Modal
-        visible={visible}
-        transparent
-        animationType="fade"
-        onRequestClose={() => setVisible(false)}
-      >
-        <Pressable
-          style={styles.backdrop}
-          onPress={() => setVisible(false)}
-          accessibilityRole="button"
-          accessibilityLabel="Fermer l’aide"
-        >
-          <Pressable
-            style={[styles.card, { backgroundColor: colors.bg.elevated }]}
-            onPress={(e) => e.stopPropagation()}
-          >
-            <View style={styles.header}>
-              <View style={[styles.iconCircle, { backgroundColor: colors.system.blue }]}>
-                <Symbol name={SymbolNames.info} size={18} color={colors.text.inverse} />
-              </View>
-              <Text style={[styles.title, { color: colors.text.primary }]}>{title}</Text>
+      <Sheet visible={visible} title={t('Aide')} onClose={() => setVisible(false)}>
+        <View style={styles.intro}>
+          <Text style={typography.title1}>{title}</Text>
+          <Text style={[typography.body, styles.description, { color: colors.text.secondary }]}>
+            {description}
+          </Text>
+        </View>
+
+        <Card padded style={styles.points}>
+          {points.map((point, i) => (
+            <View key={i} style={styles.pointRow}>
+              <IconTile color={colors.accent} symbol={SymbolNames.checkmark} size={28} />
+              <Text style={[typography.callout, styles.pointText]}>{point}</Text>
             </View>
+          ))}
+        </Card>
 
-            <Text style={[styles.description, { color: colors.text.secondary }]}>{description}</Text>
-
-            <View style={styles.points}>
-              {points.map((point, i) => (
-                <View key={i} style={styles.pointRow}>
-                  <View style={[styles.bullet, { backgroundColor: colors.system.blue }]} />
-                  <Text style={[styles.pointText, { color: colors.text.primary }]}>{point}</Text>
-                </View>
-              ))}
-            </View>
-
-            <Pressable
-              onPress={() => setVisible(false)}
-              accessibilityRole="button"
-              accessibilityLabel="Fermer l’aide"
-              style={[styles.closeBtn, { backgroundColor: colors.system.blue }]}
-            >
-              <Text style={[styles.closeText, { color: colors.text.inverse }]}>Compris</Text>
-            </Pressable>
-          </Pressable>
-        </Pressable>
-      </Modal>
+        <Button title={t('Compris')} onPress={() => setVisible(false)} style={styles.button} />
+      </Sheet>
     </>
   );
 }
 
 const styles = StyleSheet.create({
-  backdrop: {
-    flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.4)',
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 24,
-  },
-  card: {
-    width: '100%',
-    maxWidth: 360,
-    borderRadius: 16,
-    padding: 20,
-  },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-    marginBottom: 12,
-  },
-  iconCircle: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  title: {
-    fontSize: 20,
-    fontWeight: '700',
+  intro: {
+    paddingHorizontal: 20,
+    paddingTop: 8,
   },
   description: {
-    fontSize: 15,
-    lineHeight: 21,
+    marginTop: 8,
+    lineHeight: 23,
   },
   points: {
-    marginTop: 16,
-    gap: 12,
+    marginTop: 24,
+    gap: 16,
   },
   pointRow: {
     flexDirection: 'row',
-    gap: 10,
-  },
-  bullet: {
-    width: 6,
-    height: 6,
-    borderRadius: 3,
-    marginTop: 7,
+    alignItems: 'center',
+    gap: 12,
   },
   pointText: {
     flex: 1,
-    fontSize: 15,
     lineHeight: 21,
   },
-  closeBtn: {
-    marginTop: 20,
-    borderRadius: 12,
-    paddingVertical: 13,
-    alignItems: 'center',
-  },
-  closeText: {
-    fontSize: 17,
-    fontWeight: '600',
+  button: {
+    marginTop: 24,
+    marginHorizontal: 16,
   },
 });
