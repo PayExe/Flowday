@@ -23,6 +23,8 @@ interface TemplateState {
   addBlockToTemplate: (templateId: string, block: Omit<TemplateBlock, 'id'>) => void;
   updateTemplateBlock: (templateId: string, blockId: string, updates: Partial<TemplateBlock>) => void;
   removeTemplateBlock: (templateId: string, blockId: string) => void;
+  copyDayBlocks: (templateId: string, fromDay: number, toDays: number[]) => void;
+  clearDay: (templateId: string, dayOfWeek: number) => void;
   getActiveTemplate: () => WeeklyTemplate | undefined;
   getBlocksForDay: (dayOfWeek: number) => TemplateBlock[];
   getTodayBlocks: () => TemplateBlock[];
@@ -106,6 +108,42 @@ export const useTemplateStore = create<TemplateState>()(
               ? {
                   ...t,
                   blocks: t.blocks.filter((b) => b.id !== blockId),
+                  updatedAt: new Date().toISOString(),
+                }
+              : t
+          ),
+        })),
+
+      /** Replaces the blocks of each target day with a copy of `fromDay`. */
+      copyDayBlocks: (templateId, fromDay, toDays) => {
+        const targets = Array.from(new Set(toDays)).filter(
+          (day) => Number.isInteger(day) && day >= 0 && day <= 6 && day !== fromDay
+        );
+        if (targets.length === 0) return;
+        set((state) => ({
+          templates: state.templates.map((t) => {
+            if (t.id !== templateId) return t;
+            const source = t.blocks.filter((b) => b.dayOfWeek === fromDay);
+            const kept = t.blocks.filter((b) => !targets.includes(b.dayOfWeek));
+            const copies = targets.flatMap((day) =>
+              source.map((b) => ({
+                ...b,
+                id: generateId(),
+                dayOfWeek: day as TemplateBlock['dayOfWeek'],
+              }))
+            );
+            return { ...t, blocks: [...kept, ...copies], updatedAt: new Date().toISOString() };
+          }),
+        }));
+      },
+
+      clearDay: (templateId, dayOfWeek) =>
+        set((state) => ({
+          templates: state.templates.map((t) =>
+            t.id === templateId
+              ? {
+                  ...t,
+                  blocks: t.blocks.filter((b) => b.dayOfWeek !== dayOfWeek),
                   updatedAt: new Date().toISOString(),
                 }
               : t

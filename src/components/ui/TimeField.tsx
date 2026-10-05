@@ -6,7 +6,6 @@ import { useTranslation } from '../../i18n';
 import { isValidTime } from '../../utils/dates';
 
 interface TimeFieldProps {
-  /** `HH:MM` */
   value: string;
   onChange: (value: string) => void;
   minuteInterval?: 1 | 5 | 10 | 15 | 30;
@@ -24,7 +23,6 @@ function toTime(date: Date): string {
   return `${date.getHours().toString().padStart(2, '0')}:${date.getMinutes().toString().padStart(2, '0')}`;
 }
 
-/** Time of day, edited with the native picker of each platform. */
 export function TimeField({ value, onChange, minuteInterval = 5, accessibilityLabel }: TimeFieldProps) {
   const { colors, typography, themeName } = useTheme();
   const { language } = useTranslation();

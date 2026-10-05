@@ -49,7 +49,6 @@ export default function BlocksScreen() {
   const getActiveBlocks = useLifeBlocksStore((state) => state.getActiveBlocks);
 
   const getBlocksForDay = useTemplateStore((state) => state.getBlocksForDay);
-  // Subscribed so the weekly totals refresh when the template changes.
   useTemplateStore((state) => state.templates);
 
   const activeBlocks = getActiveBlocks();

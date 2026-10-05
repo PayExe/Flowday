@@ -3,7 +3,6 @@ import { ActionSheetIOS, Alert, Platform, Pressable, ViewStyle } from 'react-nat
 import { useTranslation } from '../../i18n';
 
 export interface ContextMenuAction {
-  /** Value passed to `onPress`. Defaults to the title. */
   id?: string;
   title: string;
   systemIcon?: string;
@@ -18,7 +17,6 @@ export interface ContextMenuProps {
   style?: ViewStyle;
 }
 
-/** Opens the native action sheet listing `actions`. */
 export function showActionMenu(
   actions: ContextMenuAction[],
   onPress: (actionName: string) => void,
@@ -60,7 +58,6 @@ export function showActionMenu(
   );
 }
 
-/** Returns a function that opens the action sheet with translated labels. */
 export function useActionMenu() {
   const { t } = useTranslation();
   return useCallback(

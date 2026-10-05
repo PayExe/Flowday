@@ -17,7 +17,6 @@ export default function TabsLayout() {
   const { colors } = useTheme();
   const { t } = useTranslation();
 
-  // The system tab bar: Liquid Glass on iOS 26, the standard bar before.
   if (Platform.OS === 'ios') {
     return (
       <NativeTabs tintColor={colors.accent} minimizeBehavior="onScrollDown">

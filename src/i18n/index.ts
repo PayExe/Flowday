@@ -27,6 +27,10 @@ fr['daySunShort'] = 'D'; fr['dayMonShort'] = 'L'; fr['dayTueShort'] = 'M'; fr['d
 fr['plannedDuration'] = ({ duration }) => `${duration} planifiées`;
 fr['plannedWeekDuration'] = ({ duration }) => `${duration} planifiées cette semaine`;
 fr['plannedOfGoal'] = ({ planned, goal }) => `${planned} planifiées sur ${goal}`;
+fr['weekSummary'] = ({ count, duration }) => `${count} créneau${count === 1 ? '' : 'x'} · ${duration}`;
+fr['slotsToCreate'] = ({ count }) => `${count} créneaux seront créés.`;
+fr['overlapOnDay'] = ({ day, timeRange }) => `${day} : chevauchement avec ${timeRange}`;
+fr['copyDayIntro'] = ({ day, count }) => `Copier les ${count} créneaux de ${day} vers :`;
 
 en['scorePerfect'] = 'Perfect day';
 en['scoreGood'] = 'Good day';
@@ -45,9 +49,11 @@ en['daySunShort'] = 'S'; en['dayMonShort'] = 'M'; en['dayTueShort'] = 'T'; en['d
 en['plannedDuration'] = ({ duration }) => `${duration} planned`;
 en['plannedWeekDuration'] = ({ duration }) => `${duration} planned this week`;
 en['plannedOfGoal'] = ({ planned, goal }) => `${planned} planned of ${goal}`;
+en['weekSummary'] = ({ count, duration }) => `${count} slot${count === 1 ? '' : 's'} · ${duration}`;
+en['slotsToCreate'] = ({ count }) => `${count} slots will be created.`;
+en['overlapOnDay'] = ({ day, timeRange }) => `${day}: overlaps with ${timeRange}`;
+en['copyDayIntro'] = ({ day, count }) => `Copy the ${count} slots from ${day} to:`;
 
-// French is the source language in the current UI. Keeping keys as stable phrases
-// makes the migration safe for persisted user content and keeps interpolation local.
 const shared: Record<string, TranslationValue> = {
   'Accueil': 'Home', 'Planning': 'Planning', 'Semaine': 'Week', 'Blocs': 'Blocks', 'Réglages': 'Settings', 'Bloc': 'Block', 'Rituels': 'Rituals',
   'Thème': 'Theme', 'Sombre': 'Dark', 'Clair': 'Light', 'Activer': 'Enable', 'Heure': 'Time',
@@ -161,6 +167,18 @@ const shared: Record<string, TranslationValue> = {
   'Ajoute des créneaux à chaque jour avec « Ajouter un créneau ».': 'Add time slots to each day with “Add a time slot”.',
   'Le bouton ••• permet de réordonner ou d’archiver un bloc.': 'The ••• button lets you reorder or archive a block.',
   'Le thème Auto suit l’apparence de ton iPhone.': 'The Auto theme follows your iPhone’s appearance.',
+  'Lundi': 'Monday', 'Mardi': 'Tuesday', 'Mercredi': 'Wednesday', 'Jeudi': 'Thursday',
+  'Vendredi': 'Friday', 'Samedi': 'Saturday', 'Dimanche': 'Sunday',
+  'Jours': 'Days', 'Jours de semaine': 'Weekdays', 'Week-end': 'Weekend', 'Tous les jours': 'Every day',
+  'Choisis au moins un jour': 'Pick at least one day',
+  'Journée libre': 'Free day', 'Aucun créneau planifié ce jour-là.': 'No slot planned that day.',
+  'Copier ce jour vers…': 'Copy this day to…', 'Copier ce jour': 'Copy this day', 'Copier': 'Copy',
+  'Vider la journée': 'Clear the day', 'Vider cette journée ?': 'Clear this day?', 'Vider': 'Clear',
+  'Tous les créneaux de ce jour seront supprimés.': 'Every slot on this day will be deleted.',
+  'Les créneaux déjà présents sur les jours choisis seront remplacés.': 'Slots already on the chosen days will be replaced.',
+  'Choisis un jour en haut, puis ajoute ses créneaux.': 'Pick a day at the top, then add its slots.',
+  'Un créneau peut être créé sur plusieurs jours à la fois.': 'A slot can be created on several days at once.',
+  'Le menu ••• copie la journée vers d’autres jours ou la vide.': 'The ••• menu copies the day to other days or clears it.',
 };
 
 Object.assign(fr, Object.fromEntries(Object.keys(shared).map((key) => [key, key])));

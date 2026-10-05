@@ -7,13 +7,11 @@ import { Symbol, SymbolNames } from './Symbol';
 interface CheckboxProps {
   checked: boolean;
   onToggle: () => void;
-  /** Ring color while unchecked. */
   color?: string;
   accessibilityLabel: string;
   size?: number;
 }
 
-/** Round checkbox, as in Reminders. */
 export function Checkbox({ checked, onToggle, color, accessibilityLabel, size = 24 }: CheckboxProps) {
   const { colors } = useTheme();
   const scale = useRef(new Animated.Value(1)).current;

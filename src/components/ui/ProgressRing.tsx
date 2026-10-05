@@ -4,7 +4,6 @@ import Svg, { Circle } from 'react-native-svg';
 import { useTheme } from '../../theme';
 
 interface ProgressRingProps {
-  /** 0 to 100. */
   value: number;
   size: number;
   strokeWidth?: number;
@@ -12,14 +11,12 @@ interface ProgressRingProps {
   children?: ReactNode;
 }
 
-/** Circular progress with content in its center. */
 export function ProgressRing({ value, size, strokeWidth = 10, color, children }: ProgressRingProps) {
   const { colors } = useTheme();
   const clamped = Math.max(0, Math.min(100, value));
   const r = (size - strokeWidth) / 2;
   const circumference = 2 * Math.PI * r;
   const progress = useRef(new Animated.Value(clamped)).current;
-  // Driven through state: animated SVG props are not reliable on every platform.
   const [shown, setShown] = useState(clamped);
 
   useEffect(() => {

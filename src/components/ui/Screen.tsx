@@ -6,10 +6,8 @@ import { useTheme } from '../../theme';
 
 interface ScreenProps {
   title: string;
-  /** Small line above the title, usually the date. */
   eyebrow?: string;
   subtitle?: string;
-  /** Floating controls pinned to the top right. */
   actions?: ReactNode;
   children: ReactNode;
   scrollRef?: RefObject<ScrollView | null>;
@@ -18,11 +16,6 @@ interface ScreenProps {
 const IS_IOS = Platform.OS === 'ios';
 const BAR_HEIGHT = 44;
 
-/**
- * Tab screen scaffold: a large title that scrolls with the content and
- * floating glass controls. On iOS the system adjusts the scroll insets for the
- * status bar and the tab bar, so content flows underneath both.
- */
 export function Screen({ title, eyebrow, subtitle, actions, children, scrollRef }: ScreenProps) {
   const { colors, typography, isDark } = useTheme();
   const insets = useSafeAreaInsets();

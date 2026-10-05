@@ -6,10 +6,12 @@ import { useTheme } from '../../theme';
 import { SymbolNames } from '../ui/Symbol';
 import { useTranslation } from '../../i18n';
 import { timeToMinutes } from '../../utils/time';
+import { WEEK_DAY_KEYS } from '../../utils/dates';
 import { Button } from '../ui/Glass';
 import { Card, Chip, List } from '../ui/List';
 import { FieldLabel, Sheet } from '../ui/Sheet';
 import { TimeField } from '../ui/TimeField';
+import { DayPicker } from './DayPicker';
 
 interface EditTemplateBlockModalProps {
   visible: boolean;
@@ -18,11 +20,10 @@ interface EditTemplateBlockModalProps {
   existingBlocks: TemplateBlock[];
   dayOfWeek: number;
   onClose: () => void;
-  onSave: (data: Omit<TemplateBlock, 'id'>) => void;
+  /** Creates or moves the slot on every selected day. */
+  onSave: (data: Omit<TemplateBlock, 'id' | 'dayOfWeek'>, days: number[]) => void;
   onDelete?: () => void;
 }
-
-const DAY_LABELS = ['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi', 'Dimanche'];
 
 export function EditTemplateBlockModal({
   visible,
@@ -44,6 +45,7 @@ export function EditTemplateBlockModal({
   const [title, setTitle] = useState('');
   const [notes, setNotes] = useState('');
   const [isFlexible, setIsFlexible] = useState(false);
+  const [days, setDays] = useState<number[]>([dayOfWeek]);
 
   useEffect(() => {
     if (block) {
@@ -53,6 +55,7 @@ export function EditTemplateBlockModal({
       setTitle(block.title || '');
       setNotes(block.notes || '');
       setIsFlexible(block.isFlexible);
+      setDays([block.dayOfWeek]);
     } else {
       setSelectedLifeBlockId(lifeBlocks[0]?.id || '');
       setStartTime('09:00');
@@ -60,30 +63,37 @@ export function EditTemplateBlockModal({
       setTitle('');
       setNotes('');
       setIsFlexible(false);
+      setDays([dayOfWeek]);
     }
-  }, [block, visible, lifeBlocks]);
+  }, [block, visible, lifeBlocks, dayOfWeek]);
 
   const validationError = useMemo(() => {
     const start = timeToMinutes(startTime);
     const end = timeToMinutes(endTime);
 
+    if (days.length === 0) return t('Choisis au moins un jour');
     if (end <= start) return t("L'heure de fin doit être après l'heure de début");
     if (end - start < 15) return t('Minimum 15 minutes');
 
-    const otherBlocks = isEditing
-      ? existingBlocks.filter((b) => b.id !== block!.id && b.dayOfWeek === dayOfWeek)
-      : existingBlocks.filter((b) => b.dayOfWeek === dayOfWeek);
+    for (const day of days) {
+      const otherBlocks = existingBlocks.filter(
+        (b) => b.dayOfWeek === day && (!isEditing || b.id !== block!.id)
+      );
 
-    for (const other of otherBlocks) {
-      const otherStart = timeToMinutes(other.startTime);
-      const otherEnd = timeToMinutes(other.endTime);
-      if (start < otherEnd && end > otherStart) {
-        return t('Chevauchement avec {timeRange}', { timeRange: `${other.startTime}–${other.endTime}` });
+      for (const other of otherBlocks) {
+        const otherStart = timeToMinutes(other.startTime);
+        const otherEnd = timeToMinutes(other.endTime);
+        if (start < otherEnd && end > otherStart) {
+          const timeRange = `${other.startTime}–${other.endTime}`;
+          return days.length > 1
+            ? t('overlapOnDay', { day: t(WEEK_DAY_KEYS[day]), timeRange })
+            : t('Chevauchement avec {timeRange}', { timeRange });
+        }
       }
     }
 
     return null;
-  }, [startTime, endTime, existingBlocks, dayOfWeek, isEditing, block]);
+  }, [startTime, endTime, existingBlocks, days, isEditing, block, t]);
 
   const handleSave = () => {
     if (!selectedLifeBlockId) return;
@@ -91,15 +101,17 @@ export function EditTemplateBlockModal({
       Alert.alert(t('Erreur'), validationError);
       return;
     }
-    onSave({
-      lifeBlockId: selectedLifeBlockId,
-      dayOfWeek: dayOfWeek as 0 | 1 | 2 | 3 | 4 | 5 | 6,
-      startTime,
-      endTime,
-      title: title.trim() || undefined,
-      notes: notes.trim() || undefined,
-      isFlexible,
-    });
+    onSave(
+      {
+        lifeBlockId: selectedLifeBlockId,
+        startTime,
+        endTime,
+        title: title.trim() || undefined,
+        notes: notes.trim() || undefined,
+        isFlexible,
+      },
+      days
+    );
     onClose();
   };
 
@@ -137,12 +149,16 @@ export function EditTemplateBlockModal({
         ))}
       </View>
 
+      <FieldLabel>{isEditing ? t('Jour') : t('Jours')}</FieldLabel>
+      <DayPicker selected={days} onChange={setDays} single={isEditing} />
+      {!isEditing && days.length > 1 && (
+        <Text style={[typography.footnote, styles.hint]}>
+          {t('slotsToCreate', { count: days.length })}
+        </Text>
+      )}
+
       <FieldLabel>{t('Horaires')}</FieldLabel>
       <List>
-        <View style={styles.row}>
-          <Text style={[typography.body, styles.rowLabel]}>{t('Jour')}</Text>
-          <Text style={[typography.body, { color: colors.text.secondary }]}>{t(DAY_LABELS[dayOfWeek])}</Text>
-        </View>
         <View style={styles.row}>
           <Text style={[typography.body, styles.rowLabel]}>{t('Début')}</Text>
           <TimeField value={startTime} onChange={setStartTime} accessibilityLabel={t('Début')} />
@@ -219,6 +235,10 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   error: {
+    paddingHorizontal: 32,
+    paddingTop: 8,
+  },
+  hint: {
     paddingHorizontal: 32,
     paddingTop: 8,
   },

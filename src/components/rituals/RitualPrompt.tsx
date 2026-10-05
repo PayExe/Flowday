@@ -4,7 +4,6 @@ import { useTranslation } from '../../i18n';
 import { IconTile, List, Row } from '../ui/List';
 import { SymbolNames } from '../ui/Symbol';
 
-/** Invitation to run the Morning Ritual, shown until it is done. */
 export function RitualPrompt() {
   const router = useRouter();
   const { colors } = useTheme();

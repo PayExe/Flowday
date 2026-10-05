@@ -4,11 +4,9 @@ import { useTheme } from '../../theme';
 import { Symbol } from '../ui/Symbol';
 
 interface EmptyStateProps {
-  /** SF Symbol name. */
   icon: string;
   title: string;
   subtitle: string;
-  /** Usually the button that resolves the empty state. */
   action?: ReactNode;
 }
 

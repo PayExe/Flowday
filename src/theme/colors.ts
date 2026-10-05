@@ -88,13 +88,9 @@ export const ColorsLight = {
 
 export interface ColorPalette {
   bg: {
-    /** Screen background (grouped). */
     primary: string;
-    /** Cards and grouped rows. */
     secondary: string;
-    /** Translucent fill for controls sitting on a card or on the background. */
     tertiary: string;
-    /** Pressed state of a row. */
     hover: string;
   };
   separator: {
@@ -150,7 +146,6 @@ export const spacing = {
   xxl: 28,
 } as const;
 
-/** Adds an alpha channel to a `#RRGGBB` color. */
 export function withAlpha(hex: string, alpha: number): string {
   const base = hex.length === 9 ? hex.slice(0, 7) : hex;
   const channel = Math.round(Math.max(0, Math.min(1, alpha)) * 255)
@@ -159,7 +154,6 @@ export function withAlpha(hex: string, alpha: number): string {
   return `${base}${channel}`;
 }
 
-/** Life blocks can be pure white, which disappears on a light card. */
 export function resolveBlockColor(color: string | undefined, isDark: boolean): string {
   if (!color) return '#8E8E93';
   if (!isDark && color.toUpperCase() === '#FFFFFF') return '#8E8E93';

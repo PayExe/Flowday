@@ -121,7 +121,6 @@ export default function PlanningScreen() {
     return () => clearInterval(timer);
   }, []);
 
-  // Brings the current hour into view the first time the timeline is laid out.
   const handleTimelineLayout = useCallback((y: number) => {
     timelineOffset.current = y;
     if (didScrollToNow.current) return;

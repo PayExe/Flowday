@@ -7,25 +7,20 @@ import { Button, IconButton } from '../ui/Glass';
 import { SymbolNames } from '../ui/Symbol';
 
 interface RitualScaffoldProps {
-  /** 1-based index of the current step. */
   step: number;
   stepCount: number;
-  /** Top left control, such as "Later". */
   leading?: ReactNode;
-  /** Top right control, usually the help button. */
   trailing?: ReactNode;
   onBack?: () => void;
   primaryTitle: string;
   onPrimary: () => void;
   primaryDisabled?: boolean;
-  /** Quiet action shown above the primary button. */
   secondary?: ReactNode;
   children: ReactNode;
 }
 
 const MAX_STEPS = 8;
 
-/** Full screen step-by-step flow shared by the Morning Ritual and the Evening Wrap. */
 export function RitualScaffold({
   step,
   stepCount,
@@ -116,7 +111,6 @@ export function RitualScaffold({
   );
 }
 
-/** Title block of a step. */
 export function StepHeading({ title, subtitle }: { title: string; subtitle?: string }) {
   const { colors, typography } = useTheme();
   return (

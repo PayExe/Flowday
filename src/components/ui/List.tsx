@@ -9,7 +9,6 @@ interface CardProps {
   padded?: boolean;
 }
 
-/** Rounded surface that groups related content. */
 export function Card({ children, style, padded }: CardProps) {
   const { colors } = useTheme();
   return (
@@ -28,12 +27,10 @@ export function Card({ children, style, padded }: CardProps) {
 
 interface ListProps {
   children: ReactNode;
-  /** Left inset of the separators, aligned with the row text. */
   separatorInset?: number;
   style?: StyleProp<ViewStyle>;
 }
 
-/** Card of rows separated by hairlines, the iOS inset grouped list. */
 export function List({ children, separatorInset = 16, style }: ListProps) {
   const { colors } = useTheme();
   const rows = Children.toArray(children).filter(isValidElement);
@@ -66,7 +63,6 @@ interface RowProps {
   trailing?: ReactNode;
   chevron?: boolean;
   onPress?: () => void;
-  /** Colors the title, for actions such as "Add" or "Delete". */
   tint?: string;
   accessibilityLabel?: string;
 }
@@ -117,7 +113,6 @@ export function Row({
 
 interface SectionHeaderProps {
   title: string;
-  /** `prominent` titles a block of content, `plain` labels a group of settings. */
   variant?: 'prominent' | 'plain';
   trailing?: ReactNode;
 }
@@ -151,11 +146,9 @@ interface IconTileProps {
   emoji?: string;
   symbol?: string;
   size?: number;
-  /** Solid fill with a white glyph, as in the iOS Settings app. */
   solid?: boolean;
 }
 
-/** Rounded square carrying a life block emoji or a symbol. */
 export function IconTile({ color, emoji, symbol, size = 36, solid }: IconTileProps) {
   const { colors, isDark } = useTheme();
   const resolved = resolveBlockColor(color, isDark);
@@ -187,7 +180,6 @@ export function IconTile({ color, emoji, symbol, size = 36, solid }: IconTilePro
 }
 
 interface ProgressBarProps {
-  /** 0 to 100. */
   value: number;
   color: string;
   height?: number;
@@ -221,12 +213,10 @@ interface ChipProps {
   label: string;
   selected: boolean;
   onPress: () => void;
-  /** Dot color, for life blocks. */
   color?: string;
   emoji?: string;
 }
 
-/** Selectable capsule used to pick a life block. */
 export function Chip({ label, selected, onPress, color, emoji }: ChipProps) {
   const { colors, typography, isDark } = useTheme();
   const resolved = color ? resolveBlockColor(color, isDark) : colors.accent;

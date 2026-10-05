@@ -10,14 +10,12 @@ interface SheetProps {
   visible: boolean;
   title: string;
   onClose: () => void;
-  /** Shows a confirm button in the top right corner. */
   onConfirm?: () => void;
   confirmLabel?: string;
   confirmDisabled?: boolean;
   children: ReactNode;
 }
 
-/** Native page sheet with a close button, a title and an optional confirm button. */
 export function Sheet(props: SheetProps) {
   return (
     <Modal
@@ -79,7 +77,6 @@ function SheetContent({
   );
 }
 
-/** Label above a group of fields inside a sheet. */
 export function FieldLabel({ children }: { children: string }) {
   const { colors, typography } = useTheme();
   return (

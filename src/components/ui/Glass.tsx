@@ -6,21 +6,15 @@ import { useTheme } from '../../theme';
 import { hapticLight } from '../../utils/haptics';
 import { Symbol } from './Symbol';
 
-/** True on iOS 26+, where the system Liquid Glass material exists. */
 export const LIQUID_GLASS = isLiquidGlassAvailable();
 
 interface GlassSurfaceProps {
   children?: ReactNode;
   style?: StyleProp<ViewStyle>;
-  /** Tints the glass, used for prominent actions. */
   tint?: string;
   interactive?: boolean;
 }
 
-/**
- * Liquid Glass where the system provides it, a material blur on older iOS,
- * and an opaque surface elsewhere.
- */
 export function GlassSurface({ children, style, tint, interactive }: GlassSurfaceProps) {
   const { colors, isDark } = useTheme();
 
@@ -74,13 +68,11 @@ interface IconButtonProps {
   symbol: string;
   onPress: () => void;
   accessibilityLabel: string;
-  /** Fills the button with the accent color, for the main action of a screen. */
   prominent?: boolean;
   disabled?: boolean;
   size?: number;
 }
 
-/** Round floating control, the iOS toolbar button. */
 export function IconButton({
   symbol,
   onPress,
@@ -129,7 +121,6 @@ interface ButtonProps {
   style?: StyleProp<ViewStyle>;
 }
 
-/** Capsule button. `primary` is the single main action of a screen. */
 export function Button({ title, onPress, variant = 'primary', disabled, symbol, style }: ButtonProps) {
   const { colors, typography } = useTheme();
 

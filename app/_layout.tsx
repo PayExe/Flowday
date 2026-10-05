@@ -36,7 +36,6 @@ export default function RootLayout() {
   const { colors, isDark } = useTheme();
   const resetDailyCountIfNeeded = useFocusStore((state) => state.resetDailyCountIfNeeded);
 
-  // Native surfaces (tab bar, sheets, pickers, alerts) follow the in-app theme.
   useEffect(() => {
     Appearance.setColorScheme?.(themePreference === 'system' ? 'unspecified' : themePreference);
   }, [themePreference]);

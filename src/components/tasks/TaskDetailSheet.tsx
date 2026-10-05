@@ -32,7 +32,6 @@ export function TaskDetailSheet({ task, blocks, onClose, onUpdate, onDelete, onF
   const { colors, typography } = useTheme();
   const { t } = useTranslation();
   const priorities = usePriorityOptions();
-  // Keeps the content on screen while the sheet animates out.
   const [shown, setShown] = useState(task);
   const [title, setTitle] = useState(task?.title || '');
 
