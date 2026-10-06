@@ -39,6 +39,7 @@ fr['focusReady'] = ({ minutes }) => `On repart pour ${minutes} min de focus.`;
 fr['blockLeadOption'] = ({ minutes }) => `${minutes} min avant`;
 fr['notificationsScheduled'] = ({ count }) => `${count} rappel${count === 1 ? '' : 's'} programmé${count === 1 ? '' : 's'}`;
 fr['lateByDays'] = ({ count }) => (Number(count) <= 1 ? 'En retard d’un jour' : `En retard de ${count} jours`);
+fr['lateTasksCount'] = ({ count }) => `${count} tâche${count === 1 ? '' : 's'} en retard`;
 
 en['scorePerfect'] = 'Perfect day';
 en['scoreGood'] = 'Good day';
@@ -69,6 +70,7 @@ en['focusReady'] = ({ minutes }) => `Back for ${minutes} min of focus.`;
 en['blockLeadOption'] = ({ minutes }) => `${minutes} min before`;
 en['notificationsScheduled'] = ({ count }) => `${count} reminder${count === 1 ? '' : 's'} scheduled`;
 en['lateByDays'] = ({ count }) => (Number(count) <= 1 ? 'One day late' : `${count} days late`);
+en['lateTasksCount'] = ({ count }) => `${count} overdue task${count === 1 ? '' : 's'}`;
 
 const shared: Record<string, TranslationValue> = {
   'Notifications': 'Notifications', 'Rappels des rituels': 'Ritual reminders',
@@ -93,7 +95,7 @@ const shared: Record<string, TranslationValue> = {
   'Jour précédent': 'Previous day', 'Jour suivant': 'Next day',
   'Revenir à aujourd’hui': 'Back to today', 'Date de la tâche': 'Task date',
   'En retard': 'Overdue', 'Aucune tâche ce jour-là.': 'No task that day.',
-  'tâches en retard': 'overdue tasks',
+  'Replanifie-les depuis Planning.': 'Reschedule them from Planning.',
   'Navigue entre les jours avec les flèches, ou touche la date pour revenir à aujourd’hui.':
     'Move between days with the arrows, or tap the date to come back to today.',
   'Les tâches en retard restent en haut jusqu’à ce que tu les replanifies.':

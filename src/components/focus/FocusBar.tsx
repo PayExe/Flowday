@@ -1,4 +1,5 @@
 import { useEffect } from 'react';
+import { StyleSheet, Text, View, type StyleProp, type ViewStyle } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useTheme } from '../../theme';
 import { useTranslation } from '../../i18n';
@@ -18,9 +19,15 @@ function formatTime(seconds: number): string {
  * leaving Focus left the timer running with no way back. This row keeps it one
  * tap away from wherever the user is.
  */
-export function FocusBar() {
+interface FocusBarProps {
+  /** Cards carry no vertical margin here, so a caller outside a section
+   *  (where a SectionHeader would supply the rhythm) passes its own. */
+  style?: StyleProp<ViewStyle>;
+}
+
+export function FocusBar({ style }: FocusBarProps) {
   const router = useRouter();
-  const { colors } = useTheme();
+  const { colors, typography } = useTheme();
   const { t } = useTranslation();
 
   const focusState = useFocusStore((state) => state.focusState);
@@ -46,7 +53,7 @@ export function FocusBar() {
     : `${t('Focus')} · ${POMODORO_SECONDS / 60} min`;
 
   return (
-    <List>
+    <List style={style}>
       <Row
         leading={
           <IconTile
@@ -55,15 +62,23 @@ export function FocusBar() {
             size={44}
           />
         }
-        title={`${formatTime(focusState.timeRemaining)} · ${focusState.currentTaskTitle ?? ''}`.trim()}
+        title={focusState.currentTaskTitle ?? t('Focus')}
         subtitle={isActive ? label : `${label} · ${t('En pause')}`}
         trailing={
-          <IconButton
-            symbol={isActive ? SymbolNames.pause : SymbolNames.play}
-            onPress={() => (isActive ? pauseFocus() : resumeFocus())}
-            accessibilityLabel={isActive ? t('Pause') : t('Reprendre')}
-            size={36}
-          />
+          // The countdown lives here rather than in the title so a long task
+          // name cannot push it onto a second line, and so it can use
+          // tabular figures and stop jittering every second.
+          <View style={styles.trailing}>
+            <Text style={[typography.body, styles.timer, { color: colors.text.primary }]}>
+              {formatTime(focusState.timeRemaining)}
+            </Text>
+            <IconButton
+              symbol={isActive ? SymbolNames.pause : SymbolNames.play}
+              onPress={() => (isActive ? pauseFocus() : resumeFocus())}
+              accessibilityLabel={isActive ? t('Pause') : t('Reprendre')}
+              size={36}
+            />
+          </View>
         }
         onPress={() => router.push('/focus')}
         accessibilityLabel={`${t('Session Focus en cours')} ${formatTime(focusState.timeRemaining)}`}
@@ -71,3 +86,15 @@ export function FocusBar() {
     </List>
   );
 }
+
+const styles = StyleSheet.create({
+  trailing: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+  },
+  timer: {
+    fontVariant: ['tabular-nums'],
+    fontWeight: '600',
+  },
+});

@@ -294,7 +294,7 @@ export default function PlanningScreen() {
           </View>
         )}
 
-        <FocusBar />
+        <FocusBar style={styles.focusBar} />
 
         <DayNavigator date={viewedDate} onChange={setViewedDate} />
 
@@ -469,6 +469,9 @@ export default function PlanningScreen() {
 }
 
 const styles = StyleSheet.create({
+  focusBar: {
+    marginTop: 12,
+  },
   prompt: {
     marginTop: 8,
   },

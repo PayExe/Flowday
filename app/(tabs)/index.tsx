@@ -224,18 +224,30 @@ export default function HomeScreen() {
         )}
 
         {overdueCount > 0 && (
-          <List>
-            <Row
-              leading={
-                <IconTile color={colors.system.orange} symbol={SymbolNames.calendar} size={44} />
+          <>
+            <SectionHeader
+              title={t('En retard')}
+              trailing={
+                <Text
+                  style={[typography.subheadline, styles.tabular, { color: colors.system.orange }]}
+                >
+                  {overdueCount}
+                </Text>
               }
-              title={`${overdueCount} ${t('tâches en retard')}`}
-              subtitle={t('Les tâches en retard restent en haut jusqu’à ce que tu les replanifies.')}
-              tint={colors.system.orange}
-              chevron
-              onPress={() => router.push('/planning')}
             />
-          </List>
+            <List>
+              <Row
+                leading={
+                  <IconTile color={colors.system.orange} symbol={SymbolNames.calendar} size={44} />
+                }
+                title={t('lateTasksCount', { count: overdueCount })}
+                subtitle={t('Replanifie-les depuis Planning.')}
+                tint={colors.system.orange}
+                chevron
+                onPress={() => router.push('/planning')}
+              />
+            </List>
+          </>
         )}
 
         <SectionHeader title={t('Tâches prioritaires')} />
