@@ -9,6 +9,7 @@ import { useLifeBlocksStore } from '../src/features/lifeBlocks/store';
 import { useTemplateStore } from '../src/features/templates/store';
 import { useThemeStore } from '../src/features/theme/store';
 import { useFocusStore } from '../src/features/focus/store';
+import { useNotifications } from '../src/features/notifications/useNotifications';
 import { useTheme } from '../src/theme';
 import { dateKey } from '../src/utils/dates';
 import {
@@ -41,6 +42,8 @@ export default function RootLayout() {
   const themePreference = useThemeStore((state) => state.themeName);
   const { colors, isDark } = useTheme();
   const resetDailyCountIfNeeded = useFocusStore((state) => state.resetDailyCountIfNeeded);
+
+  useNotifications();
 
   useEffect(() => {
     Appearance.setColorScheme?.(themePreference === 'system' ? 'unspecified' : themePreference);

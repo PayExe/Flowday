@@ -86,7 +86,7 @@ export default function FocusScreen() {
         <EmptyState
           icon={SymbolNames.timer}
           title={t('Aucune tâche en cours')}
-          subtitle={t('Le minuteur démarre avec la tâche choisie depuis Planning.')}
+          subtitle={t('Le minuteur démarre sur une tâche, depuis Aujourd’hui ou Planning.')}
           action={<Button title={t('Retour')} variant="secondary" onPress={() => router.back()} />}
         />
       </View>
@@ -108,7 +108,7 @@ export default function FocusScreen() {
           title={t('Focus')}
           description={t('Travaille sur une seule tâche pendant une session de 25 minutes, puis prends une pause.')}
           points={[
-            t('Le minuteur démarre avec la tâche choisie depuis Planning.'),
+            t('Le minuteur démarre sur une tâche, depuis Aujourd’hui ou Planning.'),
             t('Mets la session en pause ou reprends-la à tout moment.'),
             t('Abandonner arrête la session sans la comptabiliser comme terminée.'),
           ]}

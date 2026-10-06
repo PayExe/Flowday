@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useTaskStore } from '../../src/features/tasks/store';
@@ -6,6 +6,7 @@ import { useTemplateStore } from '../../src/features/templates/store';
 import { useLifeBlocksStore } from '../../src/features/lifeBlocks/store';
 import { useDayScoreStore } from '../../src/features/dayScore/store';
 import { useRitualStore } from '../../src/features/rituals/store';
+import { useFocusStore } from '../../src/features/focus/store';
 import { useTheme } from '../../src/theme';
 import { dateKey } from '../../src/utils/dates';
 import { addDays } from '../../src/utils/dates';
@@ -18,6 +19,9 @@ import { PageInfo } from '../../src/components/ui/PageInfo';
 import { ScoreCard } from '../../src/components/dayScore/ScoreCard';
 import { TaskCard } from '../../src/components/tasks/TaskCard';
 import { NewTaskSheet } from '../../src/components/tasks/NewTaskSheet';
+import { TaskDetailSheet } from '../../src/components/tasks/TaskDetailSheet';
+import { FocusBar } from '../../src/components/focus/FocusBar';
+import { StartFocusSheet } from '../../src/components/focus/StartFocusSheet';
 import { RitualPrompt } from '../../src/components/rituals/RitualPrompt';
 import { calculateStreaks } from '../../src/utils/streaks';
 import { useTranslation } from '../../src/i18n';
@@ -62,16 +66,39 @@ export default function HomeScreen() {
   const tasks = useTaskStore((state) => state.tasks);
   const toggleTask = useTaskStore((state) => state.toggleTask);
   const deleteTask = useTaskStore((state) => state.deleteTask);
+  const updateTask = useTaskStore((state) => state.updateTask);
   const addTask = useTaskStore((state) => state.addTask);
   const getIncompleteTodayTasks = useTaskStore((state) => state.getIncompleteTodayTasks);
 
-  const [newTaskVisible, setNewTaskVisible] = useState(false);
+  const focusState = useFocusStore((state) => state.focusState);
+  const startFocus = useFocusStore((state) => state.startFocus);
+  const pomodoroGoal = useDayScoreStore((state) => state.pomodoroGoal);
 
-  const incompleteTasks = useMemo(() => {
-    const all = getIncompleteTodayTasks();
+  const [newTaskVisible, setNewTaskVisible] = useState(false);
+  const [startFocusVisible, setStartFocusVisible] = useState(false);
+  const [selectedTaskId, setSelectedTaskId] = useState<string | undefined>(undefined);
+  const selectedTask = useMemo(
+    () => tasks.find((task) => task.id === selectedTaskId),
+    [tasks, selectedTaskId]
+  );
+
+  const openTasks = useMemo(() => {
     const priorityOrder = { high: 0, medium: 1, low: 2 };
-    return all.sort((a, b) => priorityOrder[a.priority] - priorityOrder[b.priority]).slice(0, 3);
+    return getIncompleteTodayTasks()
+      .slice()
+      .sort((a, b) => priorityOrder[a.priority] - priorityOrder[b.priority]);
   }, [tasks, getIncompleteTodayTasks]);
+
+  const incompleteTasks = useMemo(() => openTasks.slice(0, 3), [openTasks]);
+
+  const handleFocusTask = useCallback(
+    (task: { id: string; title: string }) => {
+      setStartFocusVisible(false);
+      setSelectedTaskId(undefined);
+      if (startFocus(task.id, task.title)) router.push('/focus');
+    },
+    [router, startFocus]
+  );
 
   const nextBlockInfo = useMemo(() => {
     const now = currentMinutes();
@@ -154,6 +181,31 @@ export default function HomeScreen() {
           />
         </View>
 
+        <SectionHeader title={t('Focus')} />
+        {focusState.currentTaskId ? (
+          <FocusBar />
+        ) : (
+          <List>
+            <Row
+              leading={<IconTile color={colors.system.orange} symbol={SymbolNames.timer} size={44} />}
+              title={t('Démarrer un focus')}
+              subtitle={t('pomodoroProgress', {
+                done: focusState.dailyPomodoroCount,
+                goal: pomodoroGoal,
+              })}
+              tint={colors.accent}
+              chevron
+              onPress={() => {
+                if (openTasks.length === 0) {
+                  setNewTaskVisible(true);
+                  return;
+                }
+                setStartFocusVisible(true);
+              }}
+            />
+          </List>
+        )}
+
         {nextBlockInfo && (
           <>
             <SectionHeader title={nextBlockInfo.type === 'current' ? t('En ce moment') : t('Prochain bloc')} />
@@ -179,6 +231,7 @@ export default function HomeScreen() {
                 onToggle={toggleTask}
                 onDelete={deleteTask}
                 lifeBlock={task.lifeBlockId ? getBlockById(task.lifeBlockId) : undefined}
+                onPress={() => setSelectedTaskId(task.id)}
               />
             ))}
           </List>
@@ -262,6 +315,23 @@ export default function HomeScreen() {
         blocks={activeBlocks}
         onClose={() => setNewTaskVisible(false)}
         onAdd={(task) => addTask({ ...task, completed: false, scheduledDate: todayISO() })}
+      />
+
+      <StartFocusSheet
+        visible={startFocusVisible}
+        tasks={openTasks}
+        getLifeBlock={getBlockById}
+        onClose={() => setStartFocusVisible(false)}
+        onSelect={handleFocusTask}
+      />
+
+      <TaskDetailSheet
+        task={selectedTask}
+        blocks={activeBlocks}
+        onClose={() => setSelectedTaskId(undefined)}
+        onUpdate={updateTask}
+        onDelete={deleteTask}
+        onFocus={handleFocusTask}
       />
     </>
   );

@@ -25,6 +25,7 @@ import { NewTaskSheet } from '../../src/components/tasks/NewTaskSheet';
 import { BlockDetailSheet } from '../../src/components/timeline/BlockDetailSheet';
 import { EmptyState } from '../../src/components/shared/EmptyState';
 import { RitualPrompt } from '../../src/components/rituals/RitualPrompt';
+import { FocusBar } from '../../src/components/focus/FocusBar';
 import { hapticLight } from '../../src/utils/haptics';
 import { Task } from '../../src/types/task';
 import { TemplateBlock } from '../../src/types/template';
@@ -266,6 +267,8 @@ export default function PlanningScreen() {
           </View>
         )}
 
+        <FocusBar />
+
         <SectionHeader
           title={t('Tâches')}
           trailing={
@@ -409,6 +412,7 @@ export default function PlanningScreen() {
         tasks={(selectedTimelineBlock?.tasks ?? []).map((task) => tasks.find((currentTask) => currentTask.id === task.id) || task)}
         onClose={() => setSelectedTimelineBlock(undefined)}
         onToggleTask={handleToggleTask}
+        onFocusTask={handleFocusTask}
       />
     </>
   );

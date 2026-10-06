@@ -32,6 +32,12 @@ fr['slotsToCreate'] = ({ count }) => `${count} créneaux seront créés.`;
 fr['overlapOnDay'] = ({ day, timeRange }) => `${day} : chevauchement avec ${timeRange}`;
 fr['copyDayIntro'] = ({ day, count }) => `Copier les ${count} créneaux de ${day} vers :`;
 fr['pomodoroProgress'] = ({ done, goal }) => `${done} / ${goal} aujourd’hui`;
+fr['blockReminderSoon'] = ({ minutes, timeRange }) => `Dans ${minutes} min · ${timeRange}`;
+fr['blockReminderNow'] = ({ timeRange }) => `Ça commence · ${timeRange}`;
+fr['breakReady'] = ({ minutes }) => `${minutes} min de pause, tu l’as méritée.`;
+fr['focusReady'] = ({ minutes }) => `On repart pour ${minutes} min de focus.`;
+fr['blockLeadOption'] = ({ minutes }) => `${minutes} min avant`;
+fr['notificationsScheduled'] = ({ count }) => `${count} rappel${count === 1 ? '' : 's'} programmé${count === 1 ? '' : 's'}`;
 
 en['scorePerfect'] = 'Perfect day';
 en['scoreGood'] = 'Good day';
@@ -55,8 +61,32 @@ en['slotsToCreate'] = ({ count }) => `${count} slots will be created.`;
 en['overlapOnDay'] = ({ day, timeRange }) => `${day}: overlaps with ${timeRange}`;
 en['copyDayIntro'] = ({ day, count }) => `Copy the ${count} slots from ${day} to:`;
 en['pomodoroProgress'] = ({ done, goal }) => `${done} / ${goal} today`;
+en['blockReminderSoon'] = ({ minutes, timeRange }) => `In ${minutes} min · ${timeRange}`;
+en['blockReminderNow'] = ({ timeRange }) => `Starting now · ${timeRange}`;
+en['breakReady'] = ({ minutes }) => `${minutes} min break, you earned it.`;
+en['focusReady'] = ({ minutes }) => `Back for ${minutes} min of focus.`;
+en['blockLeadOption'] = ({ minutes }) => `${minutes} min before`;
+en['notificationsScheduled'] = ({ count }) => `${count} reminder${count === 1 ? '' : 's'} scheduled`;
 
 const shared: Record<string, TranslationValue> = {
+  'Notifications': 'Notifications', 'Rappels des rituels': 'Ritual reminders',
+  'Début des blocs': 'Block starts', 'Fin de pomodoro': 'Pomodoro end',
+  'Anticipation': 'Lead time', 'À l’heure pile': 'On time',
+  'Prends deux minutes pour cadrer ta journée.': 'Take two minutes to frame your day.',
+  'Fais le bilan avant de couper.': 'Wrap up before you switch off.',
+  'Pomodoro terminé': 'Pomodoro done', 'Pause terminée': 'Break over',
+  'Ouvrir les réglages': 'Open settings',
+  'Flowday te prévient à l’heure de tes rituels, même app fermée.':
+    'Flowday reminds you at your ritual times, even when the app is closed.',
+  'Un rappel au début de chaque créneau de ta semaine type.':
+    'A reminder at the start of each slot in your weekly template.',
+  'Une alerte quand un pomodoro ou une pause se termine.':
+    'An alert when a pomodoro or a break ends.',
+  'Les rappels suivent les heures définies ci-dessous.': 'Reminders follow the times set below.',
+  'Autorise les notifications pour activer les rappels.': 'Allow notifications to enable reminders.',
+  'Démarrer un focus': 'Start a focus', 'En pause': 'Paused',
+  'Session Focus en cours': 'Focus session running',
+  'Ajoute d’abord une tâche à faire aujourd’hui.': 'Add a task for today first.',
   'Accueil': 'Home', 'Planning': 'Planning', 'Semaine': 'Week', 'Blocs': 'Blocks', 'Réglages': 'Settings', 'Bloc': 'Block', 'Rituels': 'Rituals',
   'Thème': 'Theme', 'Sombre': 'Dark', 'Clair': 'Light', 'Activer': 'Enable', 'Heure': 'Time',
   'Annuler': 'Cancel', 'OK': 'OK', 'Ajouter': 'Add', 'Modifier': 'Edit', 'Supprimer': 'Delete',
@@ -151,7 +181,8 @@ const shared: Record<string, TranslationValue> = {
   'Consulte tes blocs et tes priorités du jour.': 'Review your blocks and priorities for the day.',
   'Ajoute une intention pour garder un cap simple aujourd’hui.': 'Add an intention to keep a simple direction today.',
   'Travaille sur une seule tâche pendant une session de 25 minutes, puis prends une pause.': 'Work on one task for a 25-minute session, then take a break.',
-  'Le minuteur démarre avec la tâche choisie depuis Planning.': 'The timer starts with the task selected from Planning.',
+  'Le minuteur démarre sur une tâche, depuis Aujourd’hui ou Planning.':
+    'The timer starts on a task, from Today or Planning.',
   'Mets la session en pause ou reprends-la à tout moment.': 'Pause or resume the session at any time.',
   'Abandonner arrête la session sans la comptabiliser comme terminée.': 'Abandoning stops the session without counting it as completed.',
   'Blocs de vie': 'Life blocks',

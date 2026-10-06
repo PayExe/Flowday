@@ -2,9 +2,11 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { Task } from '../../types/task';
 import { useTheme } from '../../theme';
 import { useTranslation } from '../../i18n';
+import { hapticLight } from '../../utils/haptics';
 import { Checkbox } from '../ui/Checkbox';
 import { Card, IconTile, List, SectionHeader } from '../ui/List';
 import { Sheet } from '../ui/Sheet';
+import { Symbol, SymbolNames } from '../ui/Symbol';
 
 interface BlockDetailSheetProps {
   title: string;
@@ -15,9 +17,10 @@ interface BlockDetailSheetProps {
   visible: boolean;
   onClose: () => void;
   onToggleTask: (id: string) => void;
+  onFocusTask?: (task: Task) => void;
 }
 
-export function BlockDetailSheet({ title, timeRange, color, emoji, tasks, visible, onClose, onToggleTask }: BlockDetailSheetProps) {
+export function BlockDetailSheet({ title, timeRange, color, emoji, tasks, visible, onClose, onToggleTask, onFocusTask }: BlockDetailSheetProps) {
   const { colors, typography } = useTheme();
   const { t } = useTranslation();
 
@@ -63,6 +66,19 @@ export function BlockDetailSheet({ title, timeRange, color, emoji, tasks, visibl
               >
                 {task.title}
               </Text>
+              {onFocusTask && !task.completed && (
+                <Pressable
+                  hitSlop={10}
+                  accessibilityRole="button"
+                  accessibilityLabel={`${t('Démarrer Focus pour')} ${task.title}`}
+                  onPress={() => {
+                    hapticLight();
+                    onFocusTask(task);
+                  }}
+                >
+                  <Symbol name={SymbolNames.timer} size={20} color={colors.accent} />
+                </Pressable>
+              )}
             </Pressable>
           ))}
         </List>

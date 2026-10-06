@@ -13,7 +13,7 @@ interface SegmentedControlProps<T> {
   onChange: (value: T) => void;
 }
 
-export function SegmentedControl<T extends string>({
+export function SegmentedControl<T extends string | number>({
   options,
   value,
   onChange,
@@ -26,7 +26,7 @@ export function SegmentedControl<T extends string>({
         const selected = option.value === value;
         return (
           <Pressable
-            key={option.value}
+            key={String(option.value)}
             accessibilityRole="button"
             accessibilityState={{ selected }}
             style={[

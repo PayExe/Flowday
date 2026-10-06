@@ -1,5 +1,5 @@
-import type { ReactNode } from 'react';
-import { View, Text, StyleSheet, Switch } from 'react-native';
+import { useCallback, useEffect, useState, type ReactNode } from 'react';
+import { View, Text, StyleSheet, Switch, Linking, Pressable } from 'react-native';
 import { useThemeStore } from '../../src/features/theme/store';
 import { useRitualStore } from '../../src/features/rituals/store';
 import { useTheme, type ThemePreference } from '../../src/theme';
@@ -10,6 +10,14 @@ import { IconTile, List, SectionFooter, SectionHeader } from '../../src/componen
 import { Screen } from '../../src/components/ui/Screen';
 import { TimeField } from '../../src/components/ui/TimeField';
 import { useLanguageStore } from '../../src/features/language/store';
+import {
+  BLOCK_LEAD_CHOICES,
+  useNotificationStore,
+} from '../../src/features/notifications/store';
+import {
+  countOwnedNotifications,
+  requestPermission,
+} from '../../src/features/notifications/service';
 import { useTranslation } from '../../src/i18n';
 
 export default function SettingsScreen() {
@@ -24,6 +32,54 @@ export default function SettingsScreen() {
   const updateMorningConfig = useRitualStore((state) => state.updateMorningConfig);
   const eveningConfig = useRitualStore((state) => state.eveningConfig);
   const updateEveningConfig = useRitualStore((state) => state.updateEveningConfig);
+
+  const ritualsEnabled = useNotificationStore((state) => state.ritualsEnabled);
+  const blocksEnabled = useNotificationStore((state) => state.blocksEnabled);
+  const blockLeadMinutes = useNotificationStore((state) => state.blockLeadMinutes);
+  const focusEnabled = useNotificationStore((state) => state.focusEnabled);
+  const permissionGranted = useNotificationStore((state) => state.permissionGranted);
+  const setRitualsEnabled = useNotificationStore((state) => state.setRitualsEnabled);
+  const setBlocksEnabled = useNotificationStore((state) => state.setBlocksEnabled);
+  const setBlockLeadMinutes = useNotificationStore((state) => state.setBlockLeadMinutes);
+  const setFocusEnabled = useNotificationStore((state) => state.setFocusEnabled);
+  const setPermission = useNotificationStore((state) => state.setPermission);
+  const markPermissionRequested = useNotificationStore((state) => state.markPermissionRequested);
+
+  const [scheduledCount, setScheduledCount] = useState(0);
+
+  // The root layout registers the reminders; we just report what landed.
+  useEffect(() => {
+    let cancelled = false;
+    const refresh = async () => {
+      const count = await countOwnedNotifications();
+      if (!cancelled) setScheduledCount(count);
+    };
+    const timer = setTimeout(() => void refresh(), 400);
+    return () => {
+      cancelled = true;
+      clearTimeout(timer);
+    };
+  }, [ritualsEnabled, blocksEnabled, blockLeadMinutes, permissionGranted, morningConfig, eveningConfig]);
+
+  // Turning a reminder on is the moment the permission actually matters.
+  const enableWithPermission = useCallback(
+    async (apply: (enabled: boolean) => void, enabled: boolean) => {
+      if (!enabled) {
+        apply(false);
+        return;
+      }
+      const granted = await requestPermission();
+      markPermissionRequested();
+      setPermission(granted);
+      apply(granted);
+    },
+    [markPermissionRequested, setPermission]
+  );
+
+  const leadOptions = BLOCK_LEAD_CHOICES.map((minutes) => ({
+    value: minutes,
+    label: minutes === 0 ? t('À l’heure pile') : t('blockLeadOption', { minutes }),
+  }));
 
   const themes: { value: ThemePreference; label: string }[] = [
     { value: 'system', label: t('Auto') },
@@ -50,6 +106,9 @@ export default function SettingsScreen() {
             t('Le thème Auto suit l’apparence de ton iPhone.'),
             t('Le Morning Ritual s’ouvre automatiquement dans les 3 h suivant l’heure définie.'),
             t('L’Evening Wrap s’ouvre après l’heure que tu définis.'),
+            t('Flowday te prévient à l’heure de tes rituels, même app fermée.'),
+            t('Un rappel au début de chaque créneau de ta semaine type.'),
+            t('Une alerte quand un pomodoro ou une pause se termine.'),
           ]}
         />
       }
@@ -128,6 +187,78 @@ export default function SettingsScreen() {
       </List>
       <SectionFooter>{t('L’Evening Wrap s’ouvre après l’heure que tu définis.')}</SectionFooter>
 
+      <SectionHeader title={t('Notifications')} variant="plain" />
+      <List separatorInset={58}>
+        {renderCell(
+          SymbolNames.bell,
+          colors.system.red,
+          t('Rappels des rituels'),
+          <Switch
+            value={ritualsEnabled}
+            onValueChange={(enabled) => void enableWithPermission(setRitualsEnabled, enabled)}
+            trackColor={{ true: colors.system.green }}
+            accessibilityLabel={t('Rappels des rituels')}
+          />
+        )}
+        {renderCell(
+          SymbolNames.calendar,
+          colors.system.blue,
+          t('Début des blocs'),
+          <Switch
+            value={blocksEnabled}
+            onValueChange={(enabled) => void enableWithPermission(setBlocksEnabled, enabled)}
+            trackColor={{ true: colors.system.green }}
+            accessibilityLabel={t('Début des blocs')}
+          />
+        )}
+        {blocksEnabled && (
+          <View style={styles.stackedCell}>
+            <View style={styles.stackedHeader}>
+              <IconTile color={colors.system.gray} symbol={SymbolNames.clock} size={30} solid />
+              <Text style={typography.body}>{t('Anticipation')}</Text>
+            </View>
+            <SegmentedControl
+              options={leadOptions}
+              value={blockLeadMinutes}
+              onChange={setBlockLeadMinutes}
+            />
+          </View>
+        )}
+        {renderCell(
+          SymbolNames.timer,
+          colors.system.orange,
+          t('Fin de pomodoro'),
+          <Switch
+            value={focusEnabled}
+            onValueChange={(enabled) => void enableWithPermission(setFocusEnabled, enabled)}
+            trackColor={{ true: colors.system.green }}
+            accessibilityLabel={t('Fin de pomodoro')}
+          />
+        )}
+      </List>
+      {permissionGranted ? (
+        <SectionFooter>
+          {scheduledCount > 0
+            ? t('notificationsScheduled', { count: scheduledCount })
+            : t('Les rappels suivent les heures définies ci-dessous.')}
+        </SectionFooter>
+      ) : (
+        <View style={styles.permission}>
+          <Text style={[typography.footnote, { color: colors.text.secondary }]}>
+            {t('Autorise les notifications pour activer les rappels.')}
+          </Text>
+          <Pressable
+            accessibilityRole="button"
+            onPress={() => void Linking.openSettings()}
+            style={({ pressed }) => [styles.permissionAction, { opacity: pressed ? 0.6 : 1 }]}
+          >
+            <Text style={[typography.footnote, styles.permissionLabel, { color: colors.accent }]}>
+              {t('Ouvrir les réglages')}
+            </Text>
+          </Pressable>
+        </View>
+      )}
+
       <View style={styles.about}>
         <Text style={[typography.footnote, { color: colors.text.tertiary }]}>Flowday {t('v0.1.0')}</Text>
         <Text style={[typography.caption, styles.credits, { color: colors.text.tertiary }]}>
@@ -159,6 +290,18 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 12,
+  },
+  permission: {
+    paddingHorizontal: 32,
+    paddingTop: 6,
+    gap: 2,
+  },
+  permissionAction: {
+    alignSelf: 'flex-start',
+    paddingVertical: 4,
+  },
+  permissionLabel: {
+    fontWeight: '600',
   },
   about: {
     alignItems: 'center',

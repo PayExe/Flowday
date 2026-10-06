@@ -24,7 +24,8 @@
       "expo-router",
       "expo-font",
       "expo-status-bar",
-      "@react-native-community/datetimepicker"
+      "@react-native-community/datetimepicker",
+      "expo-notifications"
     ],
     "extra": {
       "router": {},
