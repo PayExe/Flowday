@@ -252,7 +252,7 @@ export default function HomeScreen() {
 
         <SectionHeader title={t('Tâches prioritaires')} />
         {incompleteTasks.length > 0 ? (
-          <List separatorInset={52}>
+          <List separatorInset={52} animated>
             {incompleteTasks.map((task) => (
               <TaskCard
                 key={task.id}

@@ -48,7 +48,13 @@ export function Checkbox({ checked, onToggle, color, accessibilityLabel, size = 
         }}
       >
         {checked && (
-          <Symbol name={SymbolNames.checkmark} size={size * 0.54} weight="bold" color={colors.text.inverse} />
+          <Symbol
+            name={SymbolNames.checkmark}
+            size={size * 0.54}
+            weight="bold"
+            color={colors.text.inverse}
+            animationSpec={{ effect: { type: 'bounce', wholeSymbol: true } }}
+          />
         )}
       </Animated.View>
     </Pressable>

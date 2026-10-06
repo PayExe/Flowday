@@ -1,6 +1,7 @@
 import React from 'react';
 import { Platform, type ColorValue, type StyleProp, type TextStyle } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import type { AnimationSpec } from 'expo-symbols';
 
 interface SymbolViewProps {
   name: string;
@@ -9,6 +10,7 @@ interface SymbolViewProps {
   weight: SymbolProps['weight'];
   tintColor: ColorValue;
   resizeMode: 'scaleAspectFit';
+  animationSpec?: AnimationSpec;
 }
 
 let SymbolView: React.ComponentType<SymbolViewProps> | null = null;
@@ -208,6 +210,8 @@ export interface SymbolProps {
   weight?: 'ultraLight' | 'thin' | 'light' | 'regular' | 'medium' | 'semibold' | 'bold' | 'heavy' | 'black';
   type?: 'monochrome' | 'hierarchical' | 'palette' | 'multicolor';
   style?: StyleProp<TextStyle>;
+  /** iOS-only SF Symbol effect (bounce, pulse, scale); ignored by the Ionicons fallback. */
+  animationSpec?: AnimationSpec;
 }
 
 export function Symbol({
@@ -217,6 +221,7 @@ export function Symbol({
   weight = 'regular',
   type = 'monochrome',
   style,
+  animationSpec,
 }: SymbolProps) {
   if (Platform.OS === 'ios' && SymbolView) {
     return (
@@ -227,6 +232,7 @@ export function Symbol({
         weight={weight}
         tintColor={color}
         resizeMode="scaleAspectFit"
+        animationSpec={animationSpec}
       />
     );
   }

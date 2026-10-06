@@ -121,7 +121,12 @@ export default function EveningWrapScreen() {
 
       {incompleteTasks.length === 0 ? (
         <View style={styles.allDone}>
-          <Symbol name={SymbolNames.checkmarkCircle} size={64} color={colors.system.green} />
+          <Symbol
+            name={SymbolNames.checkmarkCircle}
+            size={64}
+            color={colors.system.green}
+            animationSpec={{ effect: { type: 'bounce', wholeSymbol: true } }}
+          />
           <Text style={[typography.headline, { color: colors.system.green }]}>
             {t('Journée complète !')}
           </Text>

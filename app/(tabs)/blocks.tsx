@@ -1,5 +1,6 @@
 import { useState, useCallback } from 'react';
 import { Pressable, Text, View, StyleSheet } from 'react-native';
+import Animated, { FadeIn, FadeOut, LayoutAnimationConfig } from 'react-native-reanimated';
 import { useLifeBlocksStore } from '../../src/features/lifeBlocks/store';
 import { useTemplateStore } from '../../src/features/templates/store';
 import { LifeBlock, LifeBlockColor } from '../../src/types/lifeBlock';
@@ -12,7 +13,7 @@ import { hapticLight, hapticWarning } from '../../src/utils/haptics';
 import { timeToMinutes } from '../../src/utils/time';
 import { PageInfo } from '../../src/components/ui/PageInfo';
 import { Button, IconButton } from '../../src/components/ui/Glass';
-import { IconTile, List, Row, SectionHeader } from '../../src/components/ui/List';
+import { IconTile, List, ROW_TRANSITION, Row, SectionHeader } from '../../src/components/ui/List';
 import { Screen } from '../../src/components/ui/Screen';
 import { SymbolNames } from '../../src/components/ui/Symbol';
 import { useTranslation } from '../../src/i18n';
@@ -134,36 +135,44 @@ export default function BlocksScreen() {
             action={<Button title={t('Créer un bloc de vie')} onPress={handleCreate} />}
           />
         ) : (
-          <View style={styles.list}>
-            {activeBlocks.map((block, index) => {
-              const timeSpent = getWeeklyMinutes(block.id, getBlocksForDay);
-              const progress =
-                block.weeklyGoalMinutes > 0
-                  ? (timeSpent / block.weeklyGoalMinutes) * 100
-                  : 0;
+          <LayoutAnimationConfig skipEntering>
+            <View style={styles.list}>
+              {activeBlocks.map((block, index) => {
+                const timeSpent = getWeeklyMinutes(block.id, getBlocksForDay);
+                const progress =
+                  block.weeklyGoalMinutes > 0
+                    ? (timeSpent / block.weeklyGoalMinutes) * 100
+                    : 0;
 
-              return (
-                <LifeBlockCard
-                  key={block.id}
-                  block={block}
-                  progressPercent={progress}
-                  timeSpentMinutes={timeSpent}
-                  onEdit={() => handleEdit(block)}
-                  onMoveUp={() => reorderBlock(block.id, 'up')}
-                  onMoveDown={() => reorderBlock(block.id, 'down')}
-                  onArchive={() => archiveBlock(block.id)}
-                  canMoveUp={index > 0}
-                  canMoveDown={index < activeBlocks.length - 1}
-                />
-              );
-            })}
-          </View>
+                return (
+                  <Animated.View
+                    key={block.id}
+                    entering={FadeIn.duration(220)}
+                    exiting={FadeOut.duration(160)}
+                    layout={ROW_TRANSITION}
+                  >
+                    <LifeBlockCard
+                      block={block}
+                      progressPercent={progress}
+                      timeSpentMinutes={timeSpent}
+                      onEdit={() => handleEdit(block)}
+                      onMoveUp={() => reorderBlock(block.id, 'up')}
+                      onMoveDown={() => reorderBlock(block.id, 'down')}
+                      onArchive={() => archiveBlock(block.id)}
+                      canMoveUp={index > 0}
+                      canMoveDown={index < activeBlocks.length - 1}
+                    />
+                  </Animated.View>
+                );
+              })}
+            </View>
+          </LayoutAnimationConfig>
         )}
 
         {archivedBlocks.length > 0 && (
           <>
             <SectionHeader title={t('Archivés')} />
-            <List separatorInset={64}>
+            <List separatorInset={64} animated>
               {archivedBlocks.map((block) => (
                 <Row
                   key={block.id}

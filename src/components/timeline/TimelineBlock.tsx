@@ -67,6 +67,7 @@ export function TimelineBlock({
           {
             backgroundColor: withAlpha(tint, isActive ? (isDark ? 0.4 : 0.26) : isDark ? 0.24 : 0.14),
           },
+          isActive && { borderWidth: 1.5, borderColor: withAlpha(tint, 0.9) },
         ]}
       >
         <View style={[styles.accent, { backgroundColor: tint }]} />

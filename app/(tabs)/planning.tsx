@@ -18,6 +18,7 @@ import { Screen } from '../../src/components/ui/Screen';
 import { PageInfo } from '../../src/components/ui/PageInfo';
 import { TimelineBlock } from '../../src/components/timeline/TimelineBlock';
 import { FreeSlot } from '../../src/components/timeline/FreeSlot';
+import { NowIndicator } from '../../src/components/timeline/NowIndicator';
 import { HourMarker, HOUR_HEIGHT, START_HOUR, END_HOUR, MINUTES_PER_HOUR, HOUR_LABEL_WIDTH, timelineY } from '../../src/components/timeline/HourMarker';
 import { TaskCard } from '../../src/components/tasks/TaskCard';
 import { TaskDetailSheet } from '../../src/components/tasks/TaskDetailSheet';
@@ -220,6 +221,12 @@ export default function PlanningScreen() {
     if (startFocus(task.id, task.title)) router.push('/focus');
   }, [router, startFocus]);
 
+  // Done tasks sink below the open ones; the animated list makes the move visible.
+  const sortedTasks = useMemo(
+    () => [...viewedTasks].sort((a, b) => Number(a.completed) - Number(b.completed)),
+    [viewedTasks]
+  );
+
   const selectedTask = viewedTasks.find((task) => task.id === selectedTaskId);
   const completedCount = viewedTasks.filter((task) => task.completed).length;
   const dateLabel = formatLongDate(parseDateKey(viewedDate), t);
@@ -258,6 +265,10 @@ export default function PlanningScreen() {
 
   const showNowLine =
     isViewingToday && nowMinutes >= TIMELINE_START && nowMinutes <= TIMELINE_END;
+  const nowLabel = `${Math.floor(nowMinutes / 60).toString().padStart(2, '0')}:${(nowMinutes % 60).toString().padStart(2, '0')}`;
+  // The now pill sits in the hour column; hide any hour label it would cover.
+  const hourHiddenByNow = (hour: number) =>
+    showNowLine && Math.abs(nowMinutes - hour * MINUTES_PER_HOUR) < 15;
 
   return (
     <>
@@ -327,8 +338,8 @@ export default function PlanningScreen() {
           }
         />
         {viewedTasks.length > 0 ? (
-          <List separatorInset={52}>
-            {viewedTasks.map((task) => (
+          <List separatorInset={52} animated>
+            {sortedTasks.map((task) => (
               <TaskCard
                 key={task.id}
                 task={task}
@@ -357,11 +368,13 @@ export default function PlanningScreen() {
           onLayout={(event) => handleTimelineLayout(event.nativeEvent.layout.y)}
         >
           <View style={styles.hourLabels} pointerEvents="none">
-            {Array.from({ length: END_HOUR - START_HOUR + 1 }, (_, i) => (
-              <View key={i} style={{ position: 'absolute', top: timelineY(i * MINUTES_PER_HOUR), left: 0 }}>
-                <HourMarker hour={START_HOUR + i} />
-              </View>
-            ))}
+            {Array.from({ length: END_HOUR - START_HOUR + 1 }, (_, i) =>
+              hourHiddenByNow(START_HOUR + i) ? null : (
+                <View key={i} style={{ position: 'absolute', top: timelineY(i * MINUTES_PER_HOUR), left: 0 }}>
+                  <HourMarker hour={START_HOUR + i} />
+                </View>
+              )
+            )}
           </View>
 
           <View style={styles.timelineContent}>
@@ -425,16 +438,11 @@ export default function PlanningScreen() {
               );
             })}
 
-            {showNowLine && (
-              <View
-                pointerEvents="none"
-                style={[styles.nowLine, { top: timelineY(nowMinutes - TIMELINE_START) }]}
-              >
-                <View style={[styles.nowDot, { backgroundColor: colors.system.red }]} />
-                <View style={[styles.nowRule, { backgroundColor: colors.system.red }]} />
-              </View>
-            )}
           </View>
+
+          {showNowLine && (
+            <NowIndicator top={timelineY(nowMinutes - TIMELINE_START)} label={nowLabel} />
+          )}
         </View>
       </Screen>
 
@@ -509,23 +517,5 @@ const styles = StyleSheet.create({
     position: 'absolute',
     left: 0,
     right: 0,
-  },
-  nowLine: {
-    position: 'absolute',
-    left: -5,
-    right: 0,
-    height: 10,
-    marginTop: -5,
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  nowDot: {
-    width: 10,
-    height: 10,
-    borderRadius: 5,
-  },
-  nowRule: {
-    flex: 1,
-    height: 1.5,
   },
 });

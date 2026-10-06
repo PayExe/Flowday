@@ -1,4 +1,6 @@
+import { useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
+import Animated, { FadeInLeft, FadeInRight, LayoutAnimationConfig } from 'react-native-reanimated';
 import { useTheme } from '../../theme';
 import { useTranslation } from '../../i18n';
 import { dateKey, parseDateKey, relativeDay, shiftDateKey } from '../../utils/dates';
@@ -26,12 +28,16 @@ export function DayNavigator({ date, onChange }: DayNavigatorProps) {
   const isToday = relative === 'today';
   const parsed = parseDateKey(date);
 
+  // Which way the label slides in when the day changes.
+  const [movedForward, setMovedForward] = useState(true);
+
   // The screen header already carries the full date, so this only states where
   // we are relative to today, plus the way back when we have wandered off.
   const label = relative ? t(RELATIVE_LABELS[relative]) : formatLongDate(parsed, t);
 
   const step = (days: number) => {
     hapticLight();
+    setMovedForward(days > 0);
     onChange(shiftDateKey(date, days));
   };
 
@@ -61,18 +67,28 @@ export function DayNavigator({ date, onChange }: DayNavigatorProps) {
         disabled={isToday}
         onPress={() => {
           hapticLight();
+          // Date keys sort chronologically.
+          setMovedForward(today > date);
           onChange(today);
         }}
         style={({ pressed }) => [styles.label, { opacity: pressed && !isToday ? 0.6 : 1 }]}
       >
-        <Text style={[typography.subheadline, styles.labelText]} numberOfLines={1}>
-          {label}
-        </Text>
-        {!isToday && (
-          <Text style={[typography.caption, { color: colors.accent }]} numberOfLines={1}>
-            {t('Revenir à aujourd’hui')}
-          </Text>
-        )}
+        <LayoutAnimationConfig skipEntering>
+          <Animated.View
+            key={date}
+            entering={(movedForward ? FadeInRight : FadeInLeft).duration(220)}
+            style={styles.labelContent}
+          >
+            <Text style={[typography.subheadline, styles.labelText]} numberOfLines={1}>
+              {label}
+            </Text>
+            {!isToday && (
+              <Text style={[typography.caption, { color: colors.accent }]} numberOfLines={1}>
+                {t('Revenir à aujourd’hui')}
+              </Text>
+            )}
+          </Animated.View>
+        </LayoutAnimationConfig>
       </Pressable>
 
       {arrow(SymbolNames.chevronRight, 1, t('Jour suivant'))}
@@ -97,6 +113,9 @@ const styles = StyleSheet.create({
   },
   label: {
     flex: 1,
+    alignItems: 'center',
+  },
+  labelContent: {
     alignItems: 'center',
   },
   labelText: {

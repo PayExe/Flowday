@@ -60,6 +60,7 @@ export function FocusBar({ style }: FocusBarProps) {
             color={focusState.isBreak ? colors.system.green : colors.system.orange}
             symbol={SymbolNames.timer}
             size={44}
+            animationSpec={isActive ? { effect: { type: 'pulse', wholeSymbol: true }, repeating: true } : undefined}
           />
         }
         title={focusState.currentTaskTitle ?? t('Focus')}

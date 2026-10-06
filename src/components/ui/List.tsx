@@ -1,7 +1,8 @@
 import { Children, isValidElement, type ReactNode } from 'react';
 import { Pressable, StyleSheet, Text, View, type StyleProp, type ViewStyle } from 'react-native';
+import Animated, { FadeIn, FadeOut, LayoutAnimationConfig, LinearTransition } from 'react-native-reanimated';
 import { radius, resolveBlockColor, useTheme, withAlpha } from '../../theme';
-import { Symbol, SymbolNames } from './Symbol';
+import { Symbol, SymbolNames, type SymbolProps } from './Symbol';
 import { symbolForEmoji } from './blockIcons';
 
 interface CardProps {
@@ -30,11 +31,47 @@ interface ListProps {
   children: ReactNode;
   separatorInset?: number;
   style?: StyleProp<ViewStyle>;
+  /** Animate rows being added, removed and reordered. Rows need stable keys. */
+  animated?: boolean;
 }
 
-export function List({ children, separatorInset = 16, style }: ListProps) {
+export const ROW_TRANSITION = LinearTransition.springify().damping(22).stiffness(220);
+
+export function List({ children, separatorInset = 16, style, animated }: ListProps) {
   const { colors } = useTheme();
   const rows = Children.toArray(children).filter(isValidElement);
+
+  if (animated) {
+    return (
+      // Rows present on first render appear with the screen; only later arrivals animate in.
+      <LayoutAnimationConfig skipEntering>
+          <Animated.View
+            layout={ROW_TRANSITION}
+            style={[styles.card, { backgroundColor: colors.bg.secondary }, style]}
+          >
+            {rows.map((row, index) => (
+              <Animated.View
+                key={row.key ?? index}
+                entering={FadeIn.duration(220)}
+                exiting={FadeOut.duration(160)}
+                layout={ROW_TRANSITION}
+              >
+                {index > 0 && (
+                  <View
+                    style={{
+                      height: StyleSheet.hairlineWidth,
+                      backgroundColor: colors.separator.hairline,
+                      marginLeft: separatorInset,
+                    }}
+                  />
+                )}
+                {row}
+              </Animated.View>
+            ))}
+          </Animated.View>
+      </LayoutAnimationConfig>
+    );
+  }
 
   return (
     <Card style={style}>
@@ -148,9 +185,10 @@ interface IconTileProps {
   symbol?: string;
   size?: number;
   solid?: boolean;
+  animationSpec?: SymbolProps['animationSpec'];
 }
 
-export function IconTile({ color, emoji, symbol, size = 36, solid }: IconTileProps) {
+export function IconTile({ color, emoji, symbol, size = 36, solid, animationSpec }: IconTileProps) {
   const { colors, isDark } = useTheme();
   const resolved = resolveBlockColor(color, isDark);
   const symbolName = symbol ?? symbolForEmoji(emoji);
@@ -173,6 +211,7 @@ export function IconTile({ color, emoji, symbol, size = 36, solid }: IconTilePro
           size={size * 0.56}
           weight="medium"
           color={solid ? colors.text.inverse : resolved}
+          animationSpec={animationSpec}
         />
       ) : emoji ? (
         <Text style={{ fontSize: size * 0.5 }}>{emoji}</Text>
