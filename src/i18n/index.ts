@@ -38,6 +38,7 @@ fr['breakReady'] = ({ minutes }) => `${minutes} min de pause, tu l’as mérité
 fr['focusReady'] = ({ minutes }) => `On repart pour ${minutes} min de focus.`;
 fr['blockLeadOption'] = ({ minutes }) => `${minutes} min avant`;
 fr['notificationsScheduled'] = ({ count }) => `${count} rappel${count === 1 ? '' : 's'} programmé${count === 1 ? '' : 's'}`;
+fr['lateByDays'] = ({ count }) => (Number(count) <= 1 ? 'En retard d’un jour' : `En retard de ${count} jours`);
 
 en['scorePerfect'] = 'Perfect day';
 en['scoreGood'] = 'Good day';
@@ -67,6 +68,7 @@ en['breakReady'] = ({ minutes }) => `${minutes} min break, you earned it.`;
 en['focusReady'] = ({ minutes }) => `Back for ${minutes} min of focus.`;
 en['blockLeadOption'] = ({ minutes }) => `${minutes} min before`;
 en['notificationsScheduled'] = ({ count }) => `${count} reminder${count === 1 ? '' : 's'} scheduled`;
+en['lateByDays'] = ({ count }) => (Number(count) <= 1 ? 'One day late' : `${count} days late`);
 
 const shared: Record<string, TranslationValue> = {
   'Notifications': 'Notifications', 'Rappels des rituels': 'Ritual reminders',
@@ -87,6 +89,15 @@ const shared: Record<string, TranslationValue> = {
   'Démarrer un focus': 'Start a focus', 'En pause': 'Paused',
   'Session Focus en cours': 'Focus session running',
   'Ajoute d’abord une tâche à faire aujourd’hui.': 'Add a task for today first.',
+  'Hier': 'Yesterday', 'Date': 'Date', 'Plus tard…': 'Later…',
+  'Jour précédent': 'Previous day', 'Jour suivant': 'Next day',
+  'Revenir à aujourd’hui': 'Back to today', 'Date de la tâche': 'Task date',
+  'En retard': 'Overdue', 'Aucune tâche ce jour-là.': 'No task that day.',
+  'tâches en retard': 'overdue tasks',
+  'Navigue entre les jours avec les flèches, ou touche la date pour revenir à aujourd’hui.':
+    'Move between days with the arrows, or tap the date to come back to today.',
+  'Les tâches en retard restent en haut jusqu’à ce que tu les replanifies.':
+    'Overdue tasks stay on top until you reschedule them.',
   'Accueil': 'Home', 'Planning': 'Planning', 'Semaine': 'Week', 'Blocs': 'Blocks', 'Réglages': 'Settings', 'Bloc': 'Block', 'Rituels': 'Rituals',
   'Thème': 'Theme', 'Sombre': 'Dark', 'Clair': 'Light', 'Activer': 'Enable', 'Heure': 'Time',
   'Annuler': 'Cancel', 'OK': 'OK', 'Ajouter': 'Add', 'Modifier': 'Edit', 'Supprimer': 'Delete',

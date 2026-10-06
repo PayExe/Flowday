@@ -8,36 +8,46 @@ import { hapticSuccess } from '../../utils/haptics';
 import { Card, Chip } from '../ui/List';
 import { SegmentedControl } from '../ui/SegmentedControl';
 import { FieldLabel, Sheet } from '../ui/Sheet';
+import { TaskDateField } from './TaskDateField';
 import { usePriorityOptions } from './TaskDetailSheet';
 
 interface NewTaskSheetProps {
   visible: boolean;
   blocks: LifeBlock[];
+  /** The day the caller is looking at, pre-selected in the date field. */
+  defaultDate: string;
   onClose: () => void;
-  onAdd: (task: { title: string; priority: Priority; lifeBlockId?: string }) => void;
+  onAdd: (task: {
+    title: string;
+    priority: Priority;
+    lifeBlockId?: string;
+    scheduledDate: string;
+  }) => void;
 }
 
-export function NewTaskSheet({ visible, blocks, onClose, onAdd }: NewTaskSheetProps) {
+export function NewTaskSheet({ visible, blocks, defaultDate, onClose, onAdd }: NewTaskSheetProps) {
   const { colors, typography } = useTheme();
   const { t } = useTranslation();
   const priorities = usePriorityOptions();
   const [title, setTitle] = useState('');
   const [priority, setPriority] = useState<Priority>('medium');
   const [lifeBlockId, setLifeBlockId] = useState<string | undefined>(undefined);
+  const [scheduledDate, setScheduledDate] = useState(defaultDate);
 
   useEffect(() => {
     if (!visible) return;
     setTitle('');
     setPriority('medium');
     setLifeBlockId(undefined);
-  }, [visible]);
+    setScheduledDate(defaultDate);
+  }, [visible, defaultDate]);
 
   const canSubmit = title.trim().length > 0;
 
   const submit = () => {
     if (!canSubmit) return;
     hapticSuccess();
-    onAdd({ title: title.trim(), priority, lifeBlockId });
+    onAdd({ title: title.trim(), priority, lifeBlockId, scheduledDate });
     onClose();
   };
 
@@ -62,6 +72,9 @@ export function NewTaskSheet({ visible, blocks, onClose, onAdd }: NewTaskSheetPr
           autoFocus
         />
       </Card>
+
+      <FieldLabel>{t('Date')}</FieldLabel>
+      <TaskDateField value={scheduledDate} onChange={setScheduledDate} />
 
       <FieldLabel>{t('Priorité')}</FieldLabel>
       <View style={styles.inset}>

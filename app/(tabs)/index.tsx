@@ -69,6 +69,7 @@ export default function HomeScreen() {
   const updateTask = useTaskStore((state) => state.updateTask);
   const addTask = useTaskStore((state) => state.addTask);
   const getIncompleteTodayTasks = useTaskStore((state) => state.getIncompleteTodayTasks);
+  const getOverdueTasks = useTaskStore((state) => state.getOverdueTasks);
 
   const focusState = useFocusStore((state) => state.focusState);
   const startFocus = useFocusStore((state) => state.startFocus);
@@ -90,6 +91,7 @@ export default function HomeScreen() {
   }, [tasks, getIncompleteTodayTasks]);
 
   const incompleteTasks = useMemo(() => openTasks.slice(0, 3), [openTasks]);
+  const overdueCount = useMemo(() => getOverdueTasks().length, [tasks, getOverdueTasks]);
 
   const handleFocusTask = useCallback(
     (task: { id: string; title: string }) => {
@@ -221,6 +223,21 @@ export default function HomeScreen() {
           </>
         )}
 
+        {overdueCount > 0 && (
+          <List>
+            <Row
+              leading={
+                <IconTile color={colors.system.orange} symbol={SymbolNames.calendar} size={44} />
+              }
+              title={`${overdueCount} ${t('tâches en retard')}`}
+              subtitle={t('Les tâches en retard restent en haut jusqu’à ce que tu les replanifies.')}
+              tint={colors.system.orange}
+              chevron
+              onPress={() => router.push('/planning')}
+            />
+          </List>
+        )}
+
         <SectionHeader title={t('Tâches prioritaires')} />
         {incompleteTasks.length > 0 ? (
           <List separatorInset={52}>
@@ -314,7 +331,8 @@ export default function HomeScreen() {
         visible={newTaskVisible}
         blocks={activeBlocks}
         onClose={() => setNewTaskVisible(false)}
-        onAdd={(task) => addTask({ ...task, completed: false, scheduledDate: todayISO() })}
+        defaultDate={todayISO()}
+        onAdd={(task) => addTask({ ...task, completed: false })}
       />
 
       <StartFocusSheet

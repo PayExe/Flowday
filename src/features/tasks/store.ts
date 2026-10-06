@@ -12,6 +12,8 @@ interface TaskState {
   toggleTask: (id: string) => void;
   deleteTask: (id: string) => void;
   updateTask: (id: string, updates: Partial<Omit<Task, 'id' | 'createdAt'>>) => void;
+  getTasksForDate: (date: string) => Task[];
+  getTasksForDateByLifeBlock: (date: string, lifeBlockId: string) => Task[];
   getTodayTasks: () => Task[];
   getTodayTasksByLifeBlock: (lifeBlockId: string) => Task[];
   getIncompleteTodayTasks: () => Task[];
@@ -97,21 +99,22 @@ export const useTaskStore = create<TaskState>()(
         }
       },
 
-      getTodayTasks: () => {
+      // An undated task belongs to today, which is also how the score reads it.
+      getTasksForDate: (date) => {
         const today = dateKey();
-        return get().tasks.filter(
-          (task) => !task.scheduledDate || task.scheduledDate === today
-        );
+        return get().tasks.filter((task) => (task.scheduledDate || today) === date);
       },
 
-      getTodayTasksByLifeBlock: (lifeBlockId) => {
-        const today = dateKey();
-        return get().tasks.filter(
-          (task) =>
-            task.lifeBlockId === lifeBlockId &&
-            (!task.scheduledDate || task.scheduledDate === today)
-        );
+      getTasksForDateByLifeBlock: (date, lifeBlockId) => {
+        return get()
+          .getTasksForDate(date)
+          .filter((task) => task.lifeBlockId === lifeBlockId);
       },
+
+      getTodayTasks: () => get().getTasksForDate(dateKey()),
+
+      getTodayTasksByLifeBlock: (lifeBlockId) =>
+        get().getTasksForDateByLifeBlock(dateKey(), lifeBlockId),
 
       getIncompleteTodayTasks: () => {
         return get().getTodayTasks().filter((t) => !t.completed);

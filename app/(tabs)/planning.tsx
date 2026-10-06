@@ -9,7 +9,7 @@ import { countBlockValidation } from '../../src/features/dayScore/blockValidatio
 import { useRitualStore } from '../../src/features/rituals/store';
 import { useFocusStore } from '../../src/features/focus/store';
 import { useTheme } from '../../src/theme';
-import { dateKey } from '../../src/utils/dates';
+import { dateKey, parseDateKey, relativeDay, weekDayIndex } from '../../src/utils/dates';
 import { formatDuration, formatLongDate, timeToMinutes } from '../../src/utils/time';
 import { SymbolNames } from '../../src/components/ui/Symbol';
 import { Button, IconButton } from '../../src/components/ui/Glass';
@@ -26,6 +26,8 @@ import { BlockDetailSheet } from '../../src/components/timeline/BlockDetailSheet
 import { EmptyState } from '../../src/components/shared/EmptyState';
 import { RitualPrompt } from '../../src/components/rituals/RitualPrompt';
 import { FocusBar } from '../../src/components/focus/FocusBar';
+import { DayNavigator } from '../../src/components/planning/DayNavigator';
+import { OverdueTasks } from '../../src/components/tasks/OverdueTasks';
 import { hapticLight } from '../../src/utils/haptics';
 import { Task } from '../../src/types/task';
 import { TemplateBlock } from '../../src/types/template';
@@ -64,6 +66,7 @@ export default function PlanningScreen() {
   const timelineOffset = useRef(0);
   const didScrollToNow = useRef(false);
   const [nowMinutes, setNowMinutes] = useState(currentMinutes);
+  const [viewedDate, setViewedDate] = useState(todayISO);
   const [newTaskVisible, setNewTaskVisible] = useState(false);
   const [selectedTaskId, setSelectedTaskId] = useState<string | undefined>(undefined);
   const [selectedTimelineBlock, setSelectedTimelineBlock] = useState<{
@@ -79,11 +82,13 @@ export default function PlanningScreen() {
   const toggleTask = useTaskStore((state) => state.toggleTask);
   const deleteTask = useTaskStore((state) => state.deleteTask);
   const updateTask = useTaskStore((state) => state.updateTask);
-  const getTodayTasks = useTaskStore((state) => state.getTodayTasks);
-  const getTodayTasksByLifeBlock = useTaskStore((state) => state.getTodayTasksByLifeBlock);
+  const getTasksForDate = useTaskStore((state) => state.getTasksForDate);
+  const getTasksForDateByLifeBlock = useTaskStore((state) => state.getTasksForDateByLifeBlock);
+  const getOverdueTasks = useTaskStore((state) => state.getOverdueTasks);
+  const rescheduleTask = useTaskStore((state) => state.rescheduleTask);
 
   const getActiveTemplate = useTemplateStore((state) => state.getActiveTemplate);
-  const getTodayBlocks = useTemplateStore((state) => state.getTodayBlocks);
+  const getBlocksForDay = useTemplateStore((state) => state.getBlocksForDay);
   const templates = useTemplateStore((state) => state.templates);
   const activeTemplateId = useTemplateStore((state) => state.activeTemplateId);
 
@@ -98,24 +103,43 @@ export default function PlanningScreen() {
   const startFocus = useFocusStore((state) => state.startFocus);
 
   const activeBlocks = useMemo(() => getActiveBlocks(), [lifeBlocks, getActiveBlocks]);
-  const todayTasks = useMemo(() => getTodayTasks(), [tasks, getTodayTasks]);
-  const templateBlocks = useMemo(() => getTodayBlocks(), [templates, activeTemplateId, getTodayBlocks]);
+  const isViewingToday = relativeDay(viewedDate) === 'today';
+
+  const viewedTasks = useMemo(
+    () => getTasksForDate(viewedDate),
+    [tasks, viewedDate, getTasksForDate]
+  );
+  const templateBlocks = useMemo(
+    () => getBlocksForDay(weekDayIndex(parseDateKey(viewedDate))),
+    [templates, activeTemplateId, viewedDate, getBlocksForDay]
+  );
+  const overdueTasks = useMemo(() => getOverdueTasks(), [tasks, getOverdueTasks]);
 
   const hasTemplate = getActiveTemplate() !== undefined;
   const morningDone = hasDoneMorningToday();
 
+  // The score always describes today, never the day being browsed.
   useEffect(() => {
     const today = todayISO();
+    const todayTasks = getTasksForDate(today);
     const completed = todayTasks.filter((t) => t.completed).length;
-    const total = todayTasks.length;
-    updateTasksPercent(today, completed, total);
+    updateTasksPercent(today, completed, todayTasks.length);
 
-    const plannedLifeBlockIds = templateBlocks
+    const plannedLifeBlockIds = getBlocksForDay(weekDayIndex())
       .map((b) => b.lifeBlockId)
       .filter((id) => activeBlocks.some((block) => block.id === id));
     const { validated, tracked } = countBlockValidation(plannedLifeBlockIds, todayTasks);
     updateBlockValidation(today, validated, tracked);
-  }, [tasks, activeBlocks, todayTasks, templateBlocks, updateTasksPercent, updateBlockValidation]);
+  }, [
+    tasks,
+    templates,
+    activeTemplateId,
+    activeBlocks,
+    getTasksForDate,
+    getBlocksForDay,
+    updateTasksPercent,
+    updateBlockValidation,
+  ]);
 
   useEffect(() => {
     const timer = setInterval(() => setNowMinutes(currentMinutes()), 30000);
@@ -196,9 +220,9 @@ export default function PlanningScreen() {
     if (startFocus(task.id, task.title)) router.push('/focus');
   }, [router, startFocus]);
 
-  const selectedTask = todayTasks.find((task) => task.id === selectedTaskId);
-  const completedCount = todayTasks.filter((task) => task.completed).length;
-  const dateLabel = formatLongDate(new Date(), t);
+  const selectedTask = viewedTasks.find((task) => task.id === selectedTaskId);
+  const completedCount = viewedTasks.filter((task) => task.completed).length;
+  const dateLabel = formatLongDate(parseDateKey(viewedDate), t);
 
   if (!hasTemplate || activeBlocks.length === 0) {
     const missingBlocks = activeBlocks.length === 0;
@@ -232,7 +256,8 @@ export default function PlanningScreen() {
     );
   }
 
-  const showNowLine = nowMinutes >= TIMELINE_START && nowMinutes <= TIMELINE_END;
+  const showNowLine =
+    isViewingToday && nowMinutes >= TIMELINE_START && nowMinutes <= TIMELINE_END;
 
   return (
     <>
@@ -250,6 +275,8 @@ export default function PlanningScreen() {
                 t('Utilise + pour ajouter une tâche et l’associer à un bloc.'),
                 t('Appuie sur une tâche pour la modifier ou lancer une session Focus.'),
                 t('Appuie sur un bloc pour voir ses tâches et valider ce qui est fait.'),
+                t('Navigue entre les jours avec les flèches, ou touche la date pour revenir à aujourd’hui.'),
+                t('Les tâches en retard restent en haut jusqu’à ce que tu les replanifies.'),
               ]}
             />
             <IconButton
@@ -269,19 +296,39 @@ export default function PlanningScreen() {
 
         <FocusBar />
 
+        <DayNavigator date={viewedDate} onChange={setViewedDate} />
+
+        {isViewingToday && overdueTasks.length > 0 && (
+          <>
+            <SectionHeader
+              title={t('En retard')}
+              trailing={
+                <Text style={[typography.subheadline, styles.tabular, { color: colors.system.orange }]}>
+                  {overdueTasks.length}
+                </Text>
+              }
+            />
+            <OverdueTasks
+              tasks={overdueTasks}
+              onReschedule={rescheduleTask}
+              onDelete={handleDeleteTask}
+            />
+          </>
+        )}
+
         <SectionHeader
           title={t('Tâches')}
           trailing={
-            todayTasks.length > 0 ? (
+            viewedTasks.length > 0 ? (
               <Text style={[typography.subheadline, styles.tabular]}>
-                {completedCount}/{todayTasks.length}
+                {completedCount}/{viewedTasks.length}
               </Text>
             ) : undefined
           }
         />
-        {todayTasks.length > 0 ? (
+        {viewedTasks.length > 0 ? (
           <List separatorInset={52}>
-            {todayTasks.map((task) => (
+            {viewedTasks.map((task) => (
               <TaskCard
                 key={task.id}
                 task={task}
@@ -297,7 +344,7 @@ export default function PlanningScreen() {
             <Row
               leading={<IconTile color={colors.accent} symbol={SymbolNames.add} />}
               title={t('Ajouter une tâche')}
-              subtitle={t('Aucune tâche pour aujourd’hui.')}
+              subtitle={isViewingToday ? t('Aucune tâche pour aujourd’hui.') : t('Aucune tâche ce jour-là.')}
               tint={colors.accent}
               onPress={() => setNewTaskVisible(true)}
             />
@@ -341,10 +388,12 @@ export default function PlanningScreen() {
               const block = item.data;
               const lifeBlock = getBlockById(block.lifeBlockId);
               const blockTasks = lifeBlock
-                ? getTodayTasksByLifeBlock(lifeBlock.id)
+                ? getTasksForDateByLifeBlock(viewedDate, lifeBlock.id)
                 : [];
               const isActive =
-                nowMinutes >= item.startMinutes && nowMinutes < item.endMinutes;
+                isViewingToday &&
+                nowMinutes >= item.startMinutes &&
+                nowMinutes < item.endMinutes;
 
               return (
                 <View
@@ -393,7 +442,8 @@ export default function PlanningScreen() {
         visible={newTaskVisible}
         blocks={activeBlocks}
         onClose={() => setNewTaskVisible(false)}
-        onAdd={(task) => addTask({ ...task, completed: false, scheduledDate: todayISO() })}
+        defaultDate={viewedDate}
+        onAdd={(task) => addTask({ ...task, completed: false })}
       />
       <TaskDetailSheet
         task={selectedTask}
