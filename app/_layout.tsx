@@ -10,6 +10,7 @@ import { useTemplateStore } from '../src/features/templates/store';
 import { useThemeStore } from '../src/features/theme/store';
 import { useFocusStore } from '../src/features/focus/store';
 import { useNotifications } from '../src/features/notifications/useNotifications';
+import { useDayScoreSync } from '../src/features/dayScore/useDayScoreSync';
 import { useTheme } from '../src/theme';
 import { dateKey } from '../src/utils/dates';
 import {
@@ -44,6 +45,7 @@ export default function RootLayout() {
   const resetDailyCountIfNeeded = useFocusStore((state) => state.resetDailyCountIfNeeded);
 
   useNotifications();
+  useDayScoreSync(currentDate);
 
   useEffect(() => {
     Appearance.setColorScheme?.(themePreference === 'system' ? 'unspecified' : themePreference);

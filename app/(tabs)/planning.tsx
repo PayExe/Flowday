@@ -4,8 +4,6 @@ import { useRouter } from 'expo-router';
 import { useTaskStore } from '../../src/features/tasks/store';
 import { useTemplateStore } from '../../src/features/templates/store';
 import { useLifeBlocksStore } from '../../src/features/lifeBlocks/store';
-import { useDayScoreStore } from '../../src/features/dayScore/store';
-import { countBlockValidation } from '../../src/features/dayScore/blockValidation';
 import { useRitualStore } from '../../src/features/rituals/store';
 import { useFocusStore } from '../../src/features/focus/store';
 import { useTheme } from '../../src/theme';
@@ -97,8 +95,6 @@ export default function PlanningScreen() {
   const getActiveBlocks = useLifeBlocksStore((state) => state.getActiveBlocks);
   const lifeBlocks = useLifeBlocksStore((state) => state.blocks);
 
-  const updateBlockValidation = useDayScoreStore((state) => state.updateBlockValidation);
-  const updateTasksPercent = useDayScoreStore((state) => state.updateTasksPercent);
 
   const hasDoneMorningToday = useRitualStore((state) => state.hasDoneMorningToday);
   const startFocus = useFocusStore((state) => state.startFocus);
@@ -119,28 +115,6 @@ export default function PlanningScreen() {
   const hasTemplate = getActiveTemplate() !== undefined;
   const morningDone = hasDoneMorningToday();
 
-  // The score always describes today, never the day being browsed.
-  useEffect(() => {
-    const today = todayISO();
-    const todayTasks = getTasksForDate(today);
-    const completed = todayTasks.filter((t) => t.completed).length;
-    updateTasksPercent(today, completed, todayTasks.length);
-
-    const plannedLifeBlockIds = getBlocksForDay(weekDayIndex())
-      .map((b) => b.lifeBlockId)
-      .filter((id) => activeBlocks.some((block) => block.id === id));
-    const { validated, tracked } = countBlockValidation(plannedLifeBlockIds, todayTasks);
-    updateBlockValidation(today, validated, tracked);
-  }, [
-    tasks,
-    templates,
-    activeTemplateId,
-    activeBlocks,
-    getTasksForDate,
-    getBlocksForDay,
-    updateTasksPercent,
-    updateBlockValidation,
-  ]);
 
   useEffect(() => {
     const timer = setInterval(() => setNowMinutes(currentMinutes()), 30000);

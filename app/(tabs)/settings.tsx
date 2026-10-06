@@ -2,6 +2,8 @@ import { useCallback, useEffect, useState, type ReactNode } from 'react';
 import { View, Text, StyleSheet, Switch, Linking, Pressable } from 'react-native';
 import { useThemeStore } from '../../src/features/theme/store';
 import { useRitualStore } from '../../src/features/rituals/store';
+import { useDayScoreStore } from '../../src/features/dayScore/store';
+import { IconButton } from '../../src/components/ui/Glass';
 import { useTheme, type ThemePreference } from '../../src/theme';
 import { SymbolNames } from '../../src/components/ui/Symbol';
 import { SegmentedControl } from '../../src/components/ui/SegmentedControl';
@@ -19,6 +21,8 @@ import {
   requestPermission,
 } from '../../src/features/notifications/service';
 import { useTranslation } from '../../src/i18n';
+
+const MAX_POMODORO_GOAL = 12;
 
 export default function SettingsScreen() {
   const { colors, typography } = useTheme();
@@ -44,6 +48,9 @@ export default function SettingsScreen() {
   const setFocusEnabled = useNotificationStore((state) => state.setFocusEnabled);
   const setPermission = useNotificationStore((state) => state.setPermission);
   const markPermissionRequested = useNotificationStore((state) => state.markPermissionRequested);
+
+  const pomodoroGoal = useDayScoreStore((state) => state.pomodoroGoal);
+  const setPomodoroGoal = useDayScoreStore((state) => state.setPomodoroGoal);
 
   const [scheduledCount, setScheduledCount] = useState(0);
 
@@ -134,6 +141,40 @@ export default function SettingsScreen() {
           />
         </View>
       </List>
+
+      <SectionHeader title={t('Score')} variant="plain" />
+      <List separatorInset={58}>
+        {renderCell(
+          SymbolNames.timer,
+          colors.system.orange,
+          t('Objectif Focus quotidien'),
+          <View style={styles.stepper}>
+            <IconButton
+              symbol={SymbolNames.minus}
+              size={32}
+              disabled={pomodoroGoal <= 0}
+              onPress={() => setPomodoroGoal(pomodoroGoal - 1)}
+              accessibilityLabel={t('Diminuer l’objectif Focus')}
+            />
+            <Text
+              style={[typography.body, styles.stepperValue]}
+              accessibilityLabel={`${t('Objectif Focus quotidien')} : ${pomodoroGoal}`}
+            >
+              {pomodoroGoal}
+            </Text>
+            <IconButton
+              symbol={SymbolNames.add}
+              size={32}
+              disabled={pomodoroGoal >= MAX_POMODORO_GOAL}
+              onPress={() => setPomodoroGoal(pomodoroGoal + 1)}
+              accessibilityLabel={t('Augmenter l’objectif Focus')}
+            />
+          </View>
+        )}
+      </List>
+      <SectionFooter>
+        {t('Sessions de 25 min pour un score Focus complet. À 0, le Focus ne compte plus dans le score.')}
+      </SectionFooter>
 
       <SectionHeader title={t('Morning Ritual')} variant="plain" />
       <List separatorInset={58}>
@@ -270,6 +311,17 @@ export default function SettingsScreen() {
 }
 
 const styles = StyleSheet.create({
+  stepper: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+  },
+  stepperValue: {
+    minWidth: 22,
+    textAlign: 'center',
+    fontWeight: '600',
+    fontVariant: ['tabular-nums'],
+  },
   cell: {
     flexDirection: 'row',
     alignItems: 'center',
