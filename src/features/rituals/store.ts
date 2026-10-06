@@ -1,6 +1,6 @@
 import { create } from 'zustand';
-import { persist, createJSONStorage } from 'zustand/middleware';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import { persist } from 'zustand/middleware';
+import { persistOptions } from '../../utils/persistence';
 import { RitualLog, MorningRitualConfig, EveningWrapConfig, Mood } from '../../types/ritual';
 import { dateKey, isValidTime } from '../../utils/dates';
 
@@ -117,9 +117,6 @@ export const useRitualStore = create<RitualState>()(
         );
       },
     }),
-    {
-      name: 'flowday-rituals',
-      storage: createJSONStorage(() => AsyncStorage),
-    }
+    persistOptions<RitualState>('flowday-rituals', { version: 1 })
   )
 );

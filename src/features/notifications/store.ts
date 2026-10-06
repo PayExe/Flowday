@@ -1,6 +1,6 @@
 import { create } from 'zustand';
-import { persist, createJSONStorage } from 'zustand/middleware';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import { persist } from 'zustand/middleware';
+import { persistOptions } from '../../utils/persistence';
 
 export const BLOCK_LEAD_CHOICES = [0, 5, 10] as const;
 
@@ -45,9 +45,6 @@ export const useNotificationStore = create<NotificationState>()(
       setPermission: (permissionGranted) => set({ permissionGranted }),
       markPermissionRequested: () => set({ permissionRequested: true }),
     }),
-    {
-      name: 'flowday-notifications',
-      storage: createJSONStorage(() => AsyncStorage),
-    }
+    persistOptions<NotificationState>('flowday-notifications', { version: 1 })
   )
 );

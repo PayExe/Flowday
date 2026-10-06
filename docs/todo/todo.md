@@ -34,7 +34,7 @@
 〽️ -  Décider comment un Life Block est validé
 〽️ -  Ajouter les labels d’accessibilité manquants
 〽️ -  Ajouter quelques tests UI ou d’intégration
-〽️ -  Ajouter une stratégie de migration des données locales
+✅ -  Ajouter une stratégie de migration des données locales (`src/utils/persistence.ts`)
 〽️ -  Ajouter les informations de contact au README
 
 

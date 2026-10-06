@@ -1,6 +1,6 @@
 import { create } from 'zustand';
-import { persist, createJSONStorage } from 'zustand/middleware';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import { persist } from 'zustand/middleware';
+import { persistOptions } from '../../utils/persistence';
 import { generateId } from '../../utils/id';
 import { useDayScoreStore } from '../../features/dayScore/store';
 import { FocusSession, FocusState } from '../../types/focus';
@@ -251,9 +251,6 @@ export const useFocusStore = create<FocusStoreState>()(
         }, 0);
       },
     }),
-    {
-      name: 'flowday-focus',
-      storage: createJSONStorage(() => AsyncStorage),
-    }
+    persistOptions<FocusStoreState>('flowday-focus', { version: 1 })
   )
 );

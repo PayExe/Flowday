@@ -1,6 +1,6 @@
 import { create } from 'zustand';
-import { persist, createJSONStorage } from 'zustand/middleware';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import { persist } from 'zustand/middleware';
+import { persistOptions } from '../../utils/persistence';
 import type { ThemePreference } from '../../theme/colors';
 
 interface ThemeState {
@@ -18,9 +18,6 @@ export const useThemeStore = create<ThemeState>()(
           themeName: name,
         }),
     }),
-    {
-      name: 'flowday-theme',
-      storage: createJSONStorage(() => AsyncStorage),
-    }
+    persistOptions<ThemeState>('flowday-theme', { version: 1 })
   )
 );

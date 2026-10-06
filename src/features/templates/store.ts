@@ -1,6 +1,6 @@
 import { create } from 'zustand';
-import { persist, createJSONStorage } from 'zustand/middleware';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import { persist } from 'zustand/middleware';
+import { persistOptions } from '../../utils/persistence';
 import { generateId } from '../../utils/id';
 import { WeeklyTemplate, TemplateBlock } from '../../types/template';
 import { isValidTime } from '../../utils/dates';
@@ -226,9 +226,6 @@ export const useTemplateStore = create<TemplateState>()(
           };
         }),
     }),
-    {
-      name: 'flowday-templates',
-      storage: createJSONStorage(() => AsyncStorage),
-    }
+    persistOptions<TemplateState>('flowday-templates', { version: 1 })
   )
 );

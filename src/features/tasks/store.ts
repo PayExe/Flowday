@@ -1,6 +1,6 @@
 import { create } from 'zustand';
-import { persist, createJSONStorage } from 'zustand/middleware';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import { persist } from 'zustand/middleware';
+import { persistOptions } from '../../utils/persistence';
 import { generateId } from '../../utils/id';
 import { Task } from '../../types/task';
 import { dateKey } from '../../utils/dates';
@@ -152,9 +152,6 @@ export const useTaskStore = create<TaskState>()(
         set({ tasks });
       },
     }),
-    {
-      name: 'flowday-tasks',
-      storage: createJSONStorage(() => AsyncStorage),
-    }
+    persistOptions<TaskState>('flowday-tasks', { version: 1 })
   )
 );

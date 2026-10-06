@@ -20,7 +20,8 @@ La suite couvre actuellement 28 cas :
 - report du Morning Ritual avec « Plus tard » ;
 - mise à jour du score après validation d’une tâche ;
 - rejet des objectifs négatifs, horaires invalides et identifiants inconnus ;
-- gestion des dates locales et changements de mois.
+- gestion des dates locales et changements de mois ;
+- migrations des données locales (ordre des étapes, échec sans perte, anciennes données non versionnées).
 
 Le typecheck se lance avec :
 
