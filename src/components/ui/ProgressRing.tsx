@@ -1,45 +1,50 @@
-import { useEffect, useRef, useState, type ReactNode } from 'react';
-import { Animated, Easing, StyleSheet, View } from 'react-native';
-import Svg, { Circle } from 'react-native-svg';
+import { useEffect, useId, type ReactNode } from 'react';
+import { StyleSheet, View } from 'react-native';
+import Animated, { Easing, useAnimatedProps, useSharedValue, withTiming } from 'react-native-reanimated';
+import Svg, { Circle, Defs, LinearGradient, Stop } from 'react-native-svg';
 import { useTheme } from '../../theme';
+
+const AnimatedCircle = Animated.createAnimatedComponent(Circle);
 
 interface ProgressRingProps {
   value: number;
   size: number;
   strokeWidth?: number;
   color: string;
+  /** Second color for a gradient sweep from `color` to `gradientTo`. */
+  gradientTo?: string;
   children?: ReactNode;
 }
 
-export function ProgressRing({ value, size, strokeWidth = 10, color, children }: ProgressRingProps) {
+export function ProgressRing({ value, size, strokeWidth = 10, color, gradientTo, children }: ProgressRingProps) {
   const { colors } = useTheme();
   const clamped = Math.max(0, Math.min(100, value));
   const r = (size - strokeWidth) / 2;
   const circumference = 2 * Math.PI * r;
-  const progress = useRef(new Animated.Value(clamped)).current;
-  const [shown, setShown] = useState(clamped);
+  const gradientId = `ring-${useId().replace(/[^a-zA-Z0-9]/g, '')}`;
+
+  // Starts empty so the ring fills on first appearance, then eases between values.
+  const progress = useSharedValue(0);
 
   useEffect(() => {
-    const id = progress.addListener(({ value: current }) => setShown(current));
-    return () => progress.removeListener(id);
-  }, [progress]);
-
-  useEffect(() => {
-    const animation = Animated.timing(progress, {
-      toValue: clamped,
-      duration: 600,
-      easing: Easing.out(Easing.cubic),
-      useNativeDriver: false,
-    });
-    animation.start();
-    return () => animation.stop();
+    progress.value = withTiming(clamped, { duration: 900, easing: Easing.out(Easing.cubic) });
   }, [clamped, progress]);
 
-  const strokeDashoffset = circumference * (1 - shown / 100);
+  const animatedProps = useAnimatedProps(() => ({
+    strokeDashoffset: circumference * (1 - progress.value / 100),
+  }));
 
   return (
     <View style={{ width: size, height: size }}>
       <Svg width={size} height={size} style={styles.rotated}>
+        {gradientTo && (
+          <Defs>
+            <LinearGradient id={gradientId} x1="0" y1="0" x2="1" y2="1">
+              <Stop offset="0" stopColor={color} />
+              <Stop offset="1" stopColor={gradientTo} />
+            </LinearGradient>
+          </Defs>
+        )}
         <Circle
           cx={size / 2}
           cy={size / 2}
@@ -48,15 +53,15 @@ export function ProgressRing({ value, size, strokeWidth = 10, color, children }:
           strokeWidth={strokeWidth}
           fill="none"
         />
-        <Circle
+        <AnimatedCircle
           cx={size / 2}
           cy={size / 2}
           r={r}
-          stroke={color}
+          stroke={gradientTo ? `url(#${gradientId})` : color}
           strokeWidth={strokeWidth}
           strokeLinecap="round"
           strokeDasharray={`${circumference} ${circumference}`}
-          strokeDashoffset={strokeDashoffset}
+          animatedProps={animatedProps}
           fill="none"
         />
       </Svg>

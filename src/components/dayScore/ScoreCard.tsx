@@ -1,9 +1,18 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
+import Animated, { useAnimatedStyle, useSharedValue, withSequence, withSpring } from 'react-native-reanimated';
 import { useTheme } from '../../theme';
 import { useTranslation } from '../../i18n';
+import { hapticSuccess } from '../../utils/haptics';
 import { Card, ProgressBar } from '../ui/List';
 import { ProgressRing } from '../ui/ProgressRing';
+import { Celebration } from '../ui/Celebration';
+
+/** Crossing this score fires the celebration. */
+export const CELEBRATION_SCORE = 80;
+// Stores hydrate asynchronously, so the score can jump right after mount;
+// that is loading, not an achievement.
+const HYDRATION_GRACE_MS = 1500;
 
 interface ScoreCardProps {
   score: number;
@@ -33,6 +42,26 @@ export function ScoreCard({
   const { t } = useTranslation();
 
   const [displayScore, setDisplayScore] = useState(0);
+  const [burst, setBurst] = useState(0);
+  const ringScale = useSharedValue(1);
+  const mountedAt = useRef(Date.now());
+  const previousScore = useRef(score);
+
+  useEffect(() => {
+    const crossed = previousScore.current < CELEBRATION_SCORE && score >= CELEBRATION_SCORE;
+    previousScore.current = score;
+    if (!crossed || Date.now() - mountedAt.current < HYDRATION_GRACE_MS) return;
+    hapticSuccess();
+    setBurst((n) => n + 1);
+    ringScale.value = withSequence(
+      withSpring(1.08, { damping: 8, stiffness: 300 }),
+      withSpring(1, { damping: 12, stiffness: 200 })
+    );
+  }, [score, ringScale]);
+
+  const ringStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: ringScale.value }],
+  }));
 
   useEffect(() => {
     const duration = 600;
@@ -66,15 +95,28 @@ export function ScoreCard({
   return (
     <Card padded>
       <View style={styles.row}>
-        <ProgressRing value={score} size={116} strokeWidth={11} color={colors.accent}>
-          <Text
-            style={[styles.score, { color: colors.text.primary }]}
-            accessibilityLabel={`${score} ${t('/100')}`}
+        <Animated.View style={ringStyle}>
+          <ProgressRing
+            value={score}
+            size={116}
+            strokeWidth={11}
+            color={colors.accent}
+            gradientTo={colors.system.teal}
           >
-            {displayScore}
-          </Text>
-          <Text style={typography.caption}>{t('/100')}</Text>
-        </ProgressRing>
+            <Text
+              style={[styles.score, { color: colors.text.primary }]}
+              accessibilityLabel={`${score} ${t('/100')}`}
+            >
+              {displayScore}
+            </Text>
+            <Text style={typography.caption}>{t('/100')}</Text>
+          </ProgressRing>
+          <Celebration
+            trigger={burst}
+            radius={62}
+            colors={[colors.accent, colors.system.teal, colors.system.yellow, colors.system.pink, colors.system.green]}
+          />
+        </Animated.View>
 
         <View style={styles.metrics}>
           <Text style={typography.headline}>{getScoreLabel(score, t)}</Text>

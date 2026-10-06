@@ -199,7 +199,7 @@ export default function EveningWrapScreen() {
     <>
       <StepHeading title={t('Journée validée.')} subtitle={t('Bonne nuit 🌙')} />
       <View style={styles.finalScore}>
-        <ProgressRing value={dayScore} size={168} strokeWidth={14} color={colors.accent}>
+        <ProgressRing value={dayScore} size={168} strokeWidth={14} color={colors.accent} gradientTo={colors.system.teal}>
           <Text style={[styles.finalScoreValue, { color: colors.text.primary }]}>{dayScore}</Text>
           <Text style={typography.footnote}>{getScoreLabel(dayScore, t)}</Text>
         </ProgressRing>
