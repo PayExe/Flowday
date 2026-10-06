@@ -5,6 +5,7 @@ import { useTaskStore } from '../../src/features/tasks/store';
 import { useTemplateStore } from '../../src/features/templates/store';
 import { useLifeBlocksStore } from '../../src/features/lifeBlocks/store';
 import { useDayScoreStore } from '../../src/features/dayScore/store';
+import { countBlockValidation } from '../../src/features/dayScore/blockValidation';
 import { useRitualStore } from '../../src/features/rituals/store';
 import { useFocusStore } from '../../src/features/focus/store';
 import { useTheme } from '../../src/theme';
@@ -108,12 +109,11 @@ export default function PlanningScreen() {
     const total = todayTasks.length;
     updateTasksPercent(today, completed, total);
 
-    const plannedLifeBlockIds = Array.from(new Set(templateBlocks.map((b) => b.lifeBlockId)));
-    const plannedBlocks = activeBlocks.filter((b) => plannedLifeBlockIds.includes(b.id));
-    const blocksWithCompletedTasks = plannedBlocks.filter((block) =>
-      todayTasks.some((t) => t.lifeBlockId === block.id && t.completed)
-    );
-    updateBlockValidation(today, blocksWithCompletedTasks.length, plannedBlocks.length);
+    const plannedLifeBlockIds = templateBlocks
+      .map((b) => b.lifeBlockId)
+      .filter((id) => activeBlocks.some((block) => block.id === id));
+    const { validated, tracked } = countBlockValidation(plannedLifeBlockIds, todayTasks);
+    updateBlockValidation(today, validated, tracked);
   }, [tasks, activeBlocks, todayTasks, templateBlocks, updateTasksPercent, updateBlockValidation]);
 
   useEffect(() => {

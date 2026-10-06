@@ -66,7 +66,6 @@ export default function WeekScreen() {
     }
   }, [template, templates.length, lifeBlocks.length, addTemplate]);
 
-  /** Slots of every day, Monday first, each sorted chronologically. */
   const blocksByDay = useMemo(() => {
     const days: TemplateBlock[][] = WHOLE_WEEK.map(() => []);
     for (const block of template?.blocks ?? []) {
@@ -97,7 +96,6 @@ export default function WeekScreen() {
     setSelectedDay((day) => shiftWeekDay(day, offset));
   }, []);
 
-  // Horizontal swipe moves to the next or previous day, as in the system calendar.
   const swipe = useMemo(
     () =>
       Gesture.Pan()

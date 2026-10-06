@@ -11,6 +11,12 @@ import { useThemeStore } from '../src/features/theme/store';
 import { useFocusStore } from '../src/features/focus/store';
 import { useTheme } from '../src/theme';
 import { dateKey } from '../src/utils/dates';
+import {
+  MINUTES_PER_DAY,
+  MORNING_AUTO_OPEN_WINDOW_MINUTES,
+  autoOpenDelay,
+  isPastTime,
+} from '../src/utils/ritualNavigation';
 
 function todayISO(): string {
   return dateKey();
@@ -76,30 +82,38 @@ export default function RootLayout() {
     initializeTemplates(activeBlockIds);
   }, [blocks, initializeTemplates]);
 
+  const hasDoneEvening = logs.some(
+    (log) => log.date === todayISO() && log.type === 'evening'
+  );
+
+  const eveningDue =
+    eveningConfig.enabled && !hasDoneEvening && isPastTime(eveningConfig.time);
+
   useEffect(() => {
     if (!morningConfig.enabled) return;
     if (hasDoneMorning) return;
     if (hasSkippedMorning) return;
+    if (eveningDue) return;
     if (pathname === '/morning-ritual') return;
 
-    const now = new Date();
-    const [hours, minutes] = morningConfig.time.split(':').map(Number);
-    const triggerMinutes = hours * 60 + minutes;
-    const nowMinutes = now.getHours() * 60 + now.getMinutes();
-    const delay = nowMinutes < triggerMinutes
-      ? (triggerMinutes - nowMinutes) * 60 * 1000
-      : 100;
+    const delay = autoOpenDelay(morningConfig.time, MORNING_AUTO_OPEN_WINDOW_MINUTES);
+    if (delay === null) return;
 
     const timer = setTimeout(() => {
       router.replace('/morning-ritual');
     }, delay);
     return () => clearTimeout(timer);
-  }, [hasDoneMorning, hasSkippedMorning, pathname, router, morningConfig.enabled, morningConfig.time]);
+  }, [
+    hasDoneMorning,
+    hasSkippedMorning,
+    eveningDue,
+    pathname,
+    router,
+    morningConfig.enabled,
+    morningConfig.time,
+  ]);
 
   const eveningRedirected = useRef(false);
-  const hasDoneEvening = logs.some(
-    (log) => log.date === todayISO() && log.type === 'evening'
-  );
 
   useEffect(() => {
     if (eveningRedirected.current) return;
@@ -107,17 +121,13 @@ export default function RootLayout() {
     if (hasDoneEvening) return;
     if (pathname === '/evening-wrap') return;
 
-    const now = new Date();
-    const [h, m] = eveningConfig.time.split(':').map(Number);
-    const triggerMinutes = h * 60 + m;
-    const nowMinutes = now.getHours() * 60 + now.getMinutes();
+    const delay = autoOpenDelay(eveningConfig.time, MINUTES_PER_DAY);
+    if (delay === null) return;
 
-    if (nowMinutes < triggerMinutes) return;
-
-    eveningRedirected.current = true;
     const timer = setTimeout(() => {
+      eveningRedirected.current = true;
       router.replace('/evening-wrap');
-    }, 100);
+    }, delay);
     return () => clearTimeout(timer);
   }, [hasDoneEvening, pathname, router, eveningConfig.enabled, eveningConfig.time]);
 

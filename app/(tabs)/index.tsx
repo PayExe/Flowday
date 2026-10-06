@@ -127,7 +127,7 @@ export default function HomeScreen() {
               title={t('Aujourd’hui')}
               description={t('Ton tableau de bord du jour : score, prochain bloc, séries et tâches prioritaires.')}
               points={[
-                t('Le score /100 résume ta journée (blocs, tâches, focus et rituels).'),
+                t('Le score /100 se compose des blocs (40 %), des tâches (30 %), du focus (20 %) et des rituels (10 %).'),
                 t('« En ce moment / Prochain bloc » reflète ton planning actuel.'),
                 t('Les Streaks comptent tes journées à 60+ points consécutives.'),
                 t('Les tâches prioritaires sont tes 3 tâches en cours les plus importantes.'),

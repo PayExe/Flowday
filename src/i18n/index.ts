@@ -31,6 +31,7 @@ fr['weekSummary'] = ({ count, duration }) => `${count} créneau${count === 1 ? '
 fr['slotsToCreate'] = ({ count }) => `${count} créneaux seront créés.`;
 fr['overlapOnDay'] = ({ day, timeRange }) => `${day} : chevauchement avec ${timeRange}`;
 fr['copyDayIntro'] = ({ day, count }) => `Copier les ${count} créneaux de ${day} vers :`;
+fr['pomodoroProgress'] = ({ done, goal }) => `${done} / ${goal} aujourd’hui`;
 
 en['scorePerfect'] = 'Perfect day';
 en['scoreGood'] = 'Good day';
@@ -53,6 +54,7 @@ en['weekSummary'] = ({ count, duration }) => `${count} slot${count === 1 ? '' : 
 en['slotsToCreate'] = ({ count }) => `${count} slots will be created.`;
 en['overlapOnDay'] = ({ day, timeRange }) => `${day}: overlaps with ${timeRange}`;
 en['copyDayIntro'] = ({ day, count }) => `Copy the ${count} slots from ${day} to:`;
+en['pomodoroProgress'] = ({ done, goal }) => `${done} / ${goal} today`;
 
 const shared: Record<string, TranslationValue> = {
   'Accueil': 'Home', 'Planning': 'Planning', 'Semaine': 'Week', 'Blocs': 'Blocks', 'Réglages': 'Settings', 'Bloc': 'Block', 'Rituels': 'Rituals',
@@ -104,16 +106,17 @@ const shared: Record<string, TranslationValue> = {
   'Ajoute une courte note avant de valider ta journée.': 'Add a short note before completing your day.',
   'Personnalise l\'apparence et les rituels automatiques.': 'Customize the appearance and automatic rituals.',
   'Le thème Sombre / Clair change toute l’app instantanément.': 'The Dark / Light theme changes the entire app instantly.',
-  'Le Morning Ritual s’ouvre automatiquement chaque matin.': 'Morning Ritual opens automatically every morning.',
+  'Le Morning Ritual s’ouvre automatiquement dans les 3 h suivant l’heure définie.': 'Morning Ritual opens automatically within 3h of the time you set.',
   'L’Evening Wrap s’ouvre après l’heure que tu définis.': 'Evening Wrap opens after the time you set.',
   'Heure du Morning Ritual': 'Morning Ritual time', 'Heure de l\'Evening Wrap': 'Evening Wrap time',
   '08:00': '08:00', 'Made by PayExe · Built with Expo': 'Made by PayExe · Built with Expo',
-  'Le score /100 résume ta journée (blocs, tâches, focus et rituels).': 'The /100 score summarizes your day (blocks, tasks, focus and rituals).',
+  'Le score /100 se compose des blocs (40 %), des tâches (30 %), du focus (20 %) et des rituels (10 %).': 'The /100 score is made of blocks (40%), tasks (30%), focus (20%) and rituals (10%).',
   '« En ce moment / Prochain bloc » reflète ton planning actuel.': '“Now / Next block” reflects your current schedule.',
   'Les Streaks comptent tes journées à 60+ points consécutives.': 'Streaks count your consecutive days at 60+ points.',
   'Les tâches prioritaires sont tes 3 tâches en cours les plus importantes.': 'Priority tasks are your 3 most important unfinished tasks.',
   'Le total indique le temps planifié sur toute la semaine.': 'The total shows the planned time for the whole week.',
   'La timeline de ta journée, heure par heure, avec tes tâches et tes blocs.': 'Your day timeline, hour by hour, with tasks and blocks.',
+  'Organise ta journée avec une timeline, des tâches et des blocs de vie.': 'Organize your day with a timeline, tasks and life blocks.',
   'Crée d’abord un template dans Semaine et des blocs de vie dans Blocs.': 'First create a template in Week and life blocks in Blocks.',
   'Une fois configuré, ajoute tes tâches et associe-les au bon bloc.': 'Once configured, add your tasks and assign them to the right block.',
   'Ajoute une tâche en haut, puis choisis éventuellement son bloc de vie.': 'Add a task at the top, then optionally choose its life block.',

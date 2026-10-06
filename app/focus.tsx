@@ -8,7 +8,8 @@ import {
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useFocusStore } from '../src/features/focus/store';
+import { BREAK_SECONDS, POMODORO_SECONDS, useFocusStore } from '../src/features/focus/store';
+import { useDayScoreStore } from '../src/features/dayScore/store';
 import { useTheme } from '../src/theme';
 import { hapticWarning } from '../src/utils/haptics';
 import { PageInfo } from '../src/components/ui/PageInfo';
@@ -17,9 +18,6 @@ import { ProgressRing } from '../src/components/ui/ProgressRing';
 import { SymbolNames } from '../src/components/ui/Symbol';
 import { EmptyState } from '../src/components/shared/EmptyState';
 import { useTranslation } from '../src/i18n';
-
-const FOCUS_SECONDS = 25 * 60;
-const BREAK_SECONDS = 5 * 60;
 
 function formatTime(seconds: number): string {
   const m = Math.floor(seconds / 60);
@@ -30,7 +28,7 @@ function formatTime(seconds: number): string {
 export default function FocusScreen() {
   const router = useRouter();
   const { colors, typography } = useTheme();
-  const { t, language } = useTranslation();
+  const { t } = useTranslation();
   const insets = useSafeAreaInsets();
 
   const focusState = useFocusStore((state) => state.focusState);
@@ -40,6 +38,7 @@ export default function FocusScreen() {
   const resumeFocus = useFocusStore((state) => state.resumeFocus);
   const stopFocus = useFocusStore((state) => state.stopFocus);
   const abandonPomodoro = useFocusStore((state) => state.abandonPomodoro);
+  const pomodoroGoal = useDayScoreStore((state) => state.pomodoroGoal);
 
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
@@ -96,7 +95,7 @@ export default function FocusScreen() {
 
   const maxDots = 8;
   const dots = Array.from({ length: maxDots }, (_, i) => i < focusState.sessionPomodoroCount);
-  const total = focusState.isBreak ? BREAK_SECONDS : FOCUS_SECONDS;
+  const total = focusState.isBreak ? BREAK_SECONDS : POMODORO_SECONDS;
   const ringColor = focusState.isBreak ? colors.system.green : colors.accent;
   const remainingPercent = (focusState.timeRemaining / total) * 100;
 
@@ -118,7 +117,9 @@ export default function FocusScreen() {
 
       <View style={styles.content}>
         <Text style={typography.eyebrow}>
-          {focusState.isBreak ? `${t('Pause')} · 5 min` : `${t('Focus')} · 25 min`}
+          {focusState.isBreak
+            ? `${t('Pause')} · ${BREAK_SECONDS / 60} min`
+            : `${t('Focus')} · ${POMODORO_SECONDS / 60} min`}
         </Text>
         <Text style={[typography.title2, styles.taskTitle]} numberOfLines={2}>
           {focusState.currentTaskTitle}
@@ -146,7 +147,7 @@ export default function FocusScreen() {
         </View>
 
         <Text style={typography.footnote}>
-          {focusState.dailyPomodoroCount} / {focusState.dailyPomodoroGoal} {language === 'fr' ? "aujourd'hui" : 'today'}
+          {t('pomodoroProgress', { done: focusState.dailyPomodoroCount, goal: pomodoroGoal })}
         </Text>
       </View>
 

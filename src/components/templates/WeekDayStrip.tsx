@@ -7,15 +7,12 @@ import { hapticLight } from '../../utils/haptics';
 const MAX_DOTS = 4;
 
 interface WeekDayStripProps {
-  /** Life block colors of each day's slots, Monday first. */
   colorsByDay: string[][];
   selected: number;
-  /** Monday-based index of today, marked with an accent label. */
   today: number;
   onSelect: (day: number) => void;
 }
 
-/** Row of seven day pills showing how loaded each day is, the week at a glance. */
 export function WeekDayStrip({ colorsByDay, selected, today, onSelect }: WeekDayStripProps) {
   const { colors, typography, isDark } = useTheme();
   const { t } = useTranslation();

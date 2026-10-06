@@ -114,7 +114,6 @@ export const useTemplateStore = create<TemplateState>()(
           ),
         })),
 
-      /** Replaces the blocks of each target day with a copy of `fromDay`. */
       copyDayBlocks: (templateId, fromDay, toDays) => {
         const targets = Array.from(new Set(toDays)).filter(
           (day) => Number.isInteger(day) && day >= 0 && day <= 6 && day !== fromDay

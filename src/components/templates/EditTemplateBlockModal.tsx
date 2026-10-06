@@ -20,7 +20,6 @@ interface EditTemplateBlockModalProps {
   existingBlocks: TemplateBlock[];
   dayOfWeek: number;
   onClose: () => void;
-  /** Creates or moves the slot on every selected day. */
   onSave: (data: Omit<TemplateBlock, 'id' | 'dayOfWeek'>, days: number[]) => void;
   onDelete?: () => void;
 }

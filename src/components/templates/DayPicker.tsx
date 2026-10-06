@@ -14,13 +14,10 @@ import { Chip } from '../ui/List';
 interface DayPickerProps {
   selected: number[];
   onChange: (days: number[]) => void;
-  /** Picks a single day, for moving an existing slot instead of creating several. */
   single?: boolean;
-  /** Days that cannot be picked, such as the source day of a copy. */
   locked?: number[];
 }
 
-/** Seven day toggles with week / weekend shortcuts. */
 export function DayPicker({ selected, onChange, single, locked = [] }: DayPickerProps) {
   const { colors, typography } = useTheme();
   const { t } = useTranslation();

@@ -48,7 +48,7 @@ export default function SettingsScreen() {
           description={t("Personnalise l'apparence et les rituels automatiques.")}
           points={[
             t('Le thème Auto suit l’apparence de ton iPhone.'),
-            t('Le Morning Ritual s’ouvre automatiquement chaque matin.'),
+            t('Le Morning Ritual s’ouvre automatiquement dans les 3 h suivant l’heure définie.'),
             t('L’Evening Wrap s’ouvre après l’heure que tu définis.'),
           ]}
         />
