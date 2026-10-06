@@ -2,6 +2,7 @@ import { Children, isValidElement, type ReactNode } from 'react';
 import { Pressable, StyleSheet, Text, View, type StyleProp, type ViewStyle } from 'react-native';
 import { radius, resolveBlockColor, useTheme, withAlpha } from '../../theme';
 import { Symbol, SymbolNames } from './Symbol';
+import { symbolForEmoji } from './blockIcons';
 
 interface CardProps {
   children: ReactNode;
@@ -152,6 +153,7 @@ interface IconTileProps {
 export function IconTile({ color, emoji, symbol, size = 36, solid }: IconTileProps) {
   const { colors, isDark } = useTheme();
   const resolved = resolveBlockColor(color, isDark);
+  const symbolName = symbol ?? symbolForEmoji(emoji);
 
   return (
     <View
@@ -165,15 +167,15 @@ export function IconTile({ color, emoji, symbol, size = 36, solid }: IconTilePro
         justifyContent: 'center',
       }}
     >
-      {emoji ? (
-        <Text style={{ fontSize: size * 0.5 }}>{emoji}</Text>
-      ) : symbol ? (
+      {symbolName ? (
         <Symbol
-          name={symbol}
+          name={symbolName}
           size={size * 0.56}
           weight="medium"
           color={solid ? colors.text.inverse : resolved}
         />
+      ) : emoji ? (
+        <Text style={{ fontSize: size * 0.5 }}>{emoji}</Text>
       ) : null}
     </View>
   );
@@ -220,6 +222,7 @@ interface ChipProps {
 export function Chip({ label, selected, onPress, color, emoji }: ChipProps) {
   const { colors, typography, isDark } = useTheme();
   const resolved = color ? resolveBlockColor(color, isDark) : colors.accent;
+  const symbolName = symbolForEmoji(emoji);
 
   return (
     <Pressable
@@ -231,7 +234,9 @@ export function Chip({ label, selected, onPress, color, emoji }: ChipProps) {
         { backgroundColor: selected ? withAlpha(resolved, isDark ? 0.3 : 0.16) : colors.bg.tertiary },
       ]}
     >
-      {emoji ? (
+      {symbolName ? (
+        <Symbol name={symbolName} size={15} weight="medium" color={resolved} />
+      ) : emoji ? (
         <Text style={{ fontSize: 15 }}>{emoji}</Text>
       ) : color ? (
         <View style={{ width: 8, height: 8, borderRadius: 4, backgroundColor: resolved }} />

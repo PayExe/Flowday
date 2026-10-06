@@ -14,14 +14,15 @@ import { Mood } from '../src/types/ritual';
 import { PageInfo } from '../src/components/ui/PageInfo';
 import { Button } from '../src/components/ui/Glass';
 import { Card, IconTile, List, Row } from '../src/components/ui/List';
+import { Symbol } from '../src/components/ui/Symbol';
 import { RitualScaffold, StepHeading } from '../src/components/rituals/RitualScaffold';
 import { skipMorningRitual } from '../src/utils/ritualNavigation';
 import { useTranslation } from '../src/i18n';
 
-const MOODS: { value: Mood; label: string; emoji: string; color: 'red' | 'yellow' | 'green' }[] = [
-  { value: 'bad', label: 'Pas top', emoji: '😔', color: 'red' },
-  { value: 'meh', label: 'Bof', emoji: '😐', color: 'yellow' },
-  { value: 'good', label: 'En forme', emoji: '😄', color: 'green' },
+const MOODS: { value: Mood; label: string; symbol: string; color: 'red' | 'yellow' | 'green' }[] = [
+  { value: 'bad', label: 'Pas top', symbol: 'cloud.rain.fill', color: 'red' },
+  { value: 'meh', label: 'Bof', symbol: 'cloud.sun.fill', color: 'yellow' },
+  { value: 'good', label: 'En forme', symbol: 'sun.max.fill', color: 'green' },
 ];
 
 function todayISO(): string {
@@ -128,7 +129,7 @@ export default function MorningRitualScreen() {
               ]}
               onPress={() => { hapticLight(); setSelectedMood(m.value); }}
             >
-              <Text style={styles.moodEmoji}>{m.emoji}</Text>
+              <Symbol name={m.symbol} size={36} color={selected ? moodColor : colors.text.secondary} />
               <Text style={[typography.subheadline, { color: colors.text.primary, fontWeight: selected ? '600' : '400' }]}>
                 {t(m.label)}
               </Text>
@@ -224,7 +225,7 @@ export default function MorningRitualScreen() {
       />
       <List>
         {selectedMoodOption && (
-          <Row title={t('Humeur')} value={`${selectedMoodOption.emoji} ${t(selectedMoodOption.label)}`} />
+          <Row title={t('Humeur')} value={t(selectedMoodOption.label)} />
         )}
         {todayBlocks.length > 0 && (
           <Row title={t('Blocs')} value={t('plannedBlocksCount', { count: todayBlocks.length })} />
@@ -303,9 +304,6 @@ const styles = StyleSheet.create({
     borderRadius: radius.lg,
     borderCurve: 'continuous',
     borderWidth: 2,
-  },
-  moodEmoji: {
-    fontSize: 36,
   },
   priority: {
     flexDirection: 'row',

@@ -3,6 +3,7 @@ import { Task } from '../../types/task';
 import { hapticLight } from '../../utils/haptics';
 import { resolveBlockColor, useTheme, withAlpha } from '../../theme';
 import { Symbol, SymbolNames } from '../ui/Symbol';
+import { symbolForEmoji } from '../ui/blockIcons';
 import { Checkbox } from '../ui/Checkbox';
 import { BLOCK_LARGE_THRESHOLD, BLOCK_MEDIUM_THRESHOLD } from './HourMarker';
 import { useTranslation } from '../../i18n';
@@ -43,6 +44,7 @@ export function TimelineBlock({
   const { colors, typography, isDark } = useTheme();
   const { t } = useTranslation();
   const tint = resolveBlockColor(color, isDark);
+  const blockSymbol = symbolForEmoji(emoji);
   const displayTitle = title || name;
   const timeRange = `${startTime} – ${endTime}`;
   const isLarge = height >= BLOCK_LARGE_THRESHOLD;
@@ -71,7 +73,11 @@ export function TimelineBlock({
 
         <View style={[styles.content, !isMedium && styles.contentCompact]}>
           <View style={styles.titleRow}>
-            <Text style={{ fontSize: isMedium ? 15 : 12 }}>{emoji}</Text>
+            {blockSymbol ? (
+              <Symbol name={blockSymbol} size={isMedium ? 15 : 12} weight="semibold" color={tint} />
+            ) : (
+              <Text style={{ fontSize: isMedium ? 15 : 12 }}>{emoji}</Text>
+            )}
             <Text
               numberOfLines={1}
               style={[

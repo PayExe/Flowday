@@ -182,6 +182,23 @@ const SF_TO_IONICON: Record<string, keyof typeof Ionicons.glyphMap> = {
   'square.stack.3d.up': 'layers-outline',
   'checkmark.circle': 'checkmark-circle-outline',
   'face.smiling': 'happy-outline',
+  'laptopcomputer': 'laptop',
+  'briefcase.fill': 'briefcase',
+  'brain.head.profile': 'bulb',
+  'pencil.line': 'pencil',
+  'graduationcap.fill': 'school',
+  'bicycle': 'bicycle',
+  'stethoscope': 'medkit',
+  'cup.and.saucer.fill': 'cafe',
+  'pawprint.fill': 'paw',
+  'airplane': 'airplane',
+  'paintpalette.fill': 'color-palette',
+  'guitars.fill': 'musical-notes',
+  'headphones': 'headset',
+  'gamecontroller.fill': 'game-controller',
+  'square.dashed': 'square-outline',
+  'cloud.rain.fill': 'rainy',
+  'cloud.sun.fill': 'partly-sunny',
 };
 
 export interface SymbolProps {

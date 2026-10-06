@@ -104,7 +104,7 @@ const shared: Record<string, TranslationValue> = {
   'Thème': 'Theme', 'Sombre': 'Dark', 'Clair': 'Light', 'Activer': 'Enable', 'Heure': 'Time',
   'Annuler': 'Cancel', 'OK': 'OK', 'Ajouter': 'Add', 'Modifier': 'Edit', 'Supprimer': 'Delete',
   'Restaurer': 'Restore', 'Archiver': 'Archive', 'Créer': 'Create', 'Enregistrer': 'Save', 'Nom': 'Name',
-  'Emoji': 'Emoji', 'Couleur': 'Color', 'Objectif hebdomadaire': 'Weekly goal', 'Notes (optionnel)': 'Notes (optional)',
+  'Emoji': 'Emoji', 'Icône': 'Icon', 'Couleur': 'Color', 'Objectif hebdomadaire': 'Weekly goal', 'Notes (optionnel)': 'Notes (optional)',
   'Titre (optionnel)': 'Title (optional)', 'Jour': 'Day', 'Horaires': 'Schedule', 'Début': 'Start', 'Fin': 'End',
   'Créneau flexible': 'Flexible slot', 'Life Block': 'Life Block', 'Nouveau bloc': 'New block', 'Modifier le bloc': 'Edit block',
   'Nouveau créneau': 'New time slot', 'Modifier le créneau': 'Edit time slot',

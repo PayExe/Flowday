@@ -1,13 +1,14 @@
 import { useState, useEffect } from 'react';
 import { View, Text, TextInput, Pressable, StyleSheet } from 'react-native';
 import { LifeBlock, LifeBlockColors, LifeBlockColor } from '../../types/lifeBlock';
-import { resolveBlockColor, useTheme } from '../../theme';
+import { resolveBlockColor, useTheme, withAlpha } from '../../theme';
 import { hapticLight, hapticSuccess } from '../../utils/haptics';
 import { useTranslation } from '../../i18n';
 import { Button } from '../ui/Glass';
 import { Card, IconTile } from '../ui/List';
 import { FieldLabel, Sheet } from '../ui/Sheet';
 import { Symbol, SymbolNames } from '../ui/Symbol';
+import { BLOCK_ICONS } from '../ui/blockIcons';
 
 interface EditBlockModalProps {
   visible: boolean;
@@ -22,12 +23,6 @@ interface EditBlockModalProps {
   onArchive?: () => void;
   onUnarchive?: () => void;
 }
-
-const EMOJIS = [
-  '💻', '🏃', '🍳', '📚', '🧘', '🎸', '✍️',
-  '🌱', '🎨', '🎮', '💤', '💰', '🧹', '🎯',
-  '🧠', '🏠', '✈️', '🐕', '📸', '🎧', '❤️',
-];
 
 function parseGoalInput(input: string): number {
   const trimmed = input.trim().toLowerCase();
@@ -124,26 +119,35 @@ export function EditBlockModal({
         />
       </Card>
 
-      <FieldLabel>{t('Emoji')}</FieldLabel>
+      <FieldLabel>{t('Icône')}</FieldLabel>
       <Card padded>
         <View style={styles.grid}>
-          {EMOJIS.map((emoji) => (
-            <Pressable
-              key={emoji}
-              accessibilityRole="button"
-              accessibilityState={{ selected: selectedEmoji === emoji }}
-              style={[
-                styles.emoji,
-                selectedEmoji === emoji && { backgroundColor: colors.bg.tertiary },
-              ]}
-              onPress={() => {
-                hapticLight();
-                setSelectedEmoji(emoji);
-              }}
-            >
-              <Text style={styles.emojiText}>{emoji}</Text>
-            </Pressable>
-          ))}
+          {BLOCK_ICONS.map(({ symbol, emoji }) => {
+            const selected = selectedEmoji === emoji;
+            return (
+              <Pressable
+                key={symbol}
+                accessibilityRole="button"
+                accessibilityState={{ selected }}
+                accessibilityLabel={symbol}
+                style={[
+                  styles.icon,
+                  selected && { backgroundColor: withAlpha(resolveBlockColor(selectedColor, isDark), isDark ? 0.3 : 0.18) },
+                ]}
+                onPress={() => {
+                  hapticLight();
+                  setSelectedEmoji(emoji);
+                }}
+              >
+                <Symbol
+                  name={symbol}
+                  size={22}
+                  weight="medium"
+                  color={selected ? resolveBlockColor(selectedColor, isDark) : colors.text.secondary}
+                />
+              </Pressable>
+            );
+          })}
         </View>
         <View style={[styles.customEmoji, { borderTopColor: colors.separator.hairline }]}>
           <Text style={[typography.body, styles.customEmojiLabel]}>{t('Autre emoji')}</Text>
@@ -243,15 +247,13 @@ const styles = StyleSheet.create({
     flexWrap: 'wrap',
     gap: 8,
   },
-  emoji: {
+  icon: {
     width: 40,
     height: 40,
     borderRadius: 12,
+    borderCurve: 'continuous',
     alignItems: 'center',
     justifyContent: 'center',
-  },
-  emojiText: {
-    fontSize: 24,
   },
   customEmoji: {
     flexDirection: 'row',
