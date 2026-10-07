@@ -7,6 +7,9 @@
 > changer, supprimer ou ajouter pour y arriver.
 >
 > Ce n'est pas une liste de tâches à faire en entier. C'est un ordre de priorité.
+>
+> Pour le découpage de ces priorités **par version** (ce qui part en 0.2.0, ce qui
+> fait la 0.3.0, ce qui attend), voir [`RELEASES.md`](RELEASES.md).
 
 ---
 
