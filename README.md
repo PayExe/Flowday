@@ -143,6 +143,7 @@ Possible future improvements include:
 - refining the focus and planning workflows;
 - publishing a production build.
 
+
 ## Known limitations
 
 - The application is a test version and stores data locally on the device.
