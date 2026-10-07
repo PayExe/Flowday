@@ -157,7 +157,7 @@ export default function HomeScreen() {
               description={t('Ton tableau de bord du jour : score, prochain bloc, séries et tâches prioritaires.')}
               points={[
                 t('Le score /100 se compose des blocs (40 %), des tâches (30 %), du focus (20 %) et des rituels (10 %).'),
-                t('Un bloc est validé dès qu’une de ses tâches du jour est cochée.'),
+                t('Un bloc compte quand tu le valides dans le Planning : Fait, En partie ou Pas fait. Un bloc passé sans réponse compte comme manqué.'),
                 t('Une catégorie sans rien à mesurer ce jour-là ne compte pas : son poids est réparti sur les autres.'),
                 t('« En ce moment / Prochain bloc » reflète ton planning actuel.'),
                 t('Les Streaks comptent tes journées à 60+ points consécutives.'),

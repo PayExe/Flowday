@@ -27,8 +27,8 @@ fr['tasksCount'] = ({ count }) => `${count} tâche${count === 1 ? '' : 's'}`;
 fr['otherCount'] = ({ count }) => `+${count} autre${count === 1 ? '' : 's'}`;
 fr['daySunShort'] = 'D'; fr['dayMonShort'] = 'L'; fr['dayTueShort'] = 'M'; fr['dayWedShort'] = 'M'; fr['dayThuShort'] = 'J'; fr['dayFriShort'] = 'V'; fr['daySatShort'] = 'S';
 fr['plannedDuration'] = ({ duration }) => `${duration} planifiées`;
-fr['plannedWeekDuration'] = ({ duration }) => `${duration} planifiées cette semaine`;
-fr['plannedOfGoal'] = ({ planned, goal }) => `${planned} planifiées sur ${goal}`;
+fr['livedOfGoal'] = ({ lived, goal, planned }) => `${lived} vécu sur ${goal} · ${planned} prévu`;
+fr['livedOfPlanned'] = ({ lived, planned }) => `${lived} vécu sur ${planned} prévu`;
 fr['weekSummary'] = ({ count, duration }) => `${count} créneau${count === 1 ? '' : 'x'} · ${duration}`;
 fr['slotsToCreate'] = ({ count }) => `${count} créneaux seront créés.`;
 fr['overlapOnDay'] = ({ day, timeRange }) => `${day} : chevauchement avec ${timeRange}`;
@@ -60,8 +60,8 @@ en['tasksCount'] = ({ count }) => `${count} task${count === 1 ? '' : 's'}`;
 en['otherCount'] = ({ count }) => `+${count} other${count === 1 ? '' : 's'}`;
 en['daySunShort'] = 'S'; en['dayMonShort'] = 'M'; en['dayTueShort'] = 'T'; en['dayWedShort'] = 'W'; en['dayThuShort'] = 'T'; en['dayFriShort'] = 'F'; en['daySatShort'] = 'S';
 en['plannedDuration'] = ({ duration }) => `${duration} planned`;
-en['plannedWeekDuration'] = ({ duration }) => `${duration} planned this week`;
-en['plannedOfGoal'] = ({ planned, goal }) => `${planned} planned of ${goal}`;
+en['livedOfGoal'] = ({ lived, goal, planned }) => `${lived} lived of ${goal} · ${planned} planned`;
+en['livedOfPlanned'] = ({ lived, planned }) => `${lived} lived of ${planned} planned`;
 en['weekSummary'] = ({ count, duration }) => `${count} slot${count === 1 ? '' : 's'} · ${duration}`;
 en['slotsToCreate'] = ({ count }) => `${count} slots will be created.`;
 en['overlapOnDay'] = ({ day, timeRange }) => `${day}: overlaps with ${timeRange}`;
@@ -159,7 +159,11 @@ const shared: Record<string, TranslationValue> = {
   '08:00': '08:00', 'Made by PayExe · Built with Expo': 'Made by PayExe · Built with Expo',
   'Le score /100 se compose des blocs (40 %), des tâches (30 %), du focus (20 %) et des rituels (10 %).': 'The /100 score is made of blocks (40%), tasks (30%), focus (20%) and rituals (10%).',
   'Une catégorie sans rien à mesurer ce jour-là ne compte pas : son poids est réparti sur les autres.': 'A category with nothing to measure that day is left out: its weight goes to the others.',
-  'Un bloc est validé dès qu’une de ses tâches du jour est cochée.': 'A block counts as done as soon as one of its tasks for the day is checked.',
+  'Un bloc compte quand tu le valides dans le Planning : Fait, En partie ou Pas fait. Un bloc passé sans réponse compte comme manqué.': 'A block counts when you rate it in Planning: Done, Partly or Not done. A past block left unrated counts as missed.',
+  'En partie': 'Partly', 'Pas fait': 'Not done', 'À valider': 'To rate',
+  'Comment ça s’est passé ?': 'How did it go?', 'Tu pourras le valider le jour venu.': 'You can rate it when the day comes.',
+  'Rien de prévu cette semaine': 'Nothing planned this week',
+  'Le temps vécu se remplit quand tu valides tes blocs dans le Planning.': 'Lived time fills in as you rate your blocks in Planning.',
   'Données': 'Data', 'Données Flowday': 'Flowday data', 'Exporter mes données': 'Export my data',
   'Export impossible. Réessaie.': 'Export failed. Try again.',
   'Tes données restent sur ton téléphone. L’export en fait une copie que tu peux garder où tu veux.': 'Your data stays on your phone. Exporting makes a copy you can keep anywhere.',

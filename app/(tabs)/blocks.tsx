@@ -1,8 +1,11 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useMemo } from 'react';
 import { Pressable, Text, View, StyleSheet } from 'react-native';
 import Animated, { FadeIn, FadeOut, LayoutAnimationConfig } from 'react-native-reanimated';
 import { useLifeBlocksStore } from '../../src/features/lifeBlocks/store';
 import { useTemplateStore } from '../../src/features/templates/store';
+import { useBlockLogStore } from '../../src/features/blockLogs/store';
+import { livedMinutesByBlock } from '../../src/features/blockLogs/lived';
+import { dateKey, shiftDateKey, weekDayIndex } from '../../src/utils/dates';
 import { LifeBlock, LifeBlockColor } from '../../src/types/lifeBlock';
 import { TemplateBlock } from '../../src/types/template';
 import { LifeBlockCard } from '../../src/components/lifeBlocks/LifeBlockCard';
@@ -13,13 +16,14 @@ import { hapticLight, hapticWarning } from '../../src/utils/haptics';
 import { timeToMinutes } from '../../src/utils/time';
 import { PageInfo } from '../../src/components/ui/PageInfo';
 import { Button, IconButton } from '../../src/components/ui/Glass';
-import { IconTile, List, ROW_TRANSITION, Row, SectionHeader } from '../../src/components/ui/List';
+import { IconTile, List, ROW_TRANSITION, Row, SectionFooter, SectionHeader } from '../../src/components/ui/List';
 import { Screen } from '../../src/components/ui/Screen';
 import { SymbolNames } from '../../src/components/ui/Symbol';
 import { useTranslation } from '../../src/i18n';
 
 
-function getWeeklyMinutes(
+/** Minutes the weekly template sets aside for a life block: the intention. */
+function getPlannedWeeklyMinutes(
   blockId: string,
   getBlocksForDay: (dayOfWeek: number) => TemplateBlock[]
 ): number {
@@ -51,6 +55,13 @@ export default function BlocksScreen() {
 
   const getBlocksForDay = useTemplateStore((state) => state.getBlocksForDay);
   useTemplateStore((state) => state.templates);
+
+  const blockLogs = useBlockLogStore((state) => state.logs);
+  // The week runs Monday to today: what has been lived so far.
+  const livedThisWeek = useMemo(() => {
+    const today = dateKey();
+    return livedMinutesByBlock(blockLogs, shiftDateKey(today, -weekDayIndex()), today);
+  }, [blockLogs]);
 
   const activeBlocks = getActiveBlocks();
   const archivedBlocks = blocks.filter((b) => b.isArchived);
@@ -138,11 +149,10 @@ export default function BlocksScreen() {
           <LayoutAnimationConfig skipEntering>
             <View style={styles.list}>
               {activeBlocks.map((block, index) => {
-                const timeSpent = getWeeklyMinutes(block.id, getBlocksForDay);
-                const progress =
-                  block.weeklyGoalMinutes > 0
-                    ? (timeSpent / block.weeklyGoalMinutes) * 100
-                    : 0;
+                const planned = getPlannedWeeklyMinutes(block.id, getBlocksForDay);
+                const lived = livedThisWeek[block.id] ?? 0;
+                const target = block.weeklyGoalMinutes > 0 ? block.weeklyGoalMinutes : planned;
+                const progress = target > 0 ? (lived / target) * 100 : 0;
 
                 return (
                   <Animated.View
@@ -154,7 +164,8 @@ export default function BlocksScreen() {
                     <LifeBlockCard
                       block={block}
                       progressPercent={progress}
-                      timeSpentMinutes={timeSpent}
+                      livedMinutes={lived}
+                      plannedMinutes={planned}
                       onEdit={() => handleEdit(block)}
                       onMoveUp={() => reorderBlock(block.id, 'up')}
                       onMoveDown={() => reorderBlock(block.id, 'down')}
@@ -167,6 +178,11 @@ export default function BlocksScreen() {
               })}
             </View>
           </LayoutAnimationConfig>
+        )}
+        {activeBlocks.length > 0 && (
+          <SectionFooter>
+            {t('Le temps vécu se remplit quand tu valides tes blocs dans le Planning.')}
+          </SectionFooter>
         )}
 
         {archivedBlocks.length > 0 && (

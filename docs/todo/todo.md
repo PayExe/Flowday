@@ -31,7 +31,7 @@
 
 ✅ -  Uniformiser la langue de l’application
 ✅ -  Ajouter l’état skippedForToday au Morning Ritual
-〽️ -  Décider comment un Life Block est validé
+✅ -  Décider comment un Life Block est validé (à la main dans le Planning : Fait / En partie / Pas fait ; notification de fin de bloc à venir)
 〽️ -  Ajouter les labels d’accessibilité manquants
 〽️ -  Ajouter quelques tests UI ou d’intégration
 ✅ -  Ajouter une stratégie de migration des données locales (`src/utils/persistence.ts`)

@@ -1,6 +1,8 @@
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { Task } from '../../types/task';
-import { useTheme } from '../../theme';
+import { useTheme, withAlpha } from '../../theme';
+import type { BlockStatus } from '../../types/blockLog';
+import { BLOCK_STATUSES, STATUS_META } from './BlockStatusIcon';
 import { useTranslation } from '../../i18n';
 import { hapticLight } from '../../utils/haptics';
 import { Checkbox } from '../ui/Checkbox';
@@ -18,9 +20,16 @@ interface BlockDetailSheetProps {
   onClose: () => void;
   onToggleTask: (id: string) => void;
   onFocusTask?: (task: Task) => void;
+  validation?: {
+    status?: BlockStatus;
+    /** False for days still ahead: nothing has been lived yet. */
+    canValidate: boolean;
+    /** null clears the log. */
+    onChange: (status: BlockStatus | null) => void;
+  };
 }
 
-export function BlockDetailSheet({ title, timeRange, color, emoji, tasks, visible, onClose, onToggleTask, onFocusTask }: BlockDetailSheetProps) {
+export function BlockDetailSheet({ title, timeRange, color, emoji, tasks, visible, onClose, onToggleTask, onFocusTask, validation }: BlockDetailSheetProps) {
   const { colors, typography } = useTheme();
   const { t } = useTranslation();
 
@@ -35,6 +44,61 @@ export function BlockDetailSheet({ title, timeRange, color, emoji, tasks, visibl
           </View>
         </View>
       </Card>
+
+      {validation && (
+        <>
+          <SectionHeader title={t('Comment ça s’est passé ?')} />
+          {validation.canValidate ? (
+            <View style={styles.statuses}>
+              {BLOCK_STATUSES.map((status) => {
+                const meta = STATUS_META[status];
+                const tint = meta.color(colors);
+                const selected = validation.status === status;
+                return (
+                  <Pressable
+                    key={status}
+                    accessibilityRole="button"
+                    accessibilityState={{ selected }}
+                    accessibilityLabel={t(meta.label)}
+                    onPress={() => {
+                      hapticLight();
+                      // Tapping the current answer again takes it back.
+                      validation.onChange(selected ? null : status);
+                    }}
+                    style={({ pressed }) => [
+                      styles.status,
+                      {
+                        backgroundColor: selected ? withAlpha(tint, 0.18) : colors.bg.secondary,
+                        borderColor: selected ? tint : 'transparent',
+                        opacity: pressed ? 0.7 : 1,
+                      },
+                    ]}
+                  >
+                    <Symbol
+                      name={meta.symbol}
+                      size={26}
+                      color={selected ? tint : colors.text.tertiary}
+                      animationSpec={selected ? { effect: { type: 'bounce', wholeSymbol: true } } : undefined}
+                    />
+                    <Text
+                      style={[
+                        typography.subheadline,
+                        { color: colors.text.primary, fontWeight: selected ? '600' : '400' },
+                      ]}
+                    >
+                      {t(meta.label)}
+                    </Text>
+                  </Pressable>
+                );
+              })}
+            </View>
+          ) : (
+            <Card padded>
+              <Text style={typography.subheadline}>{t('Tu pourras le valider le jour venu.')}</Text>
+            </Card>
+          )}
+        </>
+      )}
 
       <SectionHeader title={t('Tâches')} />
       {tasks.length === 0 ? (
@@ -109,5 +173,19 @@ const styles = StyleSheet.create({
   },
   taskTitle: {
     flex: 1,
+  },
+  statuses: {
+    flexDirection: 'row',
+    gap: 10,
+    marginHorizontal: 16,
+  },
+  status: {
+    flex: 1,
+    alignItems: 'center',
+    gap: 6,
+    paddingVertical: 14,
+    borderRadius: 14,
+    borderCurve: 'continuous',
+    borderWidth: 1.5,
   },
 });

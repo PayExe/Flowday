@@ -29,6 +29,7 @@ import { DayNavigator } from '../../src/components/planning/DayNavigator';
 import { OverdueTasks } from '../../src/components/tasks/OverdueTasks';
 import { hapticLight } from '../../src/utils/haptics';
 import { Task } from '../../src/types/task';
+import { useBlockLogStore } from '../../src/features/blockLogs/store';
 import { TemplateBlock } from '../../src/types/template';
 import { useTranslation } from '../../src/i18n';
 
@@ -69,6 +70,10 @@ export default function PlanningScreen() {
   const [newTaskVisible, setNewTaskVisible] = useState(false);
   const [selectedTaskId, setSelectedTaskId] = useState<string | undefined>(undefined);
   const [selectedTimelineBlock, setSelectedTimelineBlock] = useState<{
+    date: string;
+    templateBlockId: string;
+    lifeBlockId: string;
+    plannedMinutes: number;
     title: string;
     timeRange: string;
     color: string;
@@ -98,9 +103,18 @@ export default function PlanningScreen() {
 
   const hasDoneMorningToday = useRitualStore((state) => state.hasDoneMorningToday);
   const startFocus = useFocusStore((state) => state.startFocus);
+  const blockLogs = useBlockLogStore((state) => state.logs);
+  const setBlockStatus = useBlockLogStore((state) => state.setStatus);
+  const clearBlockStatus = useBlockLogStore((state) => state.clearStatus);
 
   const activeBlocks = useMemo(() => getActiveBlocks(), [lifeBlocks, getActiveBlocks]);
   const isViewingToday = relativeDay(viewedDate) === 'today';
+  // Date keys sort chronologically.
+  const isViewingPast = viewedDate < todayISO();
+  const viewedLogs = useMemo(
+    () => blockLogs.filter((log) => log.date === viewedDate),
+    [blockLogs, viewedDate]
+  );
 
   const viewedTasks = useMemo(
     () => getTasksForDate(viewedDate),
@@ -397,10 +411,16 @@ export default function PlanningScreen() {
                     height={height}
                     tasks={blockTasks}
                     isActive={isActive}
+                    status={viewedLogs.find((log) => log.templateBlockId === block.id)?.status}
+                    needsReview={isViewingPast || (isViewingToday && nowMinutes >= item.endMinutes)}
                     onToggleTask={handleToggleTask}
                     onTaskPress={(task) => setSelectedTaskId(task.id)}
                     onFocusTask={handleFocusTask}
                     onPress={() => setSelectedTimelineBlock({
+                      date: viewedDate,
+                      templateBlockId: block.id,
+                      lifeBlockId: block.lifeBlockId,
+                      plannedMinutes: item.endMinutes - item.startMinutes,
                       title: block.title || lifeBlock?.name || t('Bloc'),
                       timeRange: `${block.startTime} – ${block.endTime}`,
                       color: lifeBlock?.color || colors.system.gray,
@@ -443,6 +463,19 @@ export default function PlanningScreen() {
         emoji={selectedTimelineBlock?.emoji}
         tasks={(selectedTimelineBlock?.tasks ?? []).map((task) => tasks.find((currentTask) => currentTask.id === task.id) || task)}
         onClose={() => setSelectedTimelineBlock(undefined)}
+        validation={selectedTimelineBlock && {
+          status: blockLogs.find(
+            (log) =>
+              log.date === selectedTimelineBlock.date &&
+              log.templateBlockId === selectedTimelineBlock.templateBlockId
+          )?.status,
+          canValidate: selectedTimelineBlock.date <= todayISO(),
+          onChange: (status) => {
+            const { date, templateBlockId, lifeBlockId, plannedMinutes } = selectedTimelineBlock;
+            if (status === null) clearBlockStatus(date, templateBlockId);
+            else setBlockStatus({ date, templateBlockId, lifeBlockId, plannedMinutes, status, source: 'manual' });
+          },
+        }}
         onToggleTask={handleToggleTask}
         onFocusTask={handleFocusTask}
       />

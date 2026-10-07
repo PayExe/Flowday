@@ -10,8 +10,12 @@ import { formatDuration } from '../../utils/time';
 
 interface LifeBlockCardProps {
   block: LifeBlock;
+  /** Lived share of the weekly goal (or of the plan when there is no goal). */
   progressPercent: number;
-  timeSpentMinutes: number;
+  /** Minutes actually lived this week, from validated blocks. */
+  livedMinutes: number;
+  /** Minutes the weekly template sets aside. */
+  plannedMinutes: number;
   onEdit: () => void;
   onMoveUp: () => void;
   onMoveDown: () => void;
@@ -23,7 +27,8 @@ interface LifeBlockCardProps {
 export function LifeBlockCard({
   block,
   progressPercent,
-  timeSpentMinutes,
+  livedMinutes,
+  plannedMinutes,
   onEdit,
   onMoveUp,
   onMoveDown,
@@ -35,6 +40,7 @@ export function LifeBlockCard({
   const { t } = useTranslation();
   const openMenu = useActionMenu();
   const hasGoal = block.weeklyGoalMinutes > 0;
+  const hasTarget = hasGoal || plannedMinutes > 0;
 
   const handleArchive = () => {
     hapticWarning();
@@ -86,18 +92,24 @@ export function LifeBlockCard({
             </Text>
             <Text style={[typography.footnote, styles.subtitle]}>
               {hasGoal
-                ? t('plannedOfGoal', {
-                    planned: formatDuration(timeSpentMinutes),
+                ? t('livedOfGoal', {
+                    lived: formatDuration(livedMinutes),
                     goal: formatDuration(block.weeklyGoalMinutes),
+                    planned: formatDuration(plannedMinutes),
                   })
-                : t('plannedWeekDuration', { duration: formatDuration(timeSpentMinutes) })}
+                : plannedMinutes > 0
+                  ? t('livedOfPlanned', {
+                      lived: formatDuration(livedMinutes),
+                      planned: formatDuration(plannedMinutes),
+                    })
+                  : t('Rien de prévu cette semaine')}
             </Text>
           </View>
 
           <View style={styles.moreSpacer} />
         </View>
 
-        {hasGoal && <ProgressBar value={progressPercent} color={block.color} />}
+        {hasTarget && <ProgressBar value={progressPercent} color={block.color} />}
       </Pressable>
 
       <Pressable

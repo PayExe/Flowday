@@ -1,7 +1,8 @@
 # Flowday — Direction produit et feuille de route
 
 > Document de travail interne, écrit le 7 octobre 2026 sur la base du code de la
-> branche `v.0.2.0/UI`. Il répond à une seule question : qu'est-ce qui
+> branche `v.0.2.0/UI`, puis relu et corrigé contre le code le même jour (décision
+> sur le public, ordre adapté au développement sans Mac). Il répond à une seule question : qu'est-ce qui
 > différencierait Flowday des autres applications de planification, et que faut-il
 > changer, supprimer ou ajouter pour y arriver.
 >
@@ -13,9 +14,10 @@
 
 ### Ce qui est déjà construit
 
-Environ 11 000 lignes de TypeScript, 12 écrans, 13 stores Zustand, 18 fichiers de
-tests sur la logique, des migrations de persistance versionnées, i18n FR/EN, des
-labels d'accessibilité, un undo, des retours haptiques.
+Environ 11 000 lignes de TypeScript, 10 écrans, 11 stores Zustand, 83 tests sur la
+logique répartis en 17 fichiers, des migrations de persistance versionnées, i18n
+FR/EN, un onboarding, un undo, des retours haptiques. Les labels d'accessibilité
+sont nombreux mais pas encore complets (voir `docs/todo/todo.md`).
 
 **La qualité technique n'est pas le problème.** Le score pondéré de
 `src/features/dayScore/store.ts` avec redistribution des poids quand une catégorie
@@ -82,7 +84,9 @@ falsifier six mois d'historique personnel. **Le produit s'améliore avec l'usage
    défendable face à Structured.
 3. **Le ton honnête plutôt qu'encourageant.** Toute la catégorie est en mode
    pom-pom girl. Une app qui dit sans ciller « tu as sauté le sport 3 semaines
-   d'affilée » occupe un espace vide.
+   d'affilée » occupe un espace vide. Honnête ne veut pas dire culpabilisant : on
+   **constate l'écart** et on **propose d'ajuster le plan**, on ne juge pas la
+   personne (voir point 20).
 
 ### Les fausses différenciations (ne pas y passer trois mois)
 
@@ -95,19 +99,28 @@ falsifier six mois d'historique personnel. **Le produit s'améliore avec l'usage
 - ❌ **La gamification** — Habitica possède le terrain, et ça attire des utilisateurs
   qui churnent.
 
-### Le public à choisir
+### Le public : décidé
 
-« Pour tous ceux qui veulent organiser leur journée » = mort assurée. Il faut
-trancher :
+**Toute personne qui veut une application pour piloter sa vie, pas seulement sa
+journée de travail.** Pas de niche démographique (étudiants, TDAH, freelances…).
 
-- **TDAH / étudiants** : structure externalisée, zéro décision le matin. Marché
-  large et très actif en ligne. → *le meilleur canal de distribution.*
-- **Les gens dont les projets perso meurent toujours** : et c'est exactement ce que
-  le bilan de dérive révélerait — « ton side project meurt parce qu'Apprentissage
-  est le bloc que tu sacrifies systématiquement au travail ». → *le meilleur
-  message, et le plus cohérent avec ce qui est déjà construit.*
+Le risque d'un public large, c'est un message flou. La réponse n'est pas de choisir
+un profil mais de choisir **un problème que tout le monde reconnaît** :
 
-Les deux se recouvrent largement. Message n°2, distribution n°1.
+> **Tu sais ce que tu veux faire de ta semaine. Flowday te montre ce que tu en fais
+> vraiment.**
+
+Le sport qui saute, la lecture qui n'arrive jamais, le projet perso qui meurt, la
+famille qui passe après le travail : tout le monde a un domaine qu'il sacrifie sans
+s'en rendre compte. C'est exactement ce que le bilan de dérive révèle.
+
+Conséquences :
+
+- **Produit** : rien ne change, le P0 sert tout le monde.
+- **Onboarding** : des semaines types qui couvrent large (point 18).
+- **Distribution** : sans communauté ciblée, elle passera par le contenu (« ma
+  semaine prévue vs vécue » en vidéo verticale) et une fiche App Store qui montre
+  l'écran de bilan, pas la timeline.
 
 ---
 
@@ -137,10 +150,15 @@ interface BlockLog {
   lifeBlockId: string;
   templateBlockId?: string;  // absent si bloc ajouté à la volée
   plannedMinutes: number;
-  actualMinutes: number;
   status: 'done' | 'partial' | 'skipped';
+  source: 'notification' | 'manual';
 }
 ```
+
+**On ne demande pas de minutes à l'utilisateur.** Saisir « 47 minutes » est une
+corvée et une fausse précision. Le statut suffit, et les minutes vécues s'en
+déduisent : *fait* = prévu, *en partie* = la moitié, *pas fait* = 0. Les seules
+minutes exactes viennent du Focus (point 4), qui s'additionnent par domaine.
 
 À partir de là, « prévu vs vécu par domaine » devient une simple requête. **Tout le
 reste de la différenciation se construit sur ce seul type.** Prévoir une migration
@@ -160,6 +178,18 @@ score. C'est un trou dans la boucle principale : la majorité des blocs de vie
 À noter : `docs/todo/todo.md` contient déjà « 〽️ Décider comment un Life Block est
 validé ». C'est la même question, et c'est la question centrale du produit.
 
+**Réponse recommandée** : un bloc se valide
+
+- **par la notification de fin de bloc** (point 3), le chemin principal ;
+- **à la main** depuis le planning, pour rattraper un oubli ;
+- et le **Focus** crédite des minutes exactes au domaine (point 4).
+
+La règle actuelle « une tâche cochée valide le bloc » disparaît : les tâches restent
+des tâches, elles ne servent plus de proxy.
+
+En attendant, le score ne pénalise plus ce trou : une catégorie sans rien à mesurer
+est retirée et son poids redistribué. Mais ça masque le problème, ça ne le règle pas.
+
 ### 〽️ 3. Collecter le réel sans créer une corvée
 
 L'infra de notifications existe déjà (`src/features/notifications/schedule.ts`,
@@ -171,6 +201,11 @@ de bloc** avec trois boutons d'action :
 Une seule tap, hors de l'application, et le journal se remplit. C'est la brique qui
 rend tout le reste possible, et elle réutilise une infrastructure déjà en place.
 
+Les actions de notification (`setNotificationCategoryAsync` d'`expo-notifications`)
+ne demandent pas de code natif : c'est faisable sans Mac. Comportement à confirmer
+sur un vrai iPhone, dans Expo Go puis en dev build. C'est aussi ce qui rend les
+widgets moins urgents : la collecte hors de l'app existe déjà par ce biais.
+
 ### 〽️ 4. Rattacher le Focus aux domaines
 
 `FocusSession` (`src/types/focus.ts`) n'a que `taskId`. Ajouter `lifeBlockId` :
@@ -178,6 +213,8 @@ chaque pomodoro devient des minutes réelles créditées à un domaine. Le Focus
 alors d'être un gadget qui concurrence Forest et devient **l'instrument de mesure**.
 
 ### 〽️ 5. L'écran qui n'existe pas : le bilan
+
+*C'est aussi là que le type mort `WeekScore` (point 15) trouve enfin un usage.*
 
 Il y a 5 onglets (Aujourd'hui, Planning, Semaine, Blocs, Réglages) et **aucun écran
 d'historique**. Les `scores` sont persistés depuis le début et n'apparaissent que
@@ -201,6 +238,13 @@ concurrent ne peut copier ça sans ce modèle de données.
 ---
 
 ## 4. P1 — Le standard du marché
+
+> **Contrainte actuelle : pas de Mac.** Tout ce qui est en JavaScript (calendrier,
+> import, actions de notification) se fait depuis Windows avec Expo Go ou EAS Build.
+> Les widgets, Live Activities et App Intents demandent une extension native en
+> Swift : faisable via EAS, mais à l'aveugle, sans simulateur ni preview SwiftUI,
+> avec un build cloud à chaque essai. **Les points 8, 9 et 10 passent donc avant 6,
+> 7 et 11**, tant qu'il n'y a pas de Mac.
 
 ### 〽️ 6. Widgets — avec un piège d'architecture à connaître avant de commencer
 
@@ -239,14 +283,22 @@ journée de 9 h.
 ### 〽️ 9. L'import du backup
 
 `buildExport` n'a aucun pendant : l'export est une impasse
-(`app/(tabs)/settings.tsx:104`). En plus il passe par
+(`app/(tabs)/settings.tsx`, `exportData`). En plus il passe par
 `Share.share({ message: <tout le JSON> })`, ce qui se comportera mal dès quelques
 centaines de Ko. Passer par un fichier + `expo-document-picker` pour relire, avec un
 écran de confirmation avant écrasement.
 
-### 〽️ 10. `ios.bundleIdentifier` et `android.package`
+### 〽️ 10. Prérequis de publication
 
-Absents de `app.json`. Rien n'est soumettable en l'état.
+Rien n'est soumettable en l'état :
+
+- `ios.bundleIdentifier` et `android.package` absents de `app.json` ;
+- **politique de confidentialité** obligatoire sur l'App Store (simple ici : tout
+  reste sur l'appareil, aucune donnée collectée) ;
+- **e-mail de support** à afficher dans les réglages et sur la fiche ;
+- **remontée des crashs** (Sentry) avant que des gens paient : sans ça, on ne sait
+  pas quand l'app plante chez eux ;
+- un premier build **TestFlight** via EAS pour tester comme une vraie app.
 
 ### 〽️ 11. App Intents / Siri
 
@@ -295,16 +347,22 @@ Passer à deux axes lisibles instantanément :
 La logique de redistribution déjà écrite est bonne : la garder, l'appliquer à moins
 de catégories.
 
+**À faire après `BlockLog`, pas avant** : l'axe Fidélité n'a rien à mesurer tant que
+le réel n'est pas collecté. C'est une conséquence du P0, pas un chantier séparé.
+
 ### ❌ 15. `WeekScore` : type mort
 
 `src/types/dayScore.ts:18`. À brancher sur l'écran de bilan (point 5) ou à supprimer.
 
 ### 〽️ 16. `initializeDefaults` est fragile
 
-`src/features/templates/store.ts:181` utilise `lifeBlockIds[0]`, `[1]`, `[2]` comme
-étant positionnellement travail / sport / déjeuner. Or l'onboarding laisse décocher
-des blocs de départ : si le premier est décoché, la semaine type seed les mauvais
-domaines. Passer par des identifiants explicites.
+`src/features/templates/store.ts` utilise `lifeBlockIds[0]`, `[1]`, `[2]` comme
+étant positionnellement travail / sport / déjeuner. Avec le flux actuel, le bug ne
+se produit pas : la semaine type est créée au lancement avec les cinq blocs, avant
+l'onboarding, qui retire ensuite les créneaux des blocs décochés. Mais un changement
+d'ordre ou de flux suffirait à le déclencher. Passer par des identifiants explicites
+(`default-work`, `default-sport`…), au plus tard avant les semaines types de
+l'onboarding (point 18).
 
 ### ✅ 17. Ce qu'il ne faut PAS supprimer
 
@@ -320,8 +378,10 @@ payant, à garder.
 
 C'est là que meurent les planners — sur l'écran vide. L'onboarding fait déjà les
 blocs de vie et les rituels ; ajouter trois semaines types prêtes à l'emploi :
-**Étudiant / Salarié / Freelance**. Une tap, l'app est vivante, et l'utilisateur voit
-immédiatement à quoi elle sert.
+**Étudiant / Salarié / Freelance / Parent**, pour couvrir un public large. Une tap,
+l'app est vivante, et l'utilisateur voit immédiatement à quoi elle sert.
+
+Prérequis : le point 16 (des identifiants explicites dans les semaines par défaut).
 
 ### 〽️ 19. Les notifications sont déjà un point fort — les exploiter
 
@@ -338,10 +398,18 @@ L'Evening Wrap est déjà le bon endroit. Toute la catégorie est en encourageme
 permanent ; une app qui dit sans ciller « tu as sauté le sport 3 semaines d'affilée »
 devient mémorable.
 
+La règle d'écriture : **factuel, jamais moralisateur, toujours une porte de sortie.**
+
+- ✅ « Sport : 0 h sur 3 h prévues cette semaine. Tu veux réduire le créneau ? »
+- ❌ « Tu n'as pas tenu ton engagement. »
+
+Le constat vient des chiffres, la suggestion porte sur le plan, jamais sur la
+personne. Un plan irréaliste est un problème de plan.
+
 ### ✅ 21. Garder ce qui est déjà bien fait
 
-Les `accessibilityLabel` sont partout, l'undo existe, les haptics, les migrations
-versionnées, 28 tests sur la logique. **Ne pas régresser là-dessus en allant vite** —
+Les `accessibilityLabel` sont présents sur la plupart des contrôles (à compléter), l'undo existe, les haptics, les migrations
+versionnées, 83 tests sur la logique. **Ne pas régresser là-dessus en allant vite** —
 c'est précisément ce qui fait qu'une application *paraît* chère.
 
 ---
@@ -349,20 +417,29 @@ c'est précisément ce qui fait qu'une application *paraît* chère.
 ## 7. La séquence
 
 Cette feuille de route représente facilement 5 à 6 mois en solo. **Ne pas la faire en
-entier.**
+entier.** L'ordre ci-dessous tient compte du développement sans Mac.
 
 | Ordre | Quoi | Pourquoi maintenant |
 |---|---|---|
 | 1 | **P0 (points 1→5)** | Tant qu'on mesure le planifié au lieu du vécu, Flowday est une app de planning parmi cinquante |
-| 2 | **Widget interactif + Live Activity (6, 7)** | Là ils *servent* la mécanique au lieu de la décorer |
-| 3 | **Calendrier + import (8, 9)** | Enlève les deux motifs d'abandon principaux |
-| 4 | **Suppressions P2** | Au fil de l'eau, en continu |
+| 2 | **Prérequis de publication (10)** et **TestFlight** | Tester en conditions réelles, auprès de quelques personnes, avant d'aller plus loin |
+| 3 | **Import + calendrier (9, 8)** | Enlève les deux motifs d'abandon principaux, et se fait sans Mac |
+| 4 | **Semaines types d'onboarding, résumé du dimanche (18, 19)** | Activation et rétention, une fois le bilan en place |
+| 5 | **Widget interactif + Live Activity (6, 7)** | Quand il y aura un Mac : ils *servent* alors la mécanique au lieu de la décorer |
+| — | **Suppressions P2 (12→16)** | Au fil de l'eau, en continu |
 
 ### Le piège à éviter
 
 **Ne pas faire les widgets en premier.** Ce serait passer trois semaines dans du
 Swift pour afficher joliment un chiffre qui est actuellement une tautologie. Les
 widgets rendent une bonne mécanique visible ; ils ne créent pas la mécanique.
+
+### Ce qu'on ne fait pas
+
+- ❌ Pas d'IA qui planifie, pas de gamification, pas de refonte du design.
+- ❌ Pas d'abonnement ni de serveur avant sync + widget + calendrier.
+- ❌ Pas d'Android natif (widgets Glance) avant que la version iOS ait trouvé son
+  public : Android reste supporté par l'app React Native, sans extensions natives.
 
 ---
 
@@ -371,9 +448,14 @@ widgets rendent une bonne mécanique visible ; ils ne créent pas la mécanique.
 ### Pas d'abonnement maintenant
 
 Un abonnement implique un coût serveur et une valeur continue qui n'existent pas
-encore. Et surtout : il n'y a **aucune durabilité des données** aujourd'hui (tout en
-AsyncStorage, pas de compte, pas de sync, et l'export est une impasse). Personne ne
-paie un abonnement pour une app qui perd tout si le téléphone meurt.
+encore. Et surtout : la **durabilité des données** est faible (tout en AsyncStorage,
+pas de compte, pas de sync, et l'export est une impasse tant que l'import n'existe
+pas).
+
+À nuancer : sur iOS, les données de l'app font partie de la **sauvegarde iCloud de
+l'appareil**, donc un téléphone perdu et restauré les retrouve. Le vrai trou, c'est
+le passage vers un nouvel appareil sans restauration, ou une désinstallation. C'est
+ce que l'import (point 9) doit couvrir.
 
 ### Un achat unique de déblocage, 5-8 €
 
@@ -382,6 +464,9 @@ obligation de synchronisation, support minimal.
 
 **Ce qui peut être payant :** historique de bilan au-delà de ~2 semaines, semaines
 types multiples, durées de Focus personnalisées, export du bilan mensuel.
+
+L'achat intégré lui-même (StoreKit, via RevenueCat ou `expo-iap`) demande un dev
+build : impossible dans Expo Go, faisable via EAS sans Mac.
 
 **Ce qui ne doit jamais être payant :** le nombre de life blocks ou de tâches. Ça
 donne l'impression d'une app cassée, pas d'une app à acheter.
@@ -402,17 +487,29 @@ L'abonnement ne devient défendable qu'après sync + widget + calendrier.
 
 ---
 
-## 9. Décisions ouvertes
+## 9. Décisions
 
-Questions auxquelles seul l'auteur peut répondre, et qui conditionnent tout le reste :
+### Prises
 
-- [ ] Est-ce que Flowday reste un projet portfolio, ou devient un produit ?
-- [ ] Quel public en premier : TDAH/étudiants, ou « mes projets perso meurent » ?
-- [ ] Un bloc se valide-t-il à la main, par notification, ou automatiquement via le
-      Focus ? (cf. `docs/todo/todo.md`, question déjà ouverte)
-- [ ] Deux axes de score (Fidélité / Équilibre) ou on garde les quatre catégories ?
-- [ ] iOS seul d'abord, ou iOS + Android dès le départ ? (les widgets doublent le
-      travail natif)
+- [x] **Public** : toute personne qui veut piloter sa vie, pas une niche. Le message
+      porte sur un problème (« ce que tu prévois vs ce que tu vis »), pas sur un
+      profil. Voir section 2.
+- [x] **Ton** : honnête et factuel, jamais moralisateur. Voir point 20.
+
+### Recommandées, à confirmer
+
+- [ ] **Validation d'un bloc** : par notification de fin de bloc, à la main depuis le
+      planning, et minutes exactes via le Focus. La validation par tâche disparaît.
+      (cf. `docs/todo/todo.md`)
+- [ ] **Score** : deux axes (Fidélité / Équilibre), une fois `BlockLog` en place.
+- [ ] **Plateforme** : iOS d'abord. Android reste supporté par React Native, sans
+      widgets natifs pour l'instant.
+
+### Encore ouvertes
+
+- [ ] Est-ce que Flowday reste un projet portfolio, ou devient un produit ? (licence
+      CC BY-NC et README à changer si produit)
+- [ ] E-mail de support et nom de domaine pour la politique de confidentialité.
 
 ---
 
@@ -420,11 +517,17 @@ Questions auxquelles seul l'auteur peut répondre, et qui conditionnent tout le 
 
 Le point 1 est le bon premier pas, et il est bien délimité :
 
-1. ajouter le type `BlockLog` et son store, avec migration dans
-   `src/utils/persistence.ts` ;
-2. remplacer `getWeeklyMinutes` (`app/(tabs)/blocks.tsx:22`) par une lecture du réel ;
-3. renommer `timeSpent` / `timeSpentMinutes` pour qu'ils disent la vérité ;
+1. ajouter le type `BlockLog` et son store, avec la migration dans
+   `src/utils/persistence.ts` (les jours passés restent sans `BlockLog` : on
+   n'invente pas de données) ;
+2. permettre de valider un bloc **à la main** depuis le planning (Fait / En partie /
+   Pas fait), et retirer la validation par tâche du score ;
+3. remplacer `getWeeklyMinutes` (`app/(tabs)/blocks.tsx`) par une lecture du réel,
+   et renommer `timeSpent` / `timeSpentMinutes` pour qu'ils disent la vérité ;
 4. ajouter les tests correspondants dans `tests/`.
+
+Puis, dans la foulée : la notification de fin de bloc avec ses trois actions
+(point 3), qui écrit dans le même journal.
 
 Tout le reste — bilan hebdo, bilan mensuel, corrélation avec le mood, widget
 interactif — se construit sur cette seule donnée.

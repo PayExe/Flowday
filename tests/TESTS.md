@@ -21,6 +21,7 @@ La suite couvre actuellement 28 cas :
 - mise à jour du score après validation d’une tâche ;
 - rejet des objectifs négatifs, horaires invalides et identifiants inconnus ;
 - gestion des dates locales et changements de mois ;
+- journal du vécu : minutes déduites du statut, fidélité des blocs sans tâche, créneaux à venir ignorés ;
 - migrations des données locales (ordre des étapes, échec sans perte, anciennes données non versionnées).
 
 Le typecheck se lance avec :

@@ -7,6 +7,8 @@ import { symbolForEmoji } from '../ui/blockIcons';
 import { Checkbox } from '../ui/Checkbox';
 import { BLOCK_LARGE_THRESHOLD, BLOCK_MEDIUM_THRESHOLD } from './HourMarker';
 import { useTranslation } from '../../i18n';
+import type { BlockStatus } from '../../types/blockLog';
+import { BlockStatusIcon, STATUS_META } from './BlockStatusIcon';
 
 interface TimelineBlockProps {
   emoji: string;
@@ -18,6 +20,10 @@ interface TimelineBlockProps {
   height: number;
   tasks: Task[];
   isActive: boolean;
+  /** What was logged for this slot that day, if anything. */
+  status?: BlockStatus;
+  /** Ended without a log: show the "to validate" marker. */
+  needsReview?: boolean;
   onToggleTask: (taskId: string) => void;
   onTaskPress?: (task: Task) => void;
   onFocusTask?: (task: Task) => void;
@@ -36,6 +42,8 @@ export function TimelineBlock({
   height,
   tasks,
   isActive,
+  status,
+  needsReview,
   onToggleTask,
   onTaskPress,
   onFocusTask,
@@ -58,7 +66,11 @@ export function TimelineBlock({
   return (
     <Pressable
       onPress={onPress}
-      accessibilityLabel={`${displayTitle}, ${timeRange}`}
+      accessibilityLabel={[
+        displayTitle,
+        timeRange,
+        status ? t(STATUS_META[status].label) : needsReview ? t('À valider') : null,
+      ].filter(Boolean).join(', ')}
       style={styles.pressable}
     >
       <View
@@ -93,6 +105,7 @@ export function TimelineBlock({
             {isMedium && !isLarge && tasks.length > 0 && (
               <Text style={typography.caption}>{t('tasksCount', { count: tasks.length })}</Text>
             )}
+            <BlockStatusIcon status={status} needsReview={needsReview} size={isMedium ? 17 : 13} colors={colors} />
           </View>
 
           {isMedium && <Text style={[typography.caption, styles.time]}>{timeRange}</Text>}
