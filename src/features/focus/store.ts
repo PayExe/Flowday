@@ -1,6 +1,6 @@
 import { create } from 'zustand';
-import { persist, createJSONStorage } from 'zustand/middleware';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import { persist } from 'zustand/middleware';
+import { persistOptions } from '../../utils/persistence';
 import { generateId } from '../../utils/id';
 import { useDayScoreStore } from '../../features/dayScore/store';
 import { FocusSession, FocusState } from '../../types/focus';
@@ -8,6 +8,9 @@ import { dateKey } from '../../utils/dates';
 
 const POMODORO_MINUTES = 25;
 const BREAK_MINUTES = 5;
+
+export const POMODORO_SECONDS = POMODORO_MINUTES * 60;
+export const BREAK_SECONDS = BREAK_MINUTES * 60;
 
 function todayISO(): string {
   return dateKey();
@@ -24,7 +27,6 @@ interface FocusStoreState {
   tick: () => void;
   syncTimer: (now?: number) => void;
   resetDailyCountIfNeeded: () => void;
-  setDailyGoal: (goal: number) => void;
   getTodaySessions: () => FocusSession[];
   getTodayPomodoroCount: () => number;
 }
@@ -39,7 +41,6 @@ export const useFocusStore = create<FocusStoreState>()(
         isBreak: false,
         sessionPomodoroCount: 0,
         dailyPomodoroCount: 0,
-        dailyPomodoroGoal: 6,
         focusElapsedSeconds: 0,
       },
 
@@ -232,11 +233,6 @@ export const useFocusStore = create<FocusStoreState>()(
           };
         }),
 
-      setDailyGoal: (goal) => {
-        if (!Number.isFinite(goal) || goal < 0) return;
-        set((state) => ({ focusState: { ...state.focusState, dailyPomodoroGoal: Math.floor(goal) } }));
-      },
-
       getTodaySessions: () => {
         const today = dateKey();
         return get().sessions.filter((session) =>
@@ -255,9 +251,6 @@ export const useFocusStore = create<FocusStoreState>()(
         }, 0);
       },
     }),
-    {
-      name: 'flowday-focus',
-      storage: createJSONStorage(() => AsyncStorage),
-    }
+    persistOptions<FocusStoreState>('flowday-focus', { version: 1 })
   )
 );

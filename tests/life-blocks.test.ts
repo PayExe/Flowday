@@ -35,3 +35,20 @@ describe('life blocks', () => {
     expect(useLifeBlocksStore.getState().blocks).toHaveLength(0);
   });
 });
+
+describe('starter block names', () => {
+  beforeEach(() => useLifeBlocksStore.setState({ blocks: [] }));
+
+  it('follow the language until the user renames them', () => {
+    const store = useLifeBlocksStore.getState();
+    store.initializeDefaults();
+    store.updateBlock('default-sport', { name: 'Course à pied' });
+
+    useLifeBlocksStore.getState().localizeDefaults('fr');
+    const names = () => Object.fromEntries(useLifeBlocksStore.getState().blocks.map((b) => [b.id, b.name]));
+    expect(names()).toMatchObject({ 'default-work': 'Travail', 'default-health': 'Santé', 'default-sport': 'Course à pied' });
+
+    useLifeBlocksStore.getState().localizeDefaults('en');
+    expect(names()).toMatchObject({ 'default-work': 'Work', 'default-sport': 'Course à pied' });
+  });
+});

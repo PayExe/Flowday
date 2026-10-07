@@ -1,9 +1,14 @@
 import { View, Text, Pressable, StyleSheet } from 'react-native';
 import { Task } from '../../types/task';
 import { hapticLight } from '../../utils/haptics';
-import { useTheme } from '../../theme';
+import { resolveBlockColor, useTheme, withAlpha } from '../../theme';
 import { Symbol, SymbolNames } from '../ui/Symbol';
-import { BLOCK_LARGE_THRESHOLD, BLOCK_MEDIUM_THRESHOLD, BLOCK_MIN_HEIGHT } from './HourMarker';
+import { symbolForEmoji } from '../ui/blockIcons';
+import { Checkbox } from '../ui/Checkbox';
+import { BLOCK_LARGE_THRESHOLD, BLOCK_MEDIUM_THRESHOLD } from './HourMarker';
+import { useTranslation } from '../../i18n';
+import type { BlockStatus } from '../../types/blockLog';
+import { BlockStatusIcon, STATUS_META } from './BlockStatusIcon';
 
 interface TimelineBlockProps {
   emoji: string;
@@ -15,11 +20,17 @@ interface TimelineBlockProps {
   height: number;
   tasks: Task[];
   isActive: boolean;
+  /** What was logged for this slot that day, if anything. */
+  status?: BlockStatus;
+  /** Ended without a log: show the "to validate" marker. */
+  needsReview?: boolean;
   onToggleTask: (taskId: string) => void;
   onTaskPress?: (task: Task) => void;
   onFocusTask?: (task: Task) => void;
   onPress?: () => void;
 }
+
+const TASK_ROW_HEIGHT = 26;
 
 export function TimelineBlock({
   emoji,
@@ -31,112 +42,182 @@ export function TimelineBlock({
   height,
   tasks,
   isActive,
+  status,
+  needsReview,
   onToggleTask,
   onTaskPress,
   onFocusTask,
   onPress,
 }: TimelineBlockProps) {
-  const { colors, typography } = useTheme();
+  const { colors, typography, isDark } = useTheme();
+  const { t } = useTranslation();
+  const tint = resolveBlockColor(color, isDark);
+  const blockSymbol = symbolForEmoji(emoji);
   const displayTitle = title || name;
-  const timeRange = `${startTime}–${endTime}`;
+  const timeRange = `${startTime} – ${endTime}`;
   const isLarge = height >= BLOCK_LARGE_THRESHOLD;
   const isMedium = height >= BLOCK_MEDIUM_THRESHOLD;
-  const shouldCollapseTasks = tasks.length > (isLarge ? 3 : 1);
-  const visibleTasks = isLarge ? tasks.slice(0, 3) : tasks.slice(0, 1);
+
+  const maxVisible = isLarge ? Math.max(1, Math.floor((height - 64) / TASK_ROW_HEIGHT)) : 0;
+  const fitsAll = tasks.length <= maxVisible;
+  const visibleTasks = fitsAll ? tasks : tasks.slice(0, Math.max(0, maxVisible - 1));
   const remainingTasks = tasks.length - visibleTasks.length;
 
   return (
-    <Pressable onPress={onPress} style={{ height: '100%', paddingVertical: 2 }}>
+    <Pressable
+      onPress={onPress}
+      accessibilityLabel={[
+        displayTitle,
+        timeRange,
+        status ? t(STATUS_META[status].label) : needsReview ? t('À valider') : null,
+      ].filter(Boolean).join(', ')}
+      style={styles.pressable}
+    >
       <View
         style={[
           styles.block,
           {
-            minHeight: Math.min(BLOCK_MIN_HEIGHT, height),
-            borderLeftColor: color,
-            backgroundColor: isActive ? colors.bg.hover : colors.bg.secondary,
+            backgroundColor: withAlpha(tint, isActive ? (isDark ? 0.4 : 0.26) : isDark ? 0.24 : 0.14),
           },
+          isActive && { borderWidth: 1.5, borderColor: withAlpha(tint, 0.9) },
         ]}
       >
-        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 5, flex: isMedium ? undefined : 1 }}>
-          <Text style={{ fontSize: isMedium ? typography.sizes.base : typography.sizes.xs }}>{emoji}</Text>
-          <Text numberOfLines={1} style={{ flex: 1, fontSize: isMedium ? typography.sizes.base : typography.sizes.xs, fontWeight: typography.weights.medium, color: colors.text.primary }}>
-            {displayTitle}
-          </Text>
-          {!isLarge && <Text numberOfLines={1} style={{ fontSize: typography.sizes.xs, color: colors.text.quaternary }}>{isMedium ? timeRange : `· ${timeRange}`}</Text>}
-          {!isMedium && tasks.length > 0 && (
-            <Text style={{ fontSize: typography.sizes.xs, color: colors.text.secondary }}>{tasks.length} tâche{tasks.length > 1 ? 's' : ''}</Text>
+        <View style={[styles.accent, { backgroundColor: tint }]} />
+
+        <View style={[styles.content, !isMedium && styles.contentCompact]}>
+          <View style={styles.titleRow}>
+            {blockSymbol ? (
+              <Symbol name={blockSymbol} size={isMedium ? 15 : 12} weight="semibold" color={tint} />
+            ) : (
+              <Text style={{ fontSize: isMedium ? 15 : 12 }}>{emoji}</Text>
+            )}
+            <Text
+              numberOfLines={1}
+              style={[
+                isMedium ? typography.subheadline : typography.caption,
+                styles.title,
+                { color: colors.text.primary },
+              ]}
+            >
+              {displayTitle}
+            </Text>
+            {!isMedium && <Text style={typography.caption}>{timeRange}</Text>}
+            {isMedium && !isLarge && tasks.length > 0 && (
+              <Text style={typography.caption}>{t('tasksCount', { count: tasks.length })}</Text>
+            )}
+            <BlockStatusIcon status={status} needsReview={needsReview} size={isMedium ? 17 : 13} colors={colors} />
+          </View>
+
+          {isMedium && <Text style={[typography.caption, styles.time]}>{timeRange}</Text>}
+
+          {isLarge && tasks.length > 0 && (
+            <View style={styles.tasks}>
+              {visibleTasks.map((task) => (
+                <Pressable
+                  key={task.id}
+                  style={styles.task}
+                  onPress={(event) => {
+                    event.stopPropagation();
+                    hapticLight();
+                    if (onTaskPress) onTaskPress(task);
+                    else onToggleTask(task.id);
+                  }}
+                >
+                  <Checkbox
+                    size={18}
+                    checked={task.completed}
+                    onToggle={() => onToggleTask(task.id)}
+                    color={colors.text.secondary}
+                    accessibilityLabel={task.title}
+                  />
+                  <Text
+                    numberOfLines={1}
+                    style={[
+                      typography.footnote,
+                      styles.taskTitle,
+                      { color: task.completed ? colors.text.tertiary : colors.text.primary },
+                      task.completed && styles.done,
+                    ]}
+                  >
+                    {task.title}
+                  </Text>
+                  {onFocusTask && !task.completed && (
+                    <Pressable
+                      hitSlop={8}
+                      accessibilityRole="button"
+                      accessibilityLabel={`${t('Démarrer Focus pour')} ${task.title}`}
+                      onPress={(event) => {
+                        event.stopPropagation();
+                        hapticLight();
+                        onFocusTask(task);
+                      }}
+                    >
+                      <Symbol name={SymbolNames.timer} size={17} color={colors.text.primary} />
+                    </Pressable>
+                  )}
+                </Pressable>
+              ))}
+              {remainingTasks > 0 && (
+                <Text style={typography.caption}>{t('otherCount', { count: remainingTasks })}</Text>
+              )}
+            </View>
           )}
         </View>
-
-        {isLarge && (
-          <Text style={{ fontSize: typography.sizes.xs, color: colors.text.quaternary, marginTop: 1 }}>{timeRange}</Text>
-        )}
-
-        {isMedium && tasks.length > 0 && shouldCollapseTasks && (
-          <Text style={{ marginTop: 4, fontSize: typography.sizes.xs, color: colors.text.secondary }}>
-            Cliquer pour voir les tâches
-          </Text>
-        )}
-
-        {isMedium && tasks.length > 0 && !shouldCollapseTasks && (
-          <View style={{ marginTop: 4, gap: 4 }}>
-            {visibleTasks.map((task) => (
-              <Pressable
-                key={task.id}
-                style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}
-                onPress={(event) => { event.stopPropagation(); hapticLight(); onTaskPress ? onTaskPress(task) : onToggleTask(task.id); }}
-              >
-                <View
-                  style={{
-                    width: 5,
-                    height: 5,
-                    borderRadius: 3,
-                    backgroundColor: task.completed ? colors.system.green : colors.system.gray3,
-                  }}
-                />
-                <Text
-                  style={{
-                    fontSize: typography.sizes.sm,
-                    color: task.completed ? colors.text.quaternary : colors.text.secondary,
-                    textDecorationLine: task.completed ? 'line-through' : 'none',
-                    flex: 1,
-                  }}
-                  numberOfLines={1}
-                >
-                  {task.title}
-                </Text>
-                {onFocusTask && (
-                  <Pressable
-                    hitSlop={8}
-                    accessibilityRole="button"
-                    accessibilityLabel={`Démarrer Focus pour ${task.title}`}
-                    onPress={(event) => { event.stopPropagation(); hapticLight(); onFocusTask(task); }}
-                  >
-                    <Symbol name={SymbolNames.timer} size={16} color={colors.system.blue} />
-                  </Pressable>
-                )}
-              </Pressable>
-            ))}
-            {remainingTasks > 0 && (
-              <View style={{ alignSelf: 'flex-start', backgroundColor: colors.bg.hover, borderRadius: 6, paddingHorizontal: 7, paddingVertical: 3 }}>
-                <Text style={{ fontSize: typography.sizes.xs, color: colors.text.secondary }}>
-                  +{remainingTasks} autre{remainingTasks > 1 ? 's' : ''}
-                </Text>
-              </View>
-            )}
-          </View>
-        )}
       </View>
     </Pressable>
   );
 }
 
 const styles = StyleSheet.create({
+  pressable: {
+    height: '100%',
+    paddingVertical: 1.5,
+  },
   block: {
     flex: 1,
-    borderRadius: 10,
-    borderLeftWidth: 3,
-    padding: 6,
+    flexDirection: 'row',
+    borderRadius: 12,
+    borderCurve: 'continuous',
     overflow: 'hidden',
+  },
+  accent: {
+    width: 4,
+  },
+  content: {
+    flex: 1,
+    paddingHorizontal: 10,
+    paddingVertical: 8,
+  },
+  contentCompact: {
+    paddingVertical: 0,
+    justifyContent: 'center',
+  },
+  titleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  title: {
+    flex: 1,
+    fontWeight: '600',
+  },
+  time: {
+    marginTop: 2,
+  },
+  tasks: {
+    marginTop: 8,
+    gap: 6,
+  },
+  task: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    minHeight: 20,
+  },
+  taskTitle: {
+    flex: 1,
+  },
+  done: {
+    textDecorationLine: 'line-through',
   },
 });

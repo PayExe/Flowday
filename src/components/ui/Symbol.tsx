@@ -1,6 +1,7 @@
 import React from 'react';
 import { Platform, type ColorValue, type StyleProp, type TextStyle } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import type { AnimationSpec } from 'expo-symbols';
 
 interface SymbolViewProps {
   name: string;
@@ -9,6 +10,7 @@ interface SymbolViewProps {
   weight: SymbolProps['weight'];
   tintColor: ColorValue;
   resizeMode: 'scaleAspectFit';
+  animationSpec?: AnimationSpec;
 }
 
 let SymbolView: React.ComponentType<SymbolViewProps> | null = null;
@@ -34,6 +36,12 @@ const SF_TO_IONICON: Record<string, keyof typeof Ionicons.glyphMap> = {
   'gearshape': 'settings-outline',
   'gearshape.fill': 'settings',
   'plus': 'add',
+  'minus': 'remove',
+  'circle.lefthalf.filled': 'contrast',
+  'circle.dashed': 'ellipse-outline',
+  'sun.horizon.fill': 'sunny',
+  'bell.badge.fill': 'notifications',
+  'square.and.arrow.up': 'share-outline',
   'plus.circle.fill': 'add-circle',
   'checkmark': 'checkmark',
   'checkmark.circle.fill': 'checkmark-circle',
@@ -171,6 +179,34 @@ const SF_TO_IONICON: Record<string, keyof typeof Ionicons.glyphMap> = {
   'restart': 'reload',
   'sleep': 'moon',
   'wake': 'sunny',
+  'questionmark': 'help',
+  'circle': 'ellipse-outline',
+  'arrow.up': 'arrow-up',
+  'arrow.down': 'arrow-down',
+  'archivebox': 'archive-outline',
+  'calendar.day.timeline.left': 'today-outline',
+  'calendar.day.timeline.leading': 'today',
+  'tray': 'file-tray-outline',
+  'square.stack.3d.up': 'layers-outline',
+  'checkmark.circle': 'checkmark-circle-outline',
+  'face.smiling': 'happy-outline',
+  'laptopcomputer': 'laptop',
+  'briefcase.fill': 'briefcase',
+  'brain.head.profile': 'bulb',
+  'pencil.line': 'pencil',
+  'graduationcap.fill': 'school',
+  'bicycle': 'bicycle',
+  'stethoscope': 'medkit',
+  'cup.and.saucer.fill': 'cafe',
+  'pawprint.fill': 'paw',
+  'airplane': 'airplane',
+  'paintpalette.fill': 'color-palette',
+  'guitars.fill': 'musical-notes',
+  'headphones': 'headset',
+  'gamecontroller.fill': 'game-controller',
+  'square.dashed': 'square-outline',
+  'cloud.rain.fill': 'rainy',
+  'cloud.sun.fill': 'partly-sunny',
 };
 
 export interface SymbolProps {
@@ -180,6 +216,8 @@ export interface SymbolProps {
   weight?: 'ultraLight' | 'thin' | 'light' | 'regular' | 'medium' | 'semibold' | 'bold' | 'heavy' | 'black';
   type?: 'monochrome' | 'hierarchical' | 'palette' | 'multicolor';
   style?: StyleProp<TextStyle>;
+  /** iOS-only SF Symbol effect (bounce, pulse, scale); ignored by the Ionicons fallback. */
+  animationSpec?: AnimationSpec;
 }
 
 export function Symbol({
@@ -189,6 +227,7 @@ export function Symbol({
   weight = 'regular',
   type = 'monochrome',
   style,
+  animationSpec,
 }: SymbolProps) {
   if (Platform.OS === 'ios' && SymbolView) {
     return (
@@ -199,6 +238,7 @@ export function Symbol({
         weight={weight}
         tintColor={color}
         resizeMode="scaleAspectFit"
+        animationSpec={animationSpec}
       />
     );
   }
@@ -226,6 +266,7 @@ export const SymbolNames = {
   settings: 'gearshape.fill',
   settingsOutline: 'gearshape',
   add: 'plus',
+  minus: 'minus',
   addCircle: 'plus.circle.fill',
   checkmark: 'checkmark',
   checkmarkCircle: 'checkmark.circle.fill',
@@ -333,4 +374,11 @@ export const SymbolNames = {
   eject: 'eject.fill',
   power: 'power',
   reload: 'restart',
+  question: 'questionmark',
+  arrowUp: 'arrow.up',
+  arrowDown: 'arrow.down',
+  archiveOutline: 'archivebox',
+  timeline: 'calendar.day.timeline.left',
+  tray: 'tray',
+  stack: 'square.stack.3d.up',
 } as const;

@@ -3,13 +3,31 @@ import { Stack, useRouter, usePathname } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { BottomSheetModalProvider } from '@gorhom/bottom-sheet';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
-import { StyleSheet } from 'react-native';
+import { Appearance, StyleSheet } from 'react-native';
 import { useRitualStore } from '../src/features/rituals/store';
 import { useLifeBlocksStore } from '../src/features/lifeBlocks/store';
 import { useTemplateStore } from '../src/features/templates/store';
 import { useThemeStore } from '../src/features/theme/store';
+import { useLanguageStore } from '../src/features/language/store';
 import { useFocusStore } from '../src/features/focus/store';
+import { useTaskStore } from '../src/features/tasks/store';
+import { useOnboardingStore } from '../src/features/onboarding/store';
+import { isReturningUser } from '../src/features/onboarding/returningUser';
+import { useStoresHydrated } from '../src/utils/useStoresHydrated';
+import { useNotifications } from '../src/features/notifications/useNotifications';
+import { useDayScoreSync } from '../src/features/dayScore/useDayScoreSync';
+import { useTheme } from '../src/theme';
+import { ToastHost } from '../src/components/ui/Toast';
 import { dateKey } from '../src/utils/dates';
+import {
+  MINUTES_PER_DAY,
+  MORNING_AUTO_OPEN_WINDOW_MINUTES,
+  autoOpenDelay,
+  isPastTime,
+} from '../src/utils/ritualNavigation';
+
+// Stores read to tell a first launch from a returning user.
+const ONBOARDING_STORES = [useOnboardingStore, useTaskStore, useRitualStore, useLifeBlocksStore];
 
 function todayISO(): string {
   return dateKey();
@@ -28,11 +46,26 @@ export default function RootLayout() {
 
   const blocks = useLifeBlocksStore((state) => state.blocks);
   const initializeBlocks = useLifeBlocksStore((state) => state.initializeDefaults);
+  const localizeBlocks = useLifeBlocksStore((state) => state.localizeDefaults);
+  const language = useLanguageStore((state) => state.language);
 
   const initializeTemplates = useTemplateStore((state) => state.initializeDefaults);
 
-  const themeName = useThemeStore((state) => state.themeName);
+  const themePreference = useThemeStore((state) => state.themeName);
+  const { colors, isDark } = useTheme();
   const resetDailyCountIfNeeded = useFocusStore((state) => state.resetDailyCountIfNeeded);
+
+  const hydrated = useStoresHydrated(ONBOARDING_STORES);
+  const onboardingCompleted = useOnboardingStore((state) => state.completed);
+  const completeOnboarding = useOnboardingStore((state) => state.complete);
+  const onboarded = hydrated && onboardingCompleted;
+
+  useNotifications();
+  useDayScoreSync(currentDate);
+
+  useEffect(() => {
+    Appearance.setColorScheme?.(themePreference === 'system' ? 'unspecified' : themePreference);
+  }, [themePreference]);
 
   useEffect(() => {
     const now = new Date();
@@ -58,6 +91,25 @@ export default function RootLayout() {
     initializeBlocks();
   }, [initializeBlocks]);
 
+  // Runs again once stores hydrate (blocks change) and whenever the language does.
+  useEffect(() => {
+    localizeBlocks(language);
+  }, [blocks, language, localizeBlocks]);
+
+  useEffect(() => {
+    if (!hydrated || onboardingCompleted) return;
+    const returning = isReturningUser({
+      tasks: useTaskStore.getState().tasks,
+      ritualLogs: useRitualStore.getState().logs,
+      lifeBlocks: useLifeBlocksStore.getState().blocks,
+    });
+    if (returning) {
+      completeOnboarding();
+      return;
+    }
+    if (pathname !== '/onboarding') router.replace('/onboarding');
+  }, [hydrated, onboardingCompleted, completeOnboarding, pathname, router]);
+
   const didInitTemplates = useRef(false);
   useEffect(() => {
     if (didInitTemplates.current) return;
@@ -70,60 +122,75 @@ export default function RootLayout() {
     initializeTemplates(activeBlockIds);
   }, [blocks, initializeTemplates]);
 
+  const hasDoneEvening = logs.some(
+    (log) => log.date === todayISO() && log.type === 'evening'
+  );
+
+  const eveningDue =
+    eveningConfig.enabled && !hasDoneEvening && isPastTime(eveningConfig.time);
+
   useEffect(() => {
+    if (!onboarded) return;
     if (!morningConfig.enabled) return;
     if (hasDoneMorning) return;
     if (hasSkippedMorning) return;
+    if (eveningDue) return;
     if (pathname === '/morning-ritual') return;
 
-    const now = new Date();
-    const [hours, minutes] = morningConfig.time.split(':').map(Number);
-    const triggerMinutes = hours * 60 + minutes;
-    const nowMinutes = now.getHours() * 60 + now.getMinutes();
-    const delay = nowMinutes < triggerMinutes
-      ? (triggerMinutes - nowMinutes) * 60 * 1000
-      : 100;
+    const delay = autoOpenDelay(morningConfig.time, MORNING_AUTO_OPEN_WINDOW_MINUTES);
+    if (delay === null) return;
 
     const timer = setTimeout(() => {
       router.replace('/morning-ritual');
     }, delay);
     return () => clearTimeout(timer);
-  }, [hasDoneMorning, hasSkippedMorning, pathname, router, morningConfig.enabled, morningConfig.time]);
+  }, [
+    onboarded,
+    hasDoneMorning,
+    hasSkippedMorning,
+    eveningDue,
+    pathname,
+    router,
+    morningConfig.enabled,
+    morningConfig.time,
+  ]);
 
   const eveningRedirected = useRef(false);
-  const hasDoneEvening = logs.some(
-    (log) => log.date === todayISO() && log.type === 'evening'
-  );
 
   useEffect(() => {
+    if (!onboarded) return;
     if (eveningRedirected.current) return;
     if (!eveningConfig.enabled) return;
     if (hasDoneEvening) return;
     if (pathname === '/evening-wrap') return;
 
-    const now = new Date();
-    const [h, m] = eveningConfig.time.split(':').map(Number);
-    const triggerMinutes = h * 60 + m;
-    const nowMinutes = now.getHours() * 60 + now.getMinutes();
+    const delay = autoOpenDelay(eveningConfig.time, MINUTES_PER_DAY);
+    if (delay === null) return;
 
-    if (nowMinutes < triggerMinutes) return;
-
-    eveningRedirected.current = true;
     const timer = setTimeout(() => {
+      eveningRedirected.current = true;
       router.replace('/evening-wrap');
-    }, 100);
+    }, delay);
     return () => clearTimeout(timer);
-  }, [hasDoneEvening, pathname, router, eveningConfig.enabled, eveningConfig.time]);
+  }, [onboarded, hasDoneEvening, pathname, router, eveningConfig.enabled, eveningConfig.time]);
 
   return (
     <GestureHandlerRootView style={styles.container}>
       <BottomSheetModalProvider>
-        <StatusBar style={themeName === 'dark' ? 'light' : 'dark'} />
-        <Stack screenOptions={{ headerShown: false, animation: 'slide_from_right' }}>
+        <StatusBar style={isDark ? 'light' : 'dark'} />
+        <Stack
+          screenOptions={{
+            headerShown: false,
+            animation: 'slide_from_right',
+            contentStyle: { backgroundColor: colors.bg.primary },
+          }}
+        >
+          <Stack.Screen name="onboarding" options={{ animation: 'fade', gestureEnabled: false }} />
           <Stack.Screen name="morning-ritual" options={{ animation: 'slide_from_bottom' }} />
           <Stack.Screen name="evening-wrap" options={{ animation: 'slide_from_bottom' }} />
           <Stack.Screen name="focus" options={{ animation: 'slide_from_bottom' }} />
         </Stack>
+        <ToastHost />
       </BottomSheetModalProvider>
     </GestureHandlerRootView>
   );

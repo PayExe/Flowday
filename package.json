@@ -1,6 +1,6 @@
 {
   "name": "flowday",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "main": "index.ts",
   "scripts": {
     "start": "expo start",
@@ -15,13 +15,15 @@
     "@expo/vector-icons": "^15.1.1",
     "@gorhom/bottom-sheet": "^5.2.14",
     "@react-native-async-storage/async-storage": "2.2.0",
-    "@react-native-picker/picker": "2.11.4",
+    "@react-native-community/datetimepicker": "9.1.0",
     "expo": "~57.0.26",
     "expo-blur": "~57.0.3",
     "expo-constants": "~57.0.19",
     "expo-font": "~57.0.4",
+    "expo-glass-effect": "~57.0.4",
     "expo-haptics": "~57.0.3",
     "expo-linking": "~57.0.11",
+    "expo-notifications": "~57.0.21",
     "expo-router": "~57.0.24",
     "expo-status-bar": "~57.0.1",
     "expo-symbols": "~57.0.3",
@@ -32,6 +34,7 @@
     "react-native-reanimated": "4.5.1",
     "react-native-safe-area-context": "~5.7.0",
     "react-native-screens": "~4.26.0",
+    "react-native-svg": "15.15.4",
     "react-native-web": "^0.21.2",
     "react-native-worklets": "0.10.1",
     "zustand": "^5.0.13"

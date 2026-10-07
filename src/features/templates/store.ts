@@ -1,6 +1,6 @@
 import { create } from 'zustand';
-import { persist, createJSONStorage } from 'zustand/middleware';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import { persist } from 'zustand/middleware';
+import { persistOptions } from '../../utils/persistence';
 import { generateId } from '../../utils/id';
 import { WeeklyTemplate, TemplateBlock } from '../../types/template';
 import { isValidTime } from '../../utils/dates';
@@ -23,10 +23,14 @@ interface TemplateState {
   addBlockToTemplate: (templateId: string, block: Omit<TemplateBlock, 'id'>) => void;
   updateTemplateBlock: (templateId: string, blockId: string, updates: Partial<TemplateBlock>) => void;
   removeTemplateBlock: (templateId: string, blockId: string) => void;
+  copyDayBlocks: (templateId: string, fromDay: number, toDays: number[]) => void;
+  clearDay: (templateId: string, dayOfWeek: number) => void;
   getActiveTemplate: () => WeeklyTemplate | undefined;
   getBlocksForDay: (dayOfWeek: number) => TemplateBlock[];
   getTodayBlocks: () => TemplateBlock[];
   initializeDefaults: (lifeBlockIds: string[]) => void;
+  /** Drops every slot using these life blocks, e.g. blocks declined during onboarding. */
+  removeBlocksForLifeBlocks: (lifeBlockIds: string[]) => void;
 }
 
 export const useTemplateStore = create<TemplateState>()(
@@ -112,6 +116,41 @@ export const useTemplateStore = create<TemplateState>()(
           ),
         })),
 
+      copyDayBlocks: (templateId, fromDay, toDays) => {
+        const targets = Array.from(new Set(toDays)).filter(
+          (day) => Number.isInteger(day) && day >= 0 && day <= 6 && day !== fromDay
+        );
+        if (targets.length === 0) return;
+        set((state) => ({
+          templates: state.templates.map((t) => {
+            if (t.id !== templateId) return t;
+            const source = t.blocks.filter((b) => b.dayOfWeek === fromDay);
+            const kept = t.blocks.filter((b) => !targets.includes(b.dayOfWeek));
+            const copies = targets.flatMap((day) =>
+              source.map((b) => ({
+                ...b,
+                id: generateId(),
+                dayOfWeek: day as TemplateBlock['dayOfWeek'],
+              }))
+            );
+            return { ...t, blocks: [...kept, ...copies], updatedAt: new Date().toISOString() };
+          }),
+        }));
+      },
+
+      clearDay: (templateId, dayOfWeek) =>
+        set((state) => ({
+          templates: state.templates.map((t) =>
+            t.id === templateId
+              ? {
+                  ...t,
+                  blocks: t.blocks.filter((b) => b.dayOfWeek !== dayOfWeek),
+                  updatedAt: new Date().toISOString(),
+                }
+              : t
+          ),
+        })),
+
       getActiveTemplate: () => {
         return get().templates.find((t) => t.id === get().activeTemplateId);
       },
@@ -129,6 +168,15 @@ export const useTemplateStore = create<TemplateState>()(
         const dayOfWeek = today === 0 ? 6 : today - 1;
         return get().getBlocksForDay(dayOfWeek);
       },
+
+      removeBlocksForLifeBlocks: (lifeBlockIds) =>
+        set((state) => ({
+          templates: state.templates.map((template) => ({
+            ...template,
+            blocks: template.blocks.filter((block) => !lifeBlockIds.includes(block.lifeBlockId)),
+            updatedAt: new Date().toISOString(),
+          })),
+        })),
 
       initializeDefaults: (lifeBlockIds) =>
         set((state) => {
@@ -162,7 +210,6 @@ export const useTemplateStore = create<TemplateState>()(
               dayOfWeek: d as 0 | 1 | 2 | 3 | 4 | 5 | 6,
               startTime: '14:00',
               endTime: '18:00',
-              title: 'Work',
               isFlexible: false,
             })),
             ...[0, 2, 4].map((d) => ({
@@ -171,7 +218,6 @@ export const useTemplateStore = create<TemplateState>()(
               dayOfWeek: d as 0 | 1 | 2 | 3 | 4 | 5 | 6,
               startTime: '19:00',
               endTime: '20:00',
-              title: 'Sport',
               isFlexible: true,
             })),
           ];
@@ -189,9 +235,6 @@ export const useTemplateStore = create<TemplateState>()(
           };
         }),
     }),
-    {
-      name: 'flowday-templates',
-      storage: createJSONStorage(() => AsyncStorage),
-    }
+    persistOptions<TemplateState>('flowday-templates', { version: 1 })
   )
 );

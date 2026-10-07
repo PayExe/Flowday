@@ -1,6 +1,6 @@
 import { create } from 'zustand';
-import { persist, createJSONStorage } from 'zustand/middleware';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import { persist } from 'zustand/middleware';
+import { persistOptions } from '../../utils/persistence';
 import { generateId } from '../../utils/id';
 import { Task } from '../../types/task';
 import { dateKey } from '../../utils/dates';
@@ -9,9 +9,13 @@ import { useDayScoreStore } from '../dayScore/store';
 interface TaskState {
   tasks: Task[];
   addTask: (task: Omit<Task, 'id' | 'createdAt'>) => void;
+  /** Puts back a deleted task exactly as it was (undo). */
+  restoreTask: (task: Task) => void;
   toggleTask: (id: string) => void;
   deleteTask: (id: string) => void;
   updateTask: (id: string, updates: Partial<Omit<Task, 'id' | 'createdAt'>>) => void;
+  getTasksForDate: (date: string) => Task[];
+  getTasksForDateByLifeBlock: (date: string, lifeBlockId: string) => Task[];
   getTodayTasks: () => Task[];
   getTodayTasksByLifeBlock: (lifeBlockId: string) => Task[];
   getIncompleteTodayTasks: () => Task[];
@@ -44,6 +48,19 @@ export const useTaskStore = create<TaskState>()(
           );
           return { tasks };
         }),
+
+      restoreTask: (task) => {
+        if (get().tasks.some((candidate) => candidate.id === task.id)) return;
+        const tasks = [...get().tasks, task];
+        const date = task.scheduledDate || dateKey();
+        const dateTasks = tasks.filter((candidate) => (candidate.scheduledDate || dateKey()) === date);
+        useDayScoreStore.getState().updateTasksPercent(
+          date,
+          dateTasks.filter((candidate) => candidate.completed).length,
+          dateTasks.length
+        );
+        set({ tasks });
+      },
 
       toggleTask: (id) => {
         const task = get().tasks.find((candidate) => candidate.id === id);
@@ -97,21 +114,22 @@ export const useTaskStore = create<TaskState>()(
         }
       },
 
-      getTodayTasks: () => {
+      // An undated task belongs to today, which is also how the score reads it.
+      getTasksForDate: (date) => {
         const today = dateKey();
-        return get().tasks.filter(
-          (task) => !task.scheduledDate || task.scheduledDate === today
-        );
+        return get().tasks.filter((task) => (task.scheduledDate || today) === date);
       },
 
-      getTodayTasksByLifeBlock: (lifeBlockId) => {
-        const today = dateKey();
-        return get().tasks.filter(
-          (task) =>
-            task.lifeBlockId === lifeBlockId &&
-            (!task.scheduledDate || task.scheduledDate === today)
-        );
+      getTasksForDateByLifeBlock: (date, lifeBlockId) => {
+        return get()
+          .getTasksForDate(date)
+          .filter((task) => task.lifeBlockId === lifeBlockId);
       },
+
+      getTodayTasks: () => get().getTasksForDate(dateKey()),
+
+      getTodayTasksByLifeBlock: (lifeBlockId) =>
+        get().getTasksForDateByLifeBlock(dateKey(), lifeBlockId),
 
       getIncompleteTodayTasks: () => {
         return get().getTodayTasks().filter((t) => !t.completed);
@@ -149,9 +167,6 @@ export const useTaskStore = create<TaskState>()(
         set({ tasks });
       },
     }),
-    {
-      name: 'flowday-tasks',
-      storage: createJSONStorage(() => AsyncStorage),
-    }
+    persistOptions<TaskState>('flowday-tasks', { version: 1 })
   )
 );

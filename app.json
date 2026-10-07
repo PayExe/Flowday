@@ -2,7 +2,7 @@
   "expo": {
     "name": "flowday",
     "slug": "flowday",
-    "version": "0.1.0",
+    "version": "0.2.0",
     "scheme": "flowday",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
@@ -23,7 +23,9 @@
     "plugins": [
       "expo-router",
       "expo-font",
-      "expo-status-bar"
+      "expo-status-bar",
+      "@react-native-community/datetimepicker",
+      "expo-notifications"
     ],
     "extra": {
       "router": {},

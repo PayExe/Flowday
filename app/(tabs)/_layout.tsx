@@ -1,107 +1,60 @@
+import { Platform } from 'react-native';
 import { Tabs } from 'expo-router';
-import { StyleSheet } from 'react-native';
-import { BlurView } from 'expo-blur';
+import { NativeTabs } from 'expo-router/unstable-native-tabs';
 import { useTheme } from '../../src/theme';
-import { Symbol, SymbolNames } from '../../src/components/ui/Symbol';
+import { Symbol } from '../../src/components/ui/Symbol';
+import { useTranslation } from '../../src/i18n';
+
+const TABS = [
+  { name: 'index', title: 'Aujourd’hui', icon: 'house', selectedIcon: 'house.fill' },
+  { name: 'planning', title: 'Planning', icon: 'calendar.day.timeline.left', selectedIcon: 'calendar.day.timeline.left' },
+  { name: 'week', title: 'Semaine', icon: 'calendar', selectedIcon: 'calendar' },
+  { name: 'blocks', title: 'Blocs', icon: 'square.grid.2x2', selectedIcon: 'square.grid.2x2.fill' },
+  { name: 'settings', title: 'Réglages', icon: 'gearshape', selectedIcon: 'gearshape.fill' },
+] as const;
 
 export default function TabsLayout() {
-  const { colors, isDark } = useTheme();
+  const { colors } = useTheme();
+  const { t } = useTranslation();
+
+  if (Platform.OS === 'ios') {
+    return (
+      <NativeTabs tintColor={colors.accent} minimizeBehavior="onScrollDown">
+        {TABS.map((tab) => (
+          <NativeTabs.Trigger key={tab.name} name={tab.name}>
+            <NativeTabs.Trigger.Icon sf={{ default: tab.icon, selected: tab.selectedIcon }} />
+            <NativeTabs.Trigger.Label>{t(tab.title)}</NativeTabs.Trigger.Label>
+          </NativeTabs.Trigger>
+        ))}
+      </NativeTabs>
+    );
+  }
 
   return (
     <Tabs
       screenOptions={{
         headerShown: false,
         tabBarStyle: {
-          backgroundColor: 'transparent',
-          position: 'absolute',
-          borderTopWidth: 0,
-          height: 80,
-          paddingBottom: 24,
-          paddingTop: 10,
-          elevation: 0,
+          backgroundColor: colors.bg.secondary,
+          borderTopColor: colors.separator.hairline,
         },
-        tabBarBackground: () => (
-          <BlurView
-            tint={isDark ? 'dark' : 'light'}
-            intensity={isDark ? 80 : 60}
-            style={StyleSheet.absoluteFill}
-          />
-        ),
-        tabBarActiveTintColor: colors.system.blue,
+        tabBarActiveTintColor: colors.accent,
         tabBarInactiveTintColor: colors.system.gray,
         tabBarLabelStyle: { fontSize: 10, fontWeight: '500' },
       }}
     >
-      <Tabs.Screen
-        name="index"
-        options={{
-          title: 'Accueil',
-          tabBarIcon: ({ color, focused }) => (
-            <Symbol
-              name={focused ? SymbolNames.home : SymbolNames.homeOutline}
-              size={24}
-              color={color}
-              weight={focused ? 'semibold' : 'regular'}
-            />
-          ),
-        }}
-      />
-      <Tabs.Screen
-        name="planning"
-        options={{
-          title: 'Planning',
-          tabBarIcon: ({ color, focused }) => (
-            <Symbol
-              name={focused ? SymbolNames.calendarFill : SymbolNames.calendar}
-              size={24}
-              color={color}
-              weight={focused ? 'semibold' : 'regular'}
-            />
-          ),
-        }}
-      />
-      <Tabs.Screen
-        name="week"
-        options={{
-          title: 'Semaine',
-          tabBarIcon: ({ color, focused }) => (
-            <Symbol
-              name={focused ? SymbolNames.clockFill : SymbolNames.clock}
-              size={24}
-              color={color}
-              weight={focused ? 'semibold' : 'regular'}
-            />
-          ),
-        }}
-      />
-      <Tabs.Screen
-        name="blocks"
-        options={{
-          title: 'Blocs',
-          tabBarIcon: ({ color, focused }) => (
-            <Symbol
-              name={focused ? SymbolNames.blocksFill : SymbolNames.blocks}
-              size={24}
-              color={color}
-              weight={focused ? 'semibold' : 'regular'}
-            />
-          ),
-        }}
-      />
-      <Tabs.Screen
-        name="settings"
-        options={{
-          title: 'Réglages',
-          tabBarIcon: ({ color, focused }) => (
-            <Symbol
-              name={focused ? SymbolNames.settings : SymbolNames.settingsOutline}
-              size={24}
-              color={color}
-              weight={focused ? 'semibold' : 'regular'}
-            />
-          ),
-        }}
-      />
+      {TABS.map((tab) => (
+        <Tabs.Screen
+          key={tab.name}
+          name={tab.name}
+          options={{
+            title: t(tab.title),
+            tabBarIcon: ({ color, focused }) => (
+              <Symbol name={focused ? tab.selectedIcon : tab.icon} size={24} color={color} />
+            ),
+          }}
+        />
+      ))}
     </Tabs>
   );
 }

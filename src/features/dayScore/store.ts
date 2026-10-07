@@ -1,7 +1,8 @@
 import { create } from 'zustand';
-import { persist, createJSONStorage } from 'zustand/middleware';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import { persist } from 'zustand/middleware';
+import { persistOptions } from '../../utils/persistence';
 import { DayScore } from '../../types/dayScore';
+import { dateKey } from '../../utils/dates';
 
 interface DayScoreState {
   scores: DayScore[];
@@ -19,6 +20,14 @@ interface DayScoreState {
   updateTasksPercent: (date: string, completed: number, total: number) => void;
 }
 
+export const SCORE_WEIGHTS = { blocks: 0.4, tasks: 0.3, pomodoros: 0.2, rituals: 0.1 } as const;
+
+/**
+ * Weighted score out of 100. A part with nothing to measure that day (no tasks,
+ * no tracked block, no Focus goal) is left out and its weight shared among the
+ * others, so an empty category never caps the day below 100. Scores saved
+ * before the counts existed have them undefined and keep every part.
+ */
 export function computeTotal(score: DayScore, pomodoroGoal: number): number {
   const ritualsPoints =
     (score.morningRitualDone ? 5 : 0) + (score.eveningWrapDone ? 5 : 0);
@@ -32,11 +41,14 @@ export function computeTotal(score: DayScore, pomodoroGoal: number): number {
   score.tasksPercent = tasksPercent;
   score.pomodorosPercent = pomodorosPercent;
   score.ritualsPercent = ritualsPercent;
-  const total =
-    blocksPercent * 0.4 +
-    tasksPercent * 0.3 +
-    pomodorosPercent * 0.2 +
-    ritualsPercent * 0.1;
+  const parts = [
+    { weight: SCORE_WEIGHTS.blocks, percent: blocksPercent, counts: score.blocksTracked !== 0 },
+    { weight: SCORE_WEIGHTS.tasks, percent: tasksPercent, counts: score.tasksTotal !== 0 },
+    { weight: SCORE_WEIGHTS.pomodoros, percent: pomodorosPercent, counts: pomodoroGoal > 0 },
+    { weight: SCORE_WEIGHTS.rituals, percent: ritualsPercent, counts: true },
+  ].filter((part) => part.counts);
+  const weight = parts.reduce((sum, part) => sum + part.weight, 0);
+  const total = parts.reduce((sum, part) => sum + part.percent * part.weight, 0) / weight;
   return Math.min(Math.round(total), 100);
 }
 
@@ -104,6 +116,7 @@ export const useDayScoreStore = create<DayScoreState>()(
       updateBlockValidation: (date, blocksValidated, totalBlocks) =>
         set((state) =>
           updateScore(state, date, (s) => {
+            s.blocksTracked = totalBlocks;
             s.blocksPercent = totalBlocks > 0
               ? Math.min((blocksValidated / totalBlocks) * 100, 100)
               : 0;
@@ -113,6 +126,7 @@ export const useDayScoreStore = create<DayScoreState>()(
       updateTasksPercent: (date, completed, total) =>
         set((state) =>
           updateScore(state, date, (s) => {
+            s.tasksTotal = total;
             s.tasksPercent = total > 0 ? Math.min((completed / total) * 100, 100) : 0;
           })
         ),
@@ -133,14 +147,22 @@ export const useDayScoreStore = create<DayScoreState>()(
         });
       },
 
-       setPomodoroGoal: (goal) => {
-         if (!Number.isFinite(goal) || goal < 0) return;
-         set({ pomodoroGoal: Math.floor(goal) });
-       },
+      setPomodoroGoal: (goal) => {
+        if (!Number.isFinite(goal) || goal < 0) return;
+        set((state) => {
+          const pomodoroGoal = Math.floor(goal);
+          // Today's score depends on the goal, so it must reflect the change at once.
+          const today = dateKey();
+          const scores = state.scores.map((s) => {
+            if (s.date !== today) return s;
+            const next = { ...s, pomodorosGoal: pomodoroGoal };
+            next.total = computeTotal(next, pomodoroGoal);
+            return next;
+          });
+          return { pomodoroGoal, scores };
+        });
+      },
     }),
-    {
-      name: 'flowday-dayscores',
-      storage: createJSONStorage(() => AsyncStorage),
-    }
+    persistOptions<DayScoreState>('flowday-dayscores', { version: 1 })
   )
 );

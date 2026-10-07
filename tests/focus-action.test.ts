@@ -19,7 +19,6 @@ describe('focus action', () => {
         isBreak: false,
         sessionPomodoroCount: 0,
         dailyPomodoroCount: 0,
-        dailyPomodoroGoal: 6,
         focusElapsedSeconds: 0,
       },
     });

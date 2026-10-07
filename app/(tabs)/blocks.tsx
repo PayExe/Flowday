@@ -1,8 +1,11 @@
-import { useState, useCallback } from 'react';
-import { View, Text, Pressable, FlatList, StyleSheet } from 'react-native';
-import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useState, useCallback, useMemo } from 'react';
+import { Pressable, Text, View, StyleSheet } from 'react-native';
+import Animated, { FadeIn, FadeOut, LayoutAnimationConfig } from 'react-native-reanimated';
 import { useLifeBlocksStore } from '../../src/features/lifeBlocks/store';
 import { useTemplateStore } from '../../src/features/templates/store';
+import { useBlockLogStore } from '../../src/features/blockLogs/store';
+import { livedMinutesByBlock } from '../../src/features/blockLogs/lived';
+import { dateKey, shiftDateKey, weekDayIndex } from '../../src/utils/dates';
 import { LifeBlock, LifeBlockColor } from '../../src/types/lifeBlock';
 import { TemplateBlock } from '../../src/types/template';
 import { LifeBlockCard } from '../../src/components/lifeBlocks/LifeBlockCard';
@@ -10,16 +13,17 @@ import { EditBlockModal } from '../../src/components/lifeBlocks/EditBlockModal';
 import { EmptyState } from '../../src/components/shared/EmptyState';
 import { useTheme } from '../../src/theme';
 import { hapticLight, hapticWarning } from '../../src/utils/haptics';
+import { timeToMinutes } from '../../src/utils/time';
 import { PageInfo } from '../../src/components/ui/PageInfo';
-import { AddButton } from '../../src/components/ui/AddButton';
+import { Button, IconButton } from '../../src/components/ui/Glass';
+import { IconTile, List, ROW_TRANSITION, Row, SectionFooter, SectionHeader } from '../../src/components/ui/List';
+import { Screen } from '../../src/components/ui/Screen';
+import { SymbolNames } from '../../src/components/ui/Symbol';
+import { useTranslation } from '../../src/i18n';
 
 
-function timeToMinutes(time: string): number {
-  const [h, m] = time.split(':').map(Number);
-  return h * 60 + m;
-}
-
-function getWeeklyMinutes(
+/** Minutes the weekly template sets aside for a life block: the intention. */
+function getPlannedWeeklyMinutes(
   blockId: string,
   getBlocksForDay: (dayOfWeek: number) => TemplateBlock[]
 ): number {
@@ -37,7 +41,7 @@ function getWeeklyMinutes(
 
 export default function BlocksScreen() {
   const { colors, typography } = useTheme();
-  const insets = useSafeAreaInsets();
+  const { t } = useTranslation();
   const [modalVisible, setModalVisible] = useState(false);
   const [editingBlock, setEditingBlock] = useState<LifeBlock | null>(null);
 
@@ -50,7 +54,14 @@ export default function BlocksScreen() {
   const getActiveBlocks = useLifeBlocksStore((state) => state.getActiveBlocks);
 
   const getBlocksForDay = useTemplateStore((state) => state.getBlocksForDay);
-  const templates = useTemplateStore((state) => state.templates);
+  useTemplateStore((state) => state.templates);
+
+  const blockLogs = useBlockLogStore((state) => state.logs);
+  // The week runs Monday to today: what has been lived so far.
+  const livedThisWeek = useMemo(() => {
+    const today = dateKey();
+    return livedMinutesByBlock(blockLogs, shiftDateKey(today, -weekDayIndex()), today);
+  }, [blockLogs]);
 
   const activeBlocks = getActiveBlocks();
   const archivedBlocks = blocks.filter((b) => b.isArchived);
@@ -72,11 +83,10 @@ export default function BlocksScreen() {
       color: LifeBlockColor;
       weeklyGoalMinutes: number;
     }) => {
+      hapticLight();
       if (editingBlock) {
-        hapticLight();
         updateBlock(editingBlock.id, data);
       } else {
-        hapticLight();
         addBlock({
           ...data,
           isArchived: false,
@@ -103,131 +113,105 @@ export default function BlocksScreen() {
     }
   }, [editingBlock, unarchiveBlock]);
 
-  const renderActiveBlock = useCallback(
-    ({ item, index }: { item: LifeBlock; index: number }) => {
-      const timeSpent = getWeeklyMinutes(item.id, getBlocksForDay);
-      const progress =
-        item.weeklyGoalMinutes > 0
-          ? (timeSpent / item.weeklyGoalMinutes) * 100
-          : 0;
-
-      return (
-        <LifeBlockCard
-          block={item}
-          progressPercent={progress}
-          timeSpentMinutes={timeSpent}
-          onEdit={() => handleEdit(item)}
-          onMoveUp={() => reorderBlock(item.id, 'up')}
-          onMoveDown={() => reorderBlock(item.id, 'down')}
-          onArchive={() => archiveBlock(item.id)}
-          canMoveUp={index > 0}
-          canMoveDown={index < activeBlocks.length - 1}
-        />
-      );
-    },
-    [activeBlocks.length, templates, getBlocksForDay, handleEdit, archiveBlock, reorderBlock]
-  );
-
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: colors.bg.primary }]} edges={['top']}>
-      <View style={styles.header}>
-        <View style={styles.headerTop}>
-          <View>
-            <Text style={[typography.screenTitle, { color: colors.text.primary }]}>Blocs</Text>
-            <Text style={[typography.subheadline, { color: colors.text.secondary }]}>
-              {activeBlocks.length} bloc{activeBlocks.length !== 1 ? 's' : ''} actif
-              {activeBlocks.length !== 1 ? 's' : ''}
-            </Text>
-          </View>
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+    <>
+      <Screen
+        title={t('Blocs')}
+        subtitle={t('activeBlocksCount', { count: activeBlocks.length })}
+        actions={
+          <>
             <PageInfo
-              title="Blocs de vie"
-              description="Tes grands domaines de vie (travail, sport, santé…) et leur objectif hebdomadaire."
+              title={t('Blocs de vie')}
+              description={t('Tes grands domaines de vie (travail, sport, santé…) et leur objectif hebdomadaire.')}
               points={[
-                'La barre montre ton temps planifié cette semaine par rapport à l’objectif.',
-                'Appuie sur un bloc pour le modifier ou l’archiver.',
-                'Utilise les flèches ↑ ↓ pour réordonner les blocs.',
+                t('La barre montre ton temps planifié cette semaine par rapport à l’objectif.'),
+                t('Appuie sur un bloc pour le modifier ou l’archiver.'),
+                t('Le bouton ••• permet de réordonner ou d’archiver un bloc.'),
               ]}
             />
-            <AddButton onPress={handleCreate} accessibilityLabel="Ajouter un bloc de vie" />
-          </View>
-        </View>
-      </View>
-
-      <FlatList
-        data={activeBlocks}
-        keyExtractor={(item) => item.id}
-        renderItem={renderActiveBlock}
-        contentContainerStyle={[styles.listContent, { paddingBottom: 96 + insets.bottom }]}
-        showsVerticalScrollIndicator={false}
-        ListEmptyComponent={
+            <IconButton
+              symbol={SymbolNames.add}
+              onPress={handleCreate}
+              accessibilityLabel={t('Ajouter un bloc de vie')}
+              prominent
+            />
+          </>
+        }
+      >
+        {activeBlocks.length === 0 ? (
           <EmptyState
-            icon="cube-outline"
-            title="Aucun Life Block"
-            subtitle="Aucun bloc de vie pour le moment"
+            icon={SymbolNames.blocks}
+            title={t('Aucun Life Block')}
+            subtitle={t('Aucun bloc de vie pour le moment')}
+            action={<Button title={t('Créer un bloc de vie')} onPress={handleCreate} />}
           />
-        }
-        ListFooterComponent={
-          archivedBlocks.length > 0 ? (
-            <View style={{ marginTop: 24 }}>
-              <Text style={[typography.sectionHeader, { paddingHorizontal: 32, paddingTop: 28, paddingBottom: 8 }]}>
-                Archivés
-              </Text>
-              <View
-                style={{
-                  backgroundColor: colors.bg.secondary,
-                  borderRadius: 13,
-                  marginHorizontal: 16,
-                  overflow: 'hidden',
-                }}
-              >
-                {archivedBlocks.map((block, index) => (
-                  <View key={block.id}>
-                    <Pressable
-                      style={({ pressed }) => ({
-                        flexDirection: 'row',
-                        alignItems: 'center',
-                        paddingHorizontal: 16,
-                        paddingVertical: 11,
-                        backgroundColor: pressed ? colors.bg.hover : 'transparent',
-                        minHeight: 44,
-                        opacity: 0.5,
-                      })}
-                      onPress={() => handleEdit(block)}
-                    >
-                      <View
-                        style={{
-                          width: 29,
-                          height: 29,
-                          borderRadius: 7,
-                          backgroundColor: block.color,
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          marginRight: 12,
-                        }}
-                      >
-                        <Text style={{ fontSize: 16 }}>{block.emoji}</Text>
-                      </View>
-                      <Text style={{ flex: 1, fontSize: typography.sizes.lg, color: colors.text.primary, letterSpacing: -0.41 }}>
-                        {block.name}
-                      </Text>
-                      <Pressable
-                        onPress={() => unarchiveBlock(block.id)}
-                        hitSlop={8}
-                      >
-                        <Text style={{ fontSize: typography.sizes.base, color: colors.system.blue }}>Restaurer</Text>
-                      </Pressable>
-                    </Pressable>
-                    {index < archivedBlocks.length - 1 && (
-                      <View style={{ height: 0.5, backgroundColor: colors.separator.hairline, marginLeft: 57 }} />
-                    )}
-                  </View>
-                ))}
-              </View>
+        ) : (
+          <LayoutAnimationConfig skipEntering>
+            <View style={styles.list}>
+              {activeBlocks.map((block, index) => {
+                const planned = getPlannedWeeklyMinutes(block.id, getBlocksForDay);
+                const lived = livedThisWeek[block.id] ?? 0;
+                const target = block.weeklyGoalMinutes > 0 ? block.weeklyGoalMinutes : planned;
+                const progress = target > 0 ? (lived / target) * 100 : 0;
+
+                return (
+                  <Animated.View
+                    key={block.id}
+                    entering={FadeIn.duration(220)}
+                    exiting={FadeOut.duration(160)}
+                    layout={ROW_TRANSITION}
+                  >
+                    <LifeBlockCard
+                      block={block}
+                      progressPercent={progress}
+                      livedMinutes={lived}
+                      plannedMinutes={planned}
+                      onEdit={() => handleEdit(block)}
+                      onMoveUp={() => reorderBlock(block.id, 'up')}
+                      onMoveDown={() => reorderBlock(block.id, 'down')}
+                      onArchive={() => archiveBlock(block.id)}
+                      canMoveUp={index > 0}
+                      canMoveDown={index < activeBlocks.length - 1}
+                    />
+                  </Animated.View>
+                );
+              })}
             </View>
-          ) : null
-        }
-      />
+          </LayoutAnimationConfig>
+        )}
+        {activeBlocks.length > 0 && (
+          <SectionFooter>
+            {t('Le temps vécu se remplit quand tu valides tes blocs dans le Planning.')}
+          </SectionFooter>
+        )}
+
+        {archivedBlocks.length > 0 && (
+          <>
+            <SectionHeader title={t('Archivés')} />
+            <List separatorInset={64} animated>
+              {archivedBlocks.map((block) => (
+                <Row
+                  key={block.id}
+                  leading={<IconTile color={colors.system.gray} emoji={block.emoji} />}
+                  title={block.name}
+                  trailing={
+                    <Pressable
+                      hitSlop={10}
+                      accessibilityRole="button"
+                      onPress={() => {
+                        hapticLight();
+                        unarchiveBlock(block.id);
+                      }}
+                    >
+                      <Text style={[typography.body, { color: colors.accent }]}>{t('Restaurer')}</Text>
+                    </Pressable>
+                  }
+                />
+              ))}
+            </List>
+          </>
+        )}
+      </Screen>
 
       <EditBlockModal
         visible={modalVisible}
@@ -237,28 +221,12 @@ export default function BlocksScreen() {
         onArchive={editingBlock && !editingBlock.isArchived ? handleArchive : undefined}
         onUnarchive={editingBlock && editingBlock.isArchived ? handleUnarchive : undefined}
       />
-    </SafeAreaView>
+    </>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
+  list: {
+    marginTop: 8,
   },
-  header: {
-    paddingHorizontal: 16,
-    paddingTop: 16,
-    paddingBottom: 8,
-  },
-  headerTop: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-end',
-  },
-
-  listContent: {
-    paddingTop: 8,
-    paddingBottom: 32,
-  },
-
 });

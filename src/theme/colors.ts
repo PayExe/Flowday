@@ -2,13 +2,8 @@ export const ColorsDark = {
   bg: {
     primary: '#000000',
     secondary: '#1C1C1E',
-    tertiary: '#2C2C2E',
-    grouped: '#000000',
-    groupedSecondary: '#1C1C1E',
-    elevated: '#1C1C1E',
-    input: '#2C2C2E',
-    hover: '#2C2C2E',
-    blockActive: '#2C2C2E',
+    tertiary: '#7676803D',
+    hover: '#3A3A3C',
   },
 
   separator: {
@@ -21,7 +16,7 @@ export const ColorsDark = {
     secondary: '#EBEBF599',
     tertiary: '#EBEBF54D',
     quaternary: '#EBEBF52E',
-    placeholder: '#3C3C4399',
+    placeholder: '#EBEBF54D',
     link: '#0A84FF',
     inverse: '#FFFFFF',
   },
@@ -44,35 +39,15 @@ export const ColorsDark = {
     gray6: '#1C1C1E',
   },
 
-  bgPrimary: '#000000',
-  bgSurface: '#1C1C1E',
-  bgInput: '#2C2C2E',
-  bgHover: '#2C2C2E',
-  bgBlockActive: '#2C2C2E',
-  border: '#38383A',
-  textPrimary: '#FFFFFF',
-  textSecondary: '#EBEBF599',
-  textTertiary: '#EBEBF54D',
-  textInverse: '#000000',
-  accentPrimary: '#0A84FF',
-  accentSubtle: '#2C2C2E',
-  success: '#30D158',
-  danger: '#FF453A',
-  warning: '#FF9F0A',
-  info: '#0A84FF',
+  accent: '#0A84FF',
 } as const;
 
 export const ColorsLight = {
   bg: {
-    primary: '#FFFFFF',
-    secondary: '#F2F2F7',
-    tertiary: '#FFFFFF',
-    grouped: '#F2F2F7',
-    groupedSecondary: '#FFFFFF',
-    elevated: '#FFFFFF',
-    input: '#FFFFFF',
+    primary: '#F2F2F7',
+    secondary: '#FFFFFF',
+    tertiary: '#7676801F',
     hover: '#E5E5EA',
-    blockActive: '#E5E5EA',
   },
 
   separator: {
@@ -85,7 +60,7 @@ export const ColorsLight = {
     secondary: '#3C3C4399',
     tertiary: '#3C3C434D',
     quaternary: '#3C3C432E',
-    placeholder: '#3C3C4399',
+    placeholder: '#3C3C434D',
     link: '#007AFF',
     inverse: '#FFFFFF',
   },
@@ -98,7 +73,7 @@ export const ColorsLight = {
     yellow: '#FFCC00',
     purple: '#AF52DE',
     pink: '#FF2D55',
-    teal: '#5AC8FA',
+    teal: '#30B0C7',
     indigo: '#5856D6',
     gray: '#8E8E93',
     gray2: '#AEAEB2',
@@ -108,22 +83,7 @@ export const ColorsLight = {
     gray6: '#F2F2F7',
   },
 
-  bgPrimary: '#FFFFFF',
-  bgSurface: '#F2F2F7',
-  bgInput: '#FFFFFF',
-  bgHover: '#E5E5EA',
-  bgBlockActive: '#E5E5EA',
-  border: '#C6C6C8',
-  textPrimary: '#000000',
-  textSecondary: '#3C3C4399',
-  textTertiary: '#3C3C434D',
-  textInverse: '#FFFFFF',
-  accentPrimary: '#007AFF',
-  accentSubtle: '#E5E5EA',
-  success: '#34C759',
-  danger: '#FF3B30',
-  warning: '#FF9500',
-  info: '#007AFF',
+  accent: '#007AFF',
 } as const;
 
 export interface ColorPalette {
@@ -131,12 +91,7 @@ export interface ColorPalette {
     primary: string;
     secondary: string;
     tertiary: string;
-    grouped: string;
-    groupedSecondary: string;
-    elevated: string;
-    input: string;
     hover: string;
-    blockActive: string;
   };
   separator: {
     default: string;
@@ -168,25 +123,42 @@ export interface ColorPalette {
     gray5: string;
     gray6: string;
   };
-  bgPrimary: string;
-  bgSurface: string;
-  bgInput: string;
-  bgHover: string;
-  bgBlockActive: string;
-  border: string;
-  textPrimary: string;
-  textSecondary: string;
-  textTertiary: string;
-  textInverse: string;
-  accentPrimary: string;
-  accentSubtle: string;
-  success: string;
-  danger: string;
-  warning: string;
-  info: string;
+  accent: string;
 }
 
 export type ThemeName = 'dark' | 'light';
+export type ThemePreference = ThemeName | 'system';
+
+export const radius = {
+  sm: 10,
+  md: 14,
+  lg: 22,
+  xl: 28,
+  pill: 999,
+} as const;
+
+export const spacing = {
+  xs: 4,
+  sm: 8,
+  md: 12,
+  lg: 16,
+  xl: 20,
+  xxl: 28,
+} as const;
+
+export function withAlpha(hex: string, alpha: number): string {
+  const base = hex.length === 9 ? hex.slice(0, 7) : hex;
+  const channel = Math.round(Math.max(0, Math.min(1, alpha)) * 255)
+    .toString(16)
+    .padStart(2, '0');
+  return `${base}${channel}`;
+}
+
+export function resolveBlockColor(color: string | undefined, isDark: boolean): string {
+  if (!color) return '#8E8E93';
+  if (!isDark && color.toUpperCase() === '#FFFFFF') return '#8E8E93';
+  return color;
+}
 
 export function getTypography(isDark: boolean) {
   const textPrimary = isDark ? '#FFFFFF' : '#000000';
@@ -200,8 +172,6 @@ export function getTypography(isDark: boolean) {
       xl: 20,
       xxl: 24,
       xxxl: 32,
-      score: 56,
-      timer: 46,
     },
     weights: {
       normal: '400' as const,
@@ -263,43 +233,18 @@ export function getTypography(isDark: boolean) {
       letterSpacing: -0.08,
       color: textSecondary,
     },
-    caption1: {
+    caption: {
       fontSize: 12,
       fontWeight: '400' as const,
       letterSpacing: 0,
       color: textSecondary,
     },
-    sectionHeader: {
+    eyebrow: {
       fontSize: 13,
-      fontWeight: '400' as const,
-      letterSpacing: -0.08,
-      color: textSecondary,
-      textTransform: 'uppercase' as const,
-    },
-    screenTitle: {
-      fontSize: 34,
-      fontWeight: '700' as const,
-      letterSpacing: 0.37,
-      color: textPrimary,
-    },
-    sectionTitle: {
-      fontSize: 13,
-      fontWeight: '400' as const,
-      letterSpacing: -0.08,
+      fontWeight: '600' as const,
+      letterSpacing: 0.2,
       textTransform: 'uppercase' as const,
       color: textSecondary,
-    },
-    score: {
-      fontSize: 56,
-      fontWeight: '700' as const,
-      letterSpacing: -2,
-      color: textPrimary,
-    },
-    timer: {
-      fontSize: 46,
-      fontWeight: '300' as const,
-      letterSpacing: -1,
-      color: textPrimary,
     },
   } as const;
 }

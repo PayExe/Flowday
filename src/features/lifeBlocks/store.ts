@@ -1,8 +1,9 @@
 import { create } from 'zustand';
-import { persist, createJSONStorage } from 'zustand/middleware';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import { persist } from 'zustand/middleware';
+import { persistOptions } from '../../utils/persistence';
 import { generateId } from '../../utils/id';
 import { LifeBlock } from '../../types/lifeBlock';
+import type { Language } from '../language/store';
 
 interface LifeBlocksState {
   blocks: LifeBlock[];
@@ -14,7 +15,17 @@ interface LifeBlocksState {
   getActiveBlocks: () => LifeBlock[];
   getBlockById: (id: string) => LifeBlock | undefined;
   initializeDefaults: () => void;
+  localizeDefaults: (language: Language) => void;
 }
+
+/** Names of the starter blocks per language, used until the user renames them. */
+const DEFAULT_BLOCK_NAMES: Record<string, Record<Language, string>> = {
+  'default-work': { fr: 'Travail', en: 'Work' },
+  'default-sport': { fr: 'Sport', en: 'Sport' },
+  'default-health': { fr: 'Santé', en: 'Health' },
+  'default-learning': { fr: 'Apprentissage', en: 'Learning' },
+  'default-recharge': { fr: 'Recharge', en: 'Recharge' },
+};
 
 const DEFAULT_BLOCKS: LifeBlock[] = [
   { id: 'default-work', name: 'Work', emoji: '💻', color: '#0A84FF', isArchived: false, weeklyGoalMinutes: 35 * 60, order: 0, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() },
@@ -107,10 +118,22 @@ export const useLifeBlocksStore = create<LifeBlocksState>()(
           }
           return state;
         }),
+
+      localizeDefaults: (language) =>
+        set((state) => {
+          let changed = false;
+          const blocks = state.blocks.map((block) => {
+            const names = DEFAULT_BLOCK_NAMES[block.id];
+            // A name the user typed is theirs; only untouched starter names follow the language.
+            if (!names || !Object.values(names).includes(block.name) || block.name === names[language]) {
+              return block;
+            }
+            changed = true;
+            return { ...block, name: names[language] };
+          });
+          return changed ? { blocks } : state;
+        }),
     }),
-    {
-      name: 'flowday-lifeblocks',
-      storage: createJSONStorage(() => AsyncStorage),
-    }
+    persistOptions<LifeBlocksState>('flowday-lifeblocks', { version: 1 })
   )
 );

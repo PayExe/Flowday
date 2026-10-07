@@ -1,35 +1,29 @@
-import { useState, useMemo, useRef, useEffect } from 'react';
-import {
-  View,
-  Text,
-  Pressable,
-  TextInput,
-  StyleSheet,
-  ScrollView,
-  Animated,
-  KeyboardAvoidingView,
-} from 'react-native';
+import { useState, useMemo } from 'react';
+import { View, Text, Pressable, TextInput, StyleSheet } from 'react-native';
 import { useRouter } from 'expo-router';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRitualStore } from '../src/features/rituals/store';
 import { useTaskStore } from '../src/features/tasks/store';
 import { useTemplateStore } from '../src/features/templates/store';
 import { useLifeBlocksStore } from '../src/features/lifeBlocks/store';
 import { useDayScoreStore } from '../src/features/dayScore/store';
-import { useTheme } from '../src/theme';
+import { radius, useTheme, withAlpha } from '../src/theme';
 import { dateKey } from '../src/utils/dates';
+import { formatLongDate } from '../src/utils/time';
 import { hapticLight } from '../src/utils/haptics';
 import { Mood } from '../src/types/ritual';
 import { PageInfo } from '../src/components/ui/PageInfo';
+import { Button } from '../src/components/ui/Glass';
+import { Card, IconTile, List, Row } from '../src/components/ui/List';
+import { Symbol } from '../src/components/ui/Symbol';
+import { RitualScaffold, StepHeading } from '../src/components/rituals/RitualScaffold';
 import { skipMorningRitual } from '../src/utils/ritualNavigation';
+import { useTranslation } from '../src/i18n';
 
-const MOODS: { value: Mood; label: string; emoji: string; color: string }[] = [
-  { value: 'bad', label: 'Pas top', emoji: '🔴', color: '#FF453A' },
-  { value: 'meh', label: 'Bof', emoji: '🟡', color: '#FFD60A' },
-  { value: 'good', label: 'En forme', emoji: '🟢', color: '#30D158' },
+const MOODS: { value: Mood; label: string; symbol: string; color: 'red' | 'yellow' | 'green' }[] = [
+  { value: 'bad', label: 'Pas top', symbol: 'cloud.rain.fill', color: 'red' },
+  { value: 'meh', label: 'Bof', symbol: 'cloud.sun.fill', color: 'yellow' },
+  { value: 'good', label: 'En forme', symbol: 'sun.max.fill', color: 'green' },
 ];
-
-const DAY_LABELS = ['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi', 'Dimanche'];
 
 function todayISO(): string {
   return dateKey();
@@ -43,7 +37,8 @@ type MorningStep = 'mood' | 'overview' | 'priorities' | 'intention' | 'summary';
 
 export default function MorningRitualScreen() {
   const router = useRouter();
-  const { colors, typography } = useTheme();
+  const { colors, typography, isDark } = useTheme();
+  const { t } = useTranslation();
   const [step, setStep] = useState(1);
   const [selectedMood, setSelectedMood] = useState<Mood | null>(null);
   const [intention, setIntention] = useState('');
@@ -71,14 +66,6 @@ export default function MorningRitualScreen() {
 
   const currentStep = stepKeys[step - 1] || 'summary';
 
-  const todayLabel = useMemo(() => {
-    const now = new Date();
-    const dayName = DAY_LABELS[now.getDay() === 0 ? 6 : now.getDay() - 1];
-    const dateNum = now.getDate();
-    const monthNames = ['janvier', 'février', 'mars', 'avril', 'mai', 'juin', 'juillet', 'août', 'septembre', 'octobre', 'novembre', 'décembre'];
-    return `${dayName} ${dateNum} ${monthNames[now.getMonth()]}`;
-  }, []);
-
   const todayBlocks = useMemo(() => {
     return getTodayBlocks()
       .sort((a, b) => a.startTime.localeCompare(b.startTime))
@@ -96,21 +83,8 @@ export default function MorningRitualScreen() {
       .slice(0, 3);
   }, [tasks, getIncompleteTodayTasks]);
 
-  const canProceed = useMemo(() => {
-    return currentStep !== 'mood' || selectedMood !== null;
-  }, [currentStep, selectedMood]);
-
-  const dotWidths = useRef([24, 8, 8, 8, 8].map((w) => new Animated.Value(w))).current;
-
-  useEffect(() => {
-    dotWidths.forEach((dot, i) => {
-      Animated.spring(dot, {
-        toValue: i === step - 1 ? 24 : 8,
-        useNativeDriver: false,
-        friction: 8,
-      }).start();
-    });
-  }, [step]);
+  const canProceed = currentStep !== 'mood' || selectedMood !== null;
+  const selectedMoodOption = MOODS.find((m) => m.value === selectedMood);
 
   const handleFinish = () => {
     logMorningRitual({
@@ -130,354 +104,228 @@ export default function MorningRitualScreen() {
     }
   };
 
-  const renderStep1 = () => (
-    <View style={styles.stepContent}>
-      <Text style={[styles.stepTitle, { color: colors.text.primary }]}>Bonjour.</Text>
-      <Text style={[styles.stepSubtitle, { color: colors.text.secondary }]}>{capitalize(todayLabel)}</Text>
-
-      {morningConfig.steps.mood && (
-        <View style={{ marginTop: 40, alignItems: 'center', width: '100%' }}>
-          <Text style={{ fontSize: typography.sizes.base, color: colors.text.secondary, marginBottom: 20 }}>
-            Comment tu te sens ?
-          </Text>
-          <View style={{ flexDirection: 'row', gap: 12 }}>
-            {MOODS.map((m) => (
-              <Pressable
-                key={m.value}
-                style={({ pressed }) => ({
-                  alignItems: 'center',
-                  padding: 16,
-                  borderRadius: 13,
-                  borderWidth: 2,
-                  borderColor: selectedMood === m.value ? m.color : colors.separator.default,
-                  backgroundColor: pressed ? colors.bg.hover : colors.bg.secondary,
-                  minWidth: 90,
-                })}
-                onPress={() => { hapticLight(); setSelectedMood(m.value); }}
-              >
-                <Text style={{ fontSize: 28, marginBottom: 8 }}>{m.emoji}</Text>
-                <Text
-                  style={{
-                    fontSize: typography.sizes.base,
-                    color: selectedMood === m.value ? m.color : colors.text.secondary,
-                    fontWeight: selectedMood === m.value ? '600' : '400',
-                  }}
-                >
-                  {m.label}
-                </Text>
-              </Pressable>
-            ))}
-          </View>
-        </View>
-      )}
-    </View>
+  const renderMood = () => (
+    <>
+      <StepHeading title={t('Bonjour.')} subtitle={capitalize(formatLongDate(new Date(), t))} />
+      <Text style={[typography.headline, styles.question]}>{t('Comment tu te sens ?')}</Text>
+      <View style={styles.moods}>
+        {MOODS.map((m) => {
+          const selected = selectedMood === m.value;
+          const moodColor = colors.system[m.color];
+          return (
+            <Pressable
+              key={m.value}
+              accessibilityRole="button"
+              accessibilityState={{ selected }}
+              accessibilityLabel={t(m.label)}
+              style={[
+                styles.mood,
+                {
+                  backgroundColor: selected
+                    ? withAlpha(moodColor, isDark ? 0.3 : 0.18)
+                    : colors.bg.secondary,
+                  borderColor: selected ? moodColor : 'transparent',
+                },
+              ]}
+              onPress={() => { hapticLight(); setSelectedMood(m.value); }}
+            >
+              <Symbol name={m.symbol} size={36} color={selected ? moodColor : colors.text.secondary} />
+              <Text style={[typography.subheadline, { color: colors.text.primary, fontWeight: selected ? '600' : '400' }]}>
+                {t(m.label)}
+              </Text>
+            </Pressable>
+          );
+        })}
+      </View>
+    </>
   );
 
-  const renderStep2 = () => (
-    <View style={styles.stepContent}>
-      <Text style={[styles.stepTitle, { color: colors.text.primary }]}>Ta journée</Text>
-      <Text style={[styles.stepSubtitle, { color: colors.text.secondary }]}>
-        {todayBlocks.length === 0
-          ? "Aucun bloc planifié aujourd'hui"
-          : `${todayBlocks.length} bloc${todayBlocks.length > 1 ? 's' : ''} prévu${todayBlocks.length > 1 ? 's' : ''}`}
-      </Text>
+  const renderOverview = () => (
+    <>
+      <StepHeading
+        title={t('Ta journée')}
+        subtitle={
+          todayBlocks.length === 0
+            ? t("Aucun bloc planifié aujourd'hui")
+            : t('plannedBlocksCount', { count: todayBlocks.length })
+        }
+      />
+      {todayBlocks.length > 0 && (
+        <List separatorInset={72}>
+          {todayBlocks.map((b) => (
+            <Row
+              key={b.id}
+              leading={<IconTile color={b.lifeBlock?.color || colors.system.gray} emoji={b.lifeBlock?.emoji || '⬜'} size={44} />}
+              title={b.title || b.lifeBlock?.name || t('Bloc')}
+              subtitle={`${b.startTime} – ${b.endTime}`}
+            />
+          ))}
+        </List>
+      )}
+    </>
+  );
 
-      <View style={{ marginTop: 24, width: '100%', gap: 8 }}>
-        {todayBlocks.map((b) => (
-          <View
-            key={b.id}
-            style={{
-              flexDirection: 'row',
-              alignItems: 'center',
-              backgroundColor: colors.bg.secondary,
-              borderRadius: 13,
-              borderLeftWidth: 3,
-              borderLeftColor: b.lifeBlock?.color || colors.system.gray,
-              padding: 14,
-            }}
-          >
-            <Text style={{ fontSize: typography.sizes.xl, marginRight: 12 }}>{b.lifeBlock?.emoji || '⬜'}</Text>
-            <View style={{ flex: 1 }}>
-              <Text style={{ fontSize: typography.sizes.lg, fontWeight: '500', color: colors.text.primary, letterSpacing: -0.41 }}>
-                {b.title || b.lifeBlock?.name || 'Bloc'}
-              </Text>
-              <Text style={{ fontSize: typography.sizes.sm, color: colors.text.secondary, marginTop: 2 }}>
-                {b.startTime} – {b.endTime}
+  const renderPriorities = () => (
+    <>
+      <StepHeading
+        title={t('Tes priorités')}
+        subtitle={
+          topTasks.length === 0
+            ? t('Aucune priorité pour le moment.')
+            : t("Voici ce qui attend aujourd'hui")
+        }
+      />
+      {topTasks.length > 0 && (
+        <List separatorInset={60}>
+          {topTasks.map((task, index) => (
+            <View key={task.id} style={styles.priority}>
+              <View style={[styles.rank, { backgroundColor: colors.bg.tertiary }]}>
+                <Text style={[typography.footnote, { color: colors.text.primary, fontWeight: '600' }]}>
+                  {index + 1}
+                </Text>
+              </View>
+              <Text style={[typography.body, styles.priorityTitle]} numberOfLines={2}>
+                {task.title}
               </Text>
             </View>
-          </View>
-        ))}
-      </View>
-    </View>
+          ))}
+        </List>
+      )}
+    </>
   );
 
-  const renderStep3 = () => (
-    <View style={styles.stepContent}>
-      <Text style={[styles.stepTitle, { color: colors.text.primary }]}>Tes priorités</Text>
-      <Text style={[styles.stepSubtitle, { color: colors.text.secondary }]}>
-        {topTasks.length === 0
-          ? "Pas de tâches en cours"
-          : "Voici ce qui attend aujourd'hui"}
-      </Text>
-
-      <View style={{ marginTop: 24, width: '100%', gap: 10 }}>
-        {topTasks.map((task, index) => (
-          <View
-            key={task.id}
-            style={{
-              flexDirection: 'row',
-              alignItems: 'center',
-              backgroundColor: colors.bg.secondary,
-              borderRadius: 13,
-              padding: 16,
-              gap: 12,
-            }}
-          >
-            <View
-              style={{
-                width: 8,
-                height: 8,
-                borderRadius: 4,
-                backgroundColor:
-                  index === 0 ? colors.system.red : index === 1 ? colors.system.yellow : colors.system.green,
-              }}
-            />
-            <Text style={{ fontSize: typography.sizes.lg, color: colors.text.primary, flex: 1, letterSpacing: -0.41 }} numberOfLines={2}>
-              {task.title}
-            </Text>
-          </View>
-        ))}
-        {topTasks.length === 0 && (
-          <Text style={{ fontSize: typography.sizes.sm, color: colors.text.quaternary, textAlign: 'center', marginTop: 12 }}>
-            Aucune priorité pour le moment.
-          </Text>
-        )}
-      </View>
-    </View>
+  const renderIntention = () => (
+    <>
+      <StepHeading title={t('Intention')} subtitle={t('Un mot pour cette journée ?')} />
+      <Card>
+        <TextInput
+          style={[typography.title3, styles.intentionInput]}
+          placeholder={t('Focus, Récupération, Sprint...')}
+          placeholderTextColor={colors.text.placeholder}
+          value={intention}
+          onChangeText={setIntention}
+          onSubmitEditing={nextStep}
+          returnKeyType="done"
+          maxLength={20}
+          autoFocus
+        />
+      </Card>
+    </>
   );
 
-  const renderStep4 = () => (
-    <View style={styles.stepContent}>
-      <Text style={[styles.stepTitle, { color: colors.text.primary }]}>Intention</Text>
-      <Text style={[styles.stepSubtitle, { color: colors.text.secondary }]}>Un mot pour cette journée ?</Text>
-
-      <TextInput
-        style={{
-          marginTop: 40,
-          backgroundColor: colors.bg.secondary,
-          borderRadius: 13,
-          paddingHorizontal: 20,
-          paddingVertical: 16,
-          fontSize: typography.sizes.xl,
-          fontWeight: '500',
-          color: colors.text.primary,
-          textAlign: 'center',
-          width: '100%',
-          letterSpacing: -0.4,
-        }}
-        placeholder="Focus, Récupération, Sprint..."
-        placeholderTextColor={colors.text.placeholder}
-        value={intention}
-        onChangeText={setIntention}
-        maxLength={20}
-        autoFocus
+  const renderSummary = () => (
+    <>
+      <StepHeading
+        title={t("C'est parti.")}
+        subtitle={
+          intention.trim()
+            ? `${t('Intention :')} ${intention.trim()}`
+            : t('Objectif : journée à 80+')
+        }
       />
-
-      <Pressable onPress={nextStep} style={{ marginTop: 16, padding: 12 }}>
-        <Text style={{ fontSize: typography.sizes.base, color: colors.text.secondary }}>Passer →</Text>
-      </Pressable>
-    </View>
-  );
-
-  const renderStep5 = () => (
-    <View style={styles.stepContent}>
-      <Text style={[styles.stepTitle, { color: colors.text.primary }]}>C'est parti.</Text>
-      <Text style={[styles.stepSubtitle, { color: colors.text.secondary }]}>
-        {intention.trim()
-          ? `Intention : ${intention.trim()}`
-          : "Objectif : journée à 80+"}
-      </Text>
-
-      <View style={{ marginTop: 32, width: '100%', gap: 12 }}>
-        {selectedMood && (
-          <View style={[styles.recapRow, { backgroundColor: colors.bg.secondary }]}>
-            <Text style={[styles.recapLabel, { color: colors.text.secondary }]}>Humeur</Text>
-            <Text style={[styles.recapValue, { color: colors.text.primary }]}>
-              {MOODS.find((m) => m.value === selectedMood)?.emoji}{' '}
-              {MOODS.find((m) => m.value === selectedMood)?.label}
-            </Text>
-          </View>
+      <List>
+        {selectedMoodOption && (
+          <Row title={t('Humeur')} value={t(selectedMoodOption.label)} />
         )}
-
         {todayBlocks.length > 0 && (
-          <View style={[styles.recapRow, { backgroundColor: colors.bg.secondary }]}>
-            <Text style={[styles.recapLabel, { color: colors.text.secondary }]}>Blocs</Text>
-            <Text style={[styles.recapValue, { color: colors.text.primary }]}>{todayBlocks.length} aujourd'hui</Text>
-          </View>
+          <Row title={t('Blocs')} value={t('plannedBlocksCount', { count: todayBlocks.length })} />
         )}
-
         {topTasks.length > 0 && (
-          <View style={[styles.recapRow, { backgroundColor: colors.bg.secondary }]}>
-            <Text style={[styles.recapLabel, { color: colors.text.secondary }]}>Priorités</Text>
-            <Text style={[styles.recapValue, { color: colors.text.primary }]}>{topTasks.length} tâches</Text>
-          </View>
+          <Row title={t('Priorités')} value={t('tasksCount', { count: topTasks.length })} />
         )}
-      </View>
-    </View>
-  );
-
-  const renderStepIndicator = () => (
-    <View style={{ flexDirection: 'row', gap: 6 }}>
-      {stepKeys.map((_, index) => {
-        const stepNumber = index + 1;
-        return (
-          <Animated.View
-            key={stepNumber}
-            style={{
-              width: dotWidths[index],
-              height: 8,
-              borderRadius: 4,
-              backgroundColor: stepNumber <= step ? colors.system.blue : colors.separator.default,
-            }}
-          />
-        );
-      })}
-    </View>
+      </List>
+    </>
   );
 
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: colors.bg.primary }]} edges={['top']}>
-      <KeyboardAvoidingView style={styles.keyboardAvoiding} behavior="padding">
-        <View style={styles.header}>
-          <Pressable
-            style={{ padding: 8 }}
-            onPress={() => {
-              skipMorningRitualForToday();
-              skipMorningRitual(router);
-            }}
-          >
-            <Text style={{ fontSize: typography.sizes.lg, color: colors.system.blue }}>Plus tard</Text>
-          </Pressable>
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-            <Text style={{ fontSize: typography.sizes.lg, fontWeight: '700', color: colors.text.primary }}>Flowday</Text>
-            <PageInfo
-              title="Morning Ritual"
-              description="Prépare ta journée en quelques étapes avant de commencer."
-              points={[
-                'Indique ton humeur pour adapter ton point de départ.',
-                'Consulte tes blocs et tes priorités du jour.',
-                'Ajoute une intention pour garder un cap simple aujourd’hui.',
-              ]}
-            />
-          </View>
-          {renderStepIndicator()}
-        </View>
-
-        <ScrollView
-          style={styles.scroll}
-          contentContainerStyle={styles.scrollContent}
-          showsVerticalScrollIndicator={false}
-          keyboardShouldPersistTaps="handled"
-          keyboardDismissMode="interactive"
-        >
-          {currentStep === 'mood' && renderStep1()}
-          {currentStep === 'overview' && renderStep2()}
-          {currentStep === 'priorities' && renderStep3()}
-          {currentStep === 'intention' && renderStep4()}
-          {currentStep === 'summary' && renderStep5()}
-        </ScrollView>
-
-        <View style={[styles.footer, { borderTopColor: colors.separator.default }]}>
-          {step > 1 && (
-            <Pressable
-              style={{ padding: 12 }}
-              onPress={() => setStep(step - 1)}
-            >
-              <Text style={{ fontSize: typography.sizes.lg, color: colors.text.secondary }}>← Retour</Text>
-            </Pressable>
-          )}
-
-          <Pressable
-            style={({ pressed }) => ({
-              backgroundColor: pressed ? colors.system.blue + 'CC' : colors.system.blue,
-              borderRadius: 13,
-              paddingHorizontal: 24,
-              paddingVertical: 14,
-              opacity: canProceed ? 1 : 0.4,
-            })}
-            onPress={nextStep}
-            disabled={!canProceed}
-          >
-            <Text style={{ fontSize: typography.sizes.lg, fontWeight: '600', color: colors.text.inverse }}>
-              {currentStep === 'summary' ? 'Commencer la journée →' : 'Suivant →'}
-            </Text>
-          </Pressable>
-        </View>
-      </KeyboardAvoidingView>
-    </SafeAreaView>
+    <RitualScaffold
+      step={step}
+      stepCount={stepKeys.length}
+      leading={
+        <Button
+          title={t('Plus tard')}
+          variant="plain"
+          style={styles.later}
+          onPress={() => {
+            skipMorningRitualForToday();
+            skipMorningRitual(router);
+          }}
+        />
+      }
+      trailing={
+        <PageInfo
+          title={t('Morning Ritual')}
+          description={t('Prépare ta journée en quelques étapes avant de commencer.')}
+          points={[
+            t('Indique ton humeur pour adapter ton point de départ.'),
+            t('Consulte tes blocs et tes priorités du jour.'),
+            t('Ajoute une intention pour garder un cap simple aujourd’hui.'),
+          ]}
+        />
+      }
+      onBack={step > 1 ? () => setStep(step - 1) : undefined}
+      primaryTitle={
+        currentStep === 'summary'
+          ? t('Commencer la journée')
+          : currentStep === 'intention' && !intention.trim()
+            ? t('Passer')
+            : t('Suivant')
+      }
+      onPrimary={nextStep}
+      primaryDisabled={!canProceed}
+    >
+      {currentStep === 'mood' && renderMood()}
+      {currentStep === 'overview' && renderOverview()}
+      {currentStep === 'priorities' && renderPriorities()}
+      {currentStep === 'intention' && renderIntention()}
+      {currentStep === 'summary' && renderSummary()}
+    </RitualScaffold>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
+  later: {
+    marginLeft: -14,
   },
-  keyboardAvoiding: {
-    flex: 1,
+  question: {
+    textAlign: 'center',
+    marginBottom: 16,
   },
-  header: {
+  moods: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    gap: 10,
     paddingHorizontal: 16,
-    paddingTop: 16,
-    paddingBottom: 12,
   },
-  scroll: {
+  mood: {
     flex: 1,
+    alignItems: 'center',
+    gap: 8,
+    paddingVertical: 20,
+    borderRadius: radius.lg,
+    borderCurve: 'continuous',
+    borderWidth: 2,
   },
-  scrollContent: {
-    flexGrow: 1,
+  priority: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    minHeight: 56,
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+  },
+  rank: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    alignItems: 'center',
     justifyContent: 'center',
-    paddingHorizontal: 16,
-    paddingBottom: 32,
   },
-  stepContent: {
-    alignItems: 'center',
-    width: '100%',
+  priorityTitle: {
+    flex: 1,
   },
-  stepTitle: {
-    fontSize: 32,
-    fontWeight: '700',
+  intentionInput: {
     textAlign: 'center',
-    letterSpacing: -0.5,
-  },
-  stepSubtitle: {
-    fontSize: 17,
-    textAlign: 'center',
-    marginTop: 8,
-  },
-  recapRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    width: '100%',
-    paddingVertical: 14,
     paddingHorizontal: 16,
-    borderRadius: 13,
-  },
-  recapLabel: {
-    fontSize: 15,
-  },
-  recapValue: {
-    fontSize: 15,
-    fontWeight: '500',
-  },
-  footer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 16,
-    paddingVertical: 16,
-    borderTopWidth: 0.5,
+    paddingVertical: 18,
   },
 });

@@ -18,7 +18,6 @@ export interface FocusState {
   isBreak: boolean;
   sessionPomodoroCount: number;
   dailyPomodoroCount: number;
-  dailyPomodoroGoal: number;
   lastResetDate?: string;
   lastTickAt?: number;
   focusElapsedSeconds: number;

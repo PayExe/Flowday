@@ -22,3 +22,51 @@ export function calendarDayDifference(from: string, to: string): number {
   const toUtc = Date.UTC(toYear, toMonth - 1, toDay);
   return Math.round((toUtc - fromUtc) / 86400000);
 }
+
+export const WEEK_DAY_KEYS = [
+  'Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi', 'Dimanche',
+] as const;
+
+export const WEEK_DAY_SHORT_KEYS = [
+  'dayMonShort', 'dayTueShort', 'dayWedShort', 'dayThuShort', 'dayFriShort', 'daySatShort', 'daySunShort',
+] as const;
+
+export const WORK_WEEK = [0, 1, 2, 3, 4];
+export const WEEKEND = [5, 6];
+export const WHOLE_WEEK = [0, 1, 2, 3, 4, 5, 6];
+
+export function weekDayIndex(date = new Date()): number {
+  const day = date.getDay();
+  return day === 0 ? 6 : day - 1;
+}
+
+export function shiftWeekDay(day: number, offset: number): number {
+  return (day + offset + 7) % 7;
+}
+
+/**
+ * Rebuilds a Date from a `YYYY-MM-DD` key using local components. `new Date(key)`
+ * would parse it as UTC midnight and land on the previous day west of Greenwich.
+ */
+export function parseDateKey(key: string): Date {
+  const [year, month, day] = key.split('-').map(Number);
+  const date = new Date();
+  date.setFullYear(year, (month || 1) - 1, day || 1);
+  date.setHours(0, 0, 0, 0);
+  return date;
+}
+
+export function shiftDateKey(key: string, days: number): string {
+  return dateKey(addDays(parseDateKey(key), days));
+}
+
+export type RelativeDay = 'today' | 'tomorrow' | 'yesterday' | null;
+
+/** Returns a translation key for the near days, or null for a plain date. */
+export function relativeDay(key: string, today = dateKey()): RelativeDay {
+  const difference = calendarDayDifference(today, key);
+  if (difference === 0) return 'today';
+  if (difference === 1) return 'tomorrow';
+  if (difference === -1) return 'yesterday';
+  return null;
+}
