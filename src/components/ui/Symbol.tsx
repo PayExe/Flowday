@@ -37,6 +37,8 @@ const SF_TO_IONICON: Record<string, keyof typeof Ionicons.glyphMap> = {
   'gearshape.fill': 'settings',
   'plus': 'add',
   'minus': 'remove',
+  'sun.horizon.fill': 'sunny',
+  'bell.badge.fill': 'notifications',
   'square.and.arrow.up': 'share-outline',
   'plus.circle.fill': 'add-circle',
   'checkmark': 'checkmark',

@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState, type ReactNode } from 'react';
 import { View, Text, StyleSheet, Switch, Linking, Pressable, Share } from 'react-native';
 import Constants from 'expo-constants';
+import { useRouter } from 'expo-router';
 import { useThemeStore } from '../../src/features/theme/store';
 import { useRitualStore } from '../../src/features/rituals/store';
 import { useDayScoreStore } from '../../src/features/dayScore/store';
@@ -29,6 +30,7 @@ const MAX_POMODORO_GOAL = 12;
 
 export default function SettingsScreen() {
   const { colors, typography } = useTheme();
+  const router = useRouter();
   const themePreference = useThemeStore((state) => state.themeName);
   const setTheme = useThemeStore((state) => state.setTheme);
   const language = useLanguageStore((state) => state.language);
@@ -318,6 +320,12 @@ export default function SettingsScreen() {
           title={t('Exporter mes données')}
           chevron
           onPress={() => void exportData()}
+        />
+        <Row
+          leading={<IconTile color={colors.accent} symbol="sun.horizon.fill" size={30} solid />}
+          title={t('Revoir la présentation')}
+          chevron
+          onPress={() => router.push('/onboarding')}
         />
       </List>
       <SectionFooter>

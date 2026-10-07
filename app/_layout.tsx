@@ -10,6 +10,10 @@ import { useTemplateStore } from '../src/features/templates/store';
 import { useThemeStore } from '../src/features/theme/store';
 import { useLanguageStore } from '../src/features/language/store';
 import { useFocusStore } from '../src/features/focus/store';
+import { useTaskStore } from '../src/features/tasks/store';
+import { useOnboardingStore } from '../src/features/onboarding/store';
+import { isReturningUser } from '../src/features/onboarding/returningUser';
+import { useStoresHydrated } from '../src/utils/useStoresHydrated';
 import { useNotifications } from '../src/features/notifications/useNotifications';
 import { useDayScoreSync } from '../src/features/dayScore/useDayScoreSync';
 import { useTheme } from '../src/theme';
@@ -21,6 +25,9 @@ import {
   autoOpenDelay,
   isPastTime,
 } from '../src/utils/ritualNavigation';
+
+// Stores read to tell a first launch from a returning user.
+const ONBOARDING_STORES = [useOnboardingStore, useTaskStore, useRitualStore, useLifeBlocksStore];
 
 function todayISO(): string {
   return dateKey();
@@ -47,6 +54,11 @@ export default function RootLayout() {
   const themePreference = useThemeStore((state) => state.themeName);
   const { colors, isDark } = useTheme();
   const resetDailyCountIfNeeded = useFocusStore((state) => state.resetDailyCountIfNeeded);
+
+  const hydrated = useStoresHydrated(ONBOARDING_STORES);
+  const onboardingCompleted = useOnboardingStore((state) => state.completed);
+  const completeOnboarding = useOnboardingStore((state) => state.complete);
+  const onboarded = hydrated && onboardingCompleted;
 
   useNotifications();
   useDayScoreSync(currentDate);
@@ -84,6 +96,20 @@ export default function RootLayout() {
     localizeBlocks(language);
   }, [blocks, language, localizeBlocks]);
 
+  useEffect(() => {
+    if (!hydrated || onboardingCompleted) return;
+    const returning = isReturningUser({
+      tasks: useTaskStore.getState().tasks,
+      ritualLogs: useRitualStore.getState().logs,
+      lifeBlocks: useLifeBlocksStore.getState().blocks,
+    });
+    if (returning) {
+      completeOnboarding();
+      return;
+    }
+    if (pathname !== '/onboarding') router.replace('/onboarding');
+  }, [hydrated, onboardingCompleted, completeOnboarding, pathname, router]);
+
   const didInitTemplates = useRef(false);
   useEffect(() => {
     if (didInitTemplates.current) return;
@@ -104,6 +130,7 @@ export default function RootLayout() {
     eveningConfig.enabled && !hasDoneEvening && isPastTime(eveningConfig.time);
 
   useEffect(() => {
+    if (!onboarded) return;
     if (!morningConfig.enabled) return;
     if (hasDoneMorning) return;
     if (hasSkippedMorning) return;
@@ -118,6 +145,7 @@ export default function RootLayout() {
     }, delay);
     return () => clearTimeout(timer);
   }, [
+    onboarded,
     hasDoneMorning,
     hasSkippedMorning,
     eveningDue,
@@ -130,6 +158,7 @@ export default function RootLayout() {
   const eveningRedirected = useRef(false);
 
   useEffect(() => {
+    if (!onboarded) return;
     if (eveningRedirected.current) return;
     if (!eveningConfig.enabled) return;
     if (hasDoneEvening) return;
@@ -143,7 +172,7 @@ export default function RootLayout() {
       router.replace('/evening-wrap');
     }, delay);
     return () => clearTimeout(timer);
-  }, [hasDoneEvening, pathname, router, eveningConfig.enabled, eveningConfig.time]);
+  }, [onboarded, hasDoneEvening, pathname, router, eveningConfig.enabled, eveningConfig.time]);
 
   return (
     <GestureHandlerRootView style={styles.container}>
@@ -156,6 +185,7 @@ export default function RootLayout() {
             contentStyle: { backgroundColor: colors.bg.primary },
           }}
         >
+          <Stack.Screen name="onboarding" options={{ animation: 'fade', gestureEnabled: false }} />
           <Stack.Screen name="morning-ritual" options={{ animation: 'slide_from_bottom' }} />
           <Stack.Screen name="evening-wrap" options={{ animation: 'slide_from_bottom' }} />
           <Stack.Screen name="focus" options={{ animation: 'slide_from_bottom' }} />

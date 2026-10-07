@@ -17,6 +17,7 @@ fr['scoreOkay'] = 'Journée correcte';
 fr['scoreMixed'] = 'Journée mitigée';
 fr['scoreDifficult'] = 'Journée difficile';
 fr['scoreIncomplete'] = 'Journée à compléter';
+fr['blocksKeptCount'] = ({ count }) => `${count} bloc${count === 1 ? '' : 's'} gardé${count === 1 ? '' : 's'}`;
 fr['pendingTasksCount'] = ({ count }) => `${count} tâche${count === 1 ? '' : 's'} en attente`;
 fr['plannedBlocksCount'] = ({ count }) => `${count} bloc${count === 1 ? '' : 's'} prévu${count === 1 ? '' : 's'}`;
 fr['activeBlocksCount'] = ({ count }) => `${count} bloc${count === 1 ? '' : 's'} actif${count === 1 ? '' : 's'}`;
@@ -49,6 +50,7 @@ en['scoreOkay'] = 'Okay day';
 en['scoreMixed'] = 'Mixed day';
 en['scoreDifficult'] = 'Difficult day';
 en['scoreIncomplete'] = 'Day to complete';
+en['blocksKeptCount'] = ({ count }) => `${count} block${count === 1 ? '' : 's'} kept`;
 en['pendingTasksCount'] = ({ count }) => `${count} pending task${count === 1 ? '' : 's'}`;
 en['plannedBlocksCount'] = ({ count }) => `${count} planned block${count === 1 ? '' : 's'}`;
 en['activeBlocksCount'] = ({ count }) => `${count} active block${count === 1 ? '' : 's'}`;
@@ -161,6 +163,17 @@ const shared: Record<string, TranslationValue> = {
   'Données': 'Data', 'Données Flowday': 'Flowday data', 'Exporter mes données': 'Export my data',
   'Export impossible. Réessaie.': 'Export failed. Try again.',
   'Tes données restent sur ton téléphone. L’export en fait une copie que tu peux garder où tu veux.': 'Your data stays on your phone. Exporting makes a copy you can keep anywhere.',
+  'Bienvenue sur Flowday': 'Welcome to Flowday', 'Commencer': 'Get started',
+  'Planifie ta semaine, avance bloc par bloc et mesure chaque journée.': 'Plan your week, move block by block and measure every day.',
+  'Les grands domaines de ta vie : travail, sport, repos…': 'The big areas of your life: work, sport, rest…',
+  'Semaine type': 'Typical week', 'Un planning qui se répète, à ajuster quand tu veux.': 'A schedule that repeats, to adjust whenever you want.',
+  'Score du jour': 'Daily score', 'Blocs, tâches, focus et rituels résumés en un chiffre sur 100.': 'Blocks, tasks, focus and rituals summed up in one number out of 100.',
+  'Tes blocs de vie': 'Your life blocks', 'Garde ceux qui te parlent. Tu pourras les modifier ou en créer d’autres.': 'Keep the ones that fit you. You can edit them or create more later.',
+  'Garde au moins un bloc pour commencer.': 'Keep at least one block to get started.',
+  'Tes rituels': 'Your rituals', 'Deux minutes le matin pour lancer la journée, et le soir pour la clôturer.': 'Two minutes in the morning to start the day, and in the evening to wrap it up.',
+  'Reste dans le rythme': 'Stay in rhythm', 'Flowday te rappelle tes rituels à l’heure choisie. Rien d’autre, pas de spam.': 'Flowday reminds you of your rituals at the time you pick. Nothing else, no spam.',
+  'Tu peux changer ça à tout moment dans les Réglages.': 'You can change this anytime in Settings.', 'Activer les rappels': 'Turn on reminders',
+  'Revoir la présentation': 'Replay the introduction',
   'Score': 'Score', 'Tâche supprimée': 'Task deleted', 'Objectif Focus quotidien': 'Daily Focus goal',
   'Diminuer l’objectif Focus': 'Decrease Focus goal', 'Augmenter l’objectif Focus': 'Increase Focus goal',
   'Sessions de 25 min pour un score Focus complet. À 0, le Focus ne compte plus dans le score.': '25-minute sessions for a full Focus score. At 0, Focus no longer counts toward the score.',

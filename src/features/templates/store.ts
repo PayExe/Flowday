@@ -29,6 +29,8 @@ interface TemplateState {
   getBlocksForDay: (dayOfWeek: number) => TemplateBlock[];
   getTodayBlocks: () => TemplateBlock[];
   initializeDefaults: (lifeBlockIds: string[]) => void;
+  /** Drops every slot using these life blocks, e.g. blocks declined during onboarding. */
+  removeBlocksForLifeBlocks: (lifeBlockIds: string[]) => void;
 }
 
 export const useTemplateStore = create<TemplateState>()(
@@ -167,6 +169,15 @@ export const useTemplateStore = create<TemplateState>()(
         return get().getBlocksForDay(dayOfWeek);
       },
 
+      removeBlocksForLifeBlocks: (lifeBlockIds) =>
+        set((state) => ({
+          templates: state.templates.map((template) => ({
+            ...template,
+            blocks: template.blocks.filter((block) => !lifeBlockIds.includes(block.lifeBlockId)),
+            updatedAt: new Date().toISOString(),
+          })),
+        })),
+
       initializeDefaults: (lifeBlockIds) =>
         set((state) => {
           if (state.templates.length > 0) return state;
@@ -199,7 +210,6 @@ export const useTemplateStore = create<TemplateState>()(
               dayOfWeek: d as 0 | 1 | 2 | 3 | 4 | 5 | 6,
               startTime: '14:00',
               endTime: '18:00',
-              title: 'Work',
               isFlexible: false,
             })),
             ...[0, 2, 4].map((d) => ({
@@ -208,7 +218,6 @@ export const useTemplateStore = create<TemplateState>()(
               dayOfWeek: d as 0 | 1 | 2 | 3 | 4 | 5 | 6,
               startTime: '19:00',
               endTime: '20:00',
-              title: 'Sport',
               isFlexible: true,
             })),
           ];
