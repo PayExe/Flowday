@@ -8,10 +8,12 @@ import { useRitualStore } from '../src/features/rituals/store';
 import { useLifeBlocksStore } from '../src/features/lifeBlocks/store';
 import { useTemplateStore } from '../src/features/templates/store';
 import { useThemeStore } from '../src/features/theme/store';
+import { useLanguageStore } from '../src/features/language/store';
 import { useFocusStore } from '../src/features/focus/store';
 import { useNotifications } from '../src/features/notifications/useNotifications';
 import { useDayScoreSync } from '../src/features/dayScore/useDayScoreSync';
 import { useTheme } from '../src/theme';
+import { ToastHost } from '../src/components/ui/Toast';
 import { dateKey } from '../src/utils/dates';
 import {
   MINUTES_PER_DAY,
@@ -37,6 +39,8 @@ export default function RootLayout() {
 
   const blocks = useLifeBlocksStore((state) => state.blocks);
   const initializeBlocks = useLifeBlocksStore((state) => state.initializeDefaults);
+  const localizeBlocks = useLifeBlocksStore((state) => state.localizeDefaults);
+  const language = useLanguageStore((state) => state.language);
 
   const initializeTemplates = useTemplateStore((state) => state.initializeDefaults);
 
@@ -74,6 +78,11 @@ export default function RootLayout() {
     didInitBlocks.current = true;
     initializeBlocks();
   }, [initializeBlocks]);
+
+  // Runs again once stores hydrate (blocks change) and whenever the language does.
+  useEffect(() => {
+    localizeBlocks(language);
+  }, [blocks, language, localizeBlocks]);
 
   const didInitTemplates = useRef(false);
   useEffect(() => {
@@ -151,6 +160,7 @@ export default function RootLayout() {
           <Stack.Screen name="evening-wrap" options={{ animation: 'slide_from_bottom' }} />
           <Stack.Screen name="focus" options={{ animation: 'slide_from_bottom' }} />
         </Stack>
+        <ToastHost />
       </BottomSheetModalProvider>
     </GestureHandlerRootView>
   );

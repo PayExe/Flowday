@@ -1,9 +1,11 @@
 import { useEffect, useState } from 'react';
-import { Alert, StyleSheet, Switch, Text, TextInput, View } from 'react-native';
+import { StyleSheet, Switch, Text, TextInput, View } from 'react-native';
 import { Priority, Task } from '../../types/task';
 import { LifeBlock } from '../../types/lifeBlock';
 import { useTheme } from '../../theme';
 import { useTranslation } from '../../i18n';
+import { hapticWarning } from '../../utils/haptics';
+import { offerTaskUndo } from '../../features/tasks/undo';
 import { Button } from '../ui/Glass';
 import { Card, Chip, List } from '../ui/List';
 import { SegmentedControl } from '../ui/SegmentedControl';
@@ -52,10 +54,10 @@ export function TaskDetailSheet({ task, blocks, onClose, onUpdate, onDelete, onF
 
   const confirmDelete = () => {
     if (!current) return;
-    Alert.alert(t('Supprimer cette tâche ?'), t('Cette action est irréversible.'), [
-      { text: t('Annuler'), style: 'cancel' },
-      { text: t('Supprimer'), style: 'destructive', onPress: () => { onDelete(current.id); onClose(); } },
-    ]);
+    hapticWarning();
+    onDelete(current.id);
+    onClose();
+    offerTaskUndo(current, t);
   };
 
   return (

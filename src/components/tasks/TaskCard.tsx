@@ -1,5 +1,5 @@
 import { useRef } from 'react';
-import { View, Text, Pressable, Alert, StyleSheet } from 'react-native';
+import { View, Text, Pressable, StyleSheet } from 'react-native';
 import { Swipeable } from 'react-native-gesture-handler';
 import { Task } from '../../types/task';
 import { hapticLight, hapticWarning } from '../../utils/haptics';
@@ -9,6 +9,7 @@ import { ContextMenu } from '../ui/ContextMenu';
 import { Checkbox } from '../ui/Checkbox';
 import { LifeBlock } from '../../types/lifeBlock';
 import { useTranslation } from '../../i18n';
+import { offerTaskUndo } from '../../features/tasks/undo';
 
 interface TaskCardProps {
   task: Task;
@@ -31,21 +32,8 @@ export function TaskCard({ task, onToggle, onDelete, onPress, lifeBlock }: TaskC
       swipeableRef.current?.close();
     } else if (direction === 'right') {
       hapticWarning();
-      Alert.alert(t('Supprimer cette tâche ?'), t('Cette action est irréversible.'), [
-        {
-          text: t('Annuler'),
-          style: 'cancel',
-          onPress: () => swipeableRef.current?.close(),
-        },
-        {
-          text: t('Supprimer'),
-          style: 'destructive',
-          onPress: () => {
-            onDelete(task.id);
-            swipeableRef.current?.close();
-          },
-        },
-      ]);
+      onDelete(task.id);
+      offerTaskUndo(task, t);
     }
   };
 

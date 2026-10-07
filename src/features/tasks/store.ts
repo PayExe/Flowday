@@ -9,6 +9,8 @@ import { useDayScoreStore } from '../dayScore/store';
 interface TaskState {
   tasks: Task[];
   addTask: (task: Omit<Task, 'id' | 'createdAt'>) => void;
+  /** Puts back a deleted task exactly as it was (undo). */
+  restoreTask: (task: Task) => void;
   toggleTask: (id: string) => void;
   deleteTask: (id: string) => void;
   updateTask: (id: string, updates: Partial<Omit<Task, 'id' | 'createdAt'>>) => void;
@@ -46,6 +48,19 @@ export const useTaskStore = create<TaskState>()(
           );
           return { tasks };
         }),
+
+      restoreTask: (task) => {
+        if (get().tasks.some((candidate) => candidate.id === task.id)) return;
+        const tasks = [...get().tasks, task];
+        const date = task.scheduledDate || dateKey();
+        const dateTasks = tasks.filter((candidate) => (candidate.scheduledDate || dateKey()) === date);
+        useDayScoreStore.getState().updateTasksPercent(
+          date,
+          dateTasks.filter((candidate) => candidate.completed).length,
+          dateTasks.length
+        );
+        set({ tasks });
+      },
 
       toggleTask: (id) => {
         const task = get().tasks.find((candidate) => candidate.id === id);

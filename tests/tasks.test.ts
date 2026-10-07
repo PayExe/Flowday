@@ -87,3 +87,22 @@ describe('tasks', () => {
     expect(useDayScoreStore.getState().getScoreForDate(tomorrow)).toMatchObject({ tasksPercent: 100 });
   });
 });
+
+describe('undo delete', () => {
+  it('restores a deleted task with its id and offers it from a toast', async () => {
+    const { useToastStore } = await import('../src/features/toast/store');
+    const { offerTaskUndo } = await import('../src/features/tasks/undo');
+    useTaskStore.setState({ tasks: [] });
+    useTaskStore.getState().addTask({ title: 'Undo me', completed: false, priority: 'normal' } as never);
+    const task = useTaskStore.getState().tasks[0];
+
+    useTaskStore.getState().deleteTask(task.id);
+    offerTaskUndo(task, (key) => key);
+    useToastStore.getState().toast?.action?.onPress();
+
+    expect(useTaskStore.getState().tasks).toEqual([task]);
+    // Restoring twice must not duplicate it.
+    useTaskStore.getState().restoreTask(task);
+    expect(useTaskStore.getState().tasks).toHaveLength(1);
+  });
+});

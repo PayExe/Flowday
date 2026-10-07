@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState, type ReactNode } from 'react';
-import { View, Text, StyleSheet, Switch, Linking, Pressable } from 'react-native';
+import { View, Text, StyleSheet, Switch, Linking, Pressable, Share } from 'react-native';
+import Constants from 'expo-constants';
 import { useThemeStore } from '../../src/features/theme/store';
 import { useRitualStore } from '../../src/features/rituals/store';
 import { useDayScoreStore } from '../../src/features/dayScore/store';
@@ -8,7 +9,7 @@ import { useTheme, type ThemePreference } from '../../src/theme';
 import { SymbolNames } from '../../src/components/ui/Symbol';
 import { SegmentedControl } from '../../src/components/ui/SegmentedControl';
 import { PageInfo } from '../../src/components/ui/PageInfo';
-import { IconTile, List, SectionFooter, SectionHeader } from '../../src/components/ui/List';
+import { IconTile, List, Row, SectionFooter, SectionHeader } from '../../src/components/ui/List';
 import { Screen } from '../../src/components/ui/Screen';
 import { TimeField } from '../../src/components/ui/TimeField';
 import { useLanguageStore } from '../../src/features/language/store';
@@ -21,6 +22,8 @@ import {
   requestPermission,
 } from '../../src/features/notifications/service';
 import { useTranslation } from '../../src/i18n';
+import { buildExport } from '../../src/features/backup/export';
+import { useToastStore } from '../../src/features/toast/store';
 
 const MAX_POMODORO_GOAL = 12;
 
@@ -93,6 +96,14 @@ export default function SettingsScreen() {
     { value: 'light', label: t('Clair') },
     { value: 'dark', label: t('Sombre') },
   ];
+
+  const exportData = useCallback(async () => {
+    try {
+      await Share.share({ title: t('Données Flowday'), message: await buildExport() });
+    } catch {
+      useToastStore.getState().show({ message: t('Export impossible. Réessaie.'), symbol: 'exclamationmark.triangle.fill' });
+    }
+  }, [t]);
 
   const renderCell = (icon: string, iconColor: string, label: string, control: ReactNode) => (
     <View style={styles.cell}>
@@ -300,8 +311,23 @@ export default function SettingsScreen() {
         </View>
       )}
 
+      <SectionHeader title={t('Données')} variant="plain" />
+      <List separatorInset={58}>
+        <Row
+          leading={<IconTile color={colors.system.green} symbol="square.and.arrow.up" size={30} solid />}
+          title={t('Exporter mes données')}
+          chevron
+          onPress={() => void exportData()}
+        />
+      </List>
+      <SectionFooter>
+        {t('Tes données restent sur ton téléphone. L’export en fait une copie que tu peux garder où tu veux.')}
+      </SectionFooter>
+
       <View style={styles.about}>
-        <Text style={[typography.footnote, { color: colors.text.tertiary }]}>Flowday {t('v0.1.0')}</Text>
+        <Text style={[typography.footnote, { color: colors.text.tertiary }]}>
+          Flowday v{Constants.expoConfig?.version ?? '—'}
+        </Text>
         <Text style={[typography.caption, styles.credits, { color: colors.text.tertiary }]}>
           {t('Made by PayExe · Built with Expo')}
         </Text>

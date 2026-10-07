@@ -11,6 +11,7 @@ const en: Record<string, TranslationValue> = {
 };
 
 fr['scorePerfect'] = 'Journée parfaite';
+fr['undo'] = 'Annuler';
 fr['scoreGood'] = 'Bonne journée';
 fr['scoreOkay'] = 'Journée correcte';
 fr['scoreMixed'] = 'Journée mitigée';
@@ -42,6 +43,7 @@ fr['lateByDays'] = ({ count }) => (Number(count) <= 1 ? 'En retard d’un jour' 
 fr['lateTasksCount'] = ({ count }) => `${count} tâche${count === 1 ? '' : 's'} en retard`;
 
 en['scorePerfect'] = 'Perfect day';
+en['undo'] = 'Undo';
 en['scoreGood'] = 'Good day';
 en['scoreOkay'] = 'Okay day';
 en['scoreMixed'] = 'Mixed day';
@@ -156,7 +158,10 @@ const shared: Record<string, TranslationValue> = {
   'Le score /100 se compose des blocs (40 %), des tâches (30 %), du focus (20 %) et des rituels (10 %).': 'The /100 score is made of blocks (40%), tasks (30%), focus (20%) and rituals (10%).',
   'Une catégorie sans rien à mesurer ce jour-là ne compte pas : son poids est réparti sur les autres.': 'A category with nothing to measure that day is left out: its weight goes to the others.',
   'Un bloc est validé dès qu’une de ses tâches du jour est cochée.': 'A block counts as done as soon as one of its tasks for the day is checked.',
-  'Score': 'Score', 'Objectif Focus quotidien': 'Daily Focus goal',
+  'Données': 'Data', 'Données Flowday': 'Flowday data', 'Exporter mes données': 'Export my data',
+  'Export impossible. Réessaie.': 'Export failed. Try again.',
+  'Tes données restent sur ton téléphone. L’export en fait une copie que tu peux garder où tu veux.': 'Your data stays on your phone. Exporting makes a copy you can keep anywhere.',
+  'Score': 'Score', 'Tâche supprimée': 'Task deleted', 'Objectif Focus quotidien': 'Daily Focus goal',
   'Diminuer l’objectif Focus': 'Decrease Focus goal', 'Augmenter l’objectif Focus': 'Increase Focus goal',
   'Sessions de 25 min pour un score Focus complet. À 0, le Focus ne compte plus dans le score.': '25-minute sessions for a full Focus score. At 0, Focus no longer counts toward the score.',
   '« En ce moment / Prochain bloc » reflète ton planning actuel.': '“Now / Next block” reflects your current schedule.',
@@ -192,7 +197,7 @@ const shared: Record<string, TranslationValue> = {
   'Morning Ritual · 5 étapes': 'Morning Ritual · 5 steps',
   'dimanche': 'Sunday', 'lundi': 'Monday', 'mardi': 'Tuesday', 'mercredi': 'Wednesday', 'jeudi': 'Thursday', 'vendredi': 'Friday', 'samedi': 'Saturday',
   'janvier': 'January', 'février': 'February', 'mars': 'March', 'avril': 'April', 'mai': 'May', 'juin': 'June', 'juillet': 'July', 'août': 'August', 'septembre': 'September', 'octobre': 'October', 'novembre': 'November', 'décembre': 'December',
-  'h': 'h', 'min': 'min', '/ semaine': '/ week', '...': '...', 'v0.1.0': 'v0.1.0',
+  'h': 'h', 'min': 'min', '/ semaine': '/ week', '...': '...',
   '/100': '/100',
   'Prépare ta journée en quelques étapes avant de commencer.': 'Prepare your day in a few steps before you begin.',
   'Indique ton humeur pour adapter ton point de départ.': 'Share your mood to adapt your starting point.',

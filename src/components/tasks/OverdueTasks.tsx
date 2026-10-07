@@ -2,6 +2,7 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { Task } from '../../types/task';
 import { useTheme } from '../../theme';
 import { useTranslation } from '../../i18n';
+import { offerTaskUndo } from '../../features/tasks/undo';
 import { hapticLight, hapticWarning } from '../../utils/haptics';
 import { calendarDayDifference, dateKey } from '../../utils/dates';
 import { Card } from '../ui/List';
@@ -72,6 +73,7 @@ export function OverdueTasks({ tasks, onReschedule, onDelete }: OverdueTasksProp
                 onPress={() => {
                   hapticWarning();
                   onDelete(task.id);
+                  offerTaskUndo(task, t);
                 }}
                 style={({ pressed }) => [
                   styles.action,
