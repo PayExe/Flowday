@@ -85,6 +85,55 @@ Le journal du vécu existe depuis la 0.2.0, mais **personne ne le voit** : il al
 une barre de progression sur l'écran Blocs, et c'est tout. Cette version lui donne
 son écran, et les deux chemins d'écriture qui lui manquent.
 
+### Prérequis : audit des dépendances *(branche `v0.3.0/audits`, 8 octobre 2026)*
+
+Fait avant toute fonctionnalité, pour partir sur une base saine.
+
+| Contrôle | Avant | Après |
+|---|---|---|
+| `npm audit` | 42 (3 critiques, 25 hautes, 13 modérées, 1 faible)¹ | **23 (0 critique, 20 hautes, 3 modérées)** |
+| `npx expo install --check` | 5 paquets en retard | ✅ à jour |
+| `npx expo-doctor` | — | ✅ 21/21 |
+| typecheck / lint / tests | ✅ / ✅ / 86 | ✅ / ✅ / 86 |
+| Bundle iOS + Android, prebuild Android | — | ✅ |
+
+¹ *41 au 7 octobre, une nouvelle alerte publiée entre-temps.*
+
+**Ce qui a été fait :**
+
+- Tous les paquets Expo au dernier correctif du **SDK 57** (`expo` 57.0.27, router,
+  notifications, linking, constants) et mineures à jour (eslint, typescript-eslint,
+  zustand, react-native-web).
+- `npm audit fix` **sans** `--force` : shell-quote (critique), ws, source-map-js,
+  brace-expansion, @babel/core.
+- **Vitest 2 → 5**, avec `vite` 8 désormais déclaré en `devDependencies` (peer
+  dependency de Vitest 5). Supprime tinypool et esbuild, et les 2 critiques
+  restantes. Aucun test à réécrire.
+- `overrides` : `xcode` → `uuid@^11.1.1`. Vérifié en manipulant un vrai
+  `project.pbxproj` du template SDK 57 (le prebuild iOS ne tourne pas sous Windows).
+
+**Ce qui n'est volontairement pas monté :**
+
+- **SDK 58** : encore en beta (`next`, React Native 0.88-rc). Les paquets liés au SDK
+  (react-native 0.87, gesture-handler 3, async-storage 3, reanimated 4.7…) montent
+  avec lui, pas à la main.
+- **TypeScript 7** : typescript-eslint exige `typescript <6.1.0`, et la version Go
+  n'expose plus l'API JavaScript dont il dépend. On reste en 6.0.3.
+
+**Risque résiduel accepté — 3 failles d'origine, 23 alertes en cascade :**
+
+| Faille | Gravité | Où | Pourquoi pas corrigée |
+|---|---|---|---|
+| `node-forge` ≤ 1.4.0 | haute | CLI Expo (signature des mises à jour) | Aucun correctif publié |
+| `braces` ≤ 3.0.3 | haute | Metro, via micromatch (build) | Aucun correctif publié |
+| `decode-uri-component` ≤ 0.4.2 | modérée | Expo Router, via `query-string@7` | Le correctif (0.5) et `query-string@9` sont ESM uniquement : ils casseraient la navigation. Disparaît avec expo-router 58 |
+
+Les deux premières ne partent pas dans l'app livrée. La troisième n'est atteignable
+que par un lien `flowday://` malformé ouvert volontairement, avec au pire un gel de
+l'app. **À revérifier à chaque montée de SDK.** Ne jamais lancer
+`npm audit fix --force` : il propose de redescendre à `expo@44` et
+`react-native@0.72`.
+
 ### Critère de réussite
 
 > Après une semaine d'usage **sans jamais ouvrir l'app pour valider**, voir
@@ -152,7 +201,8 @@ support, Sentry, import du backup, build EAS et TestFlight. Plus les semaines ty
 d'onboarding et le résumé du dimanche, qui ont besoin du bilan de la 0.3.0 pour
 avoir un sens.
 
-C'est aussi le bon moment pour reprendre `npm audit` sérieusement.
+L'audit a été fait en amont de la 0.3.0 (voir plus haut). Avant la publication,
+il reste à revérifier les 3 failles résiduelles, en principe réglées par le SDK 58.
 
 ---
 
