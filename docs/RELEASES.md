@@ -44,7 +44,7 @@ rend le reste possible.
 | `npm run typecheck` | ✅ propre |
 | `npm run lint` | ✅ propre |
 | `npm test` | ✅ 86 tests, 17 fichiers |
-| `npm audit` | ⚠️ 41 vulnérabilités (1 faible, 13 modérées, 24 hautes, 3 critiques) — **22 depuis l'audit du 8 octobre**, voir 0.3.0 |
+| `npm audit` | ⚠️ 41 vulnérabilités (1 faible, 13 modérées, 24 hautes, 3 critiques) — **22 au 9 octobre**, voir 0.3.0 |
 
 ### À faire avant de merger sur `main` — fait
 
@@ -84,6 +84,55 @@ Rien de fonctionnel — uniquement de la cohérence. Compter une soirée.
 Le journal du vécu existe depuis la 0.2.0, mais **personne ne le voit** : il alimente
 une barre de progression sur l'écran Blocs, et c'est tout. Cette version lui donne
 son écran, et les deux chemins d'écriture qui lui manquent.
+
+### Prérequis : audit des dépendances *(branche `v0.3.0/audits`, 8 octobre 2026)*
+
+Fait avant toute fonctionnalité, pour partir sur une base saine.
+
+| Contrôle | Avant | Après |
+|---|---|---|
+| `npm audit` | 42 (3 critiques, 25 hautes, 13 modérées, 1 faible)¹ | **23 (0 critique, 20 hautes, 3 modérées)** |
+| `npx expo install --check` | 5 paquets en retard | ✅ à jour |
+| `npx expo-doctor` | — | ✅ 21/21 |
+| typecheck / lint / tests | ✅ / ✅ / 86 | ✅ / ✅ / 86 |
+| Bundle iOS + Android, prebuild Android | — | ✅ |
+
+¹ *41 au 7 octobre, une nouvelle alerte publiée entre-temps.*
+
+**Ce qui a été fait :**
+
+- Tous les paquets Expo au dernier correctif du **SDK 57** (`expo` 57.0.27, router,
+  notifications, linking, constants) et mineures à jour (eslint, typescript-eslint,
+  zustand, react-native-web).
+- `npm audit fix` **sans** `--force` : shell-quote (critique), ws, source-map-js,
+  brace-expansion, @babel/core.
+- **Vitest 2 → 5**, avec `vite` 8 désormais déclaré en `devDependencies` (peer
+  dependency de Vitest 5). Supprime tinypool et esbuild, et les 2 critiques
+  restantes. Aucun test à réécrire.
+- `overrides` : `xcode` → `uuid@^11.1.1`. Vérifié en manipulant un vrai
+  `project.pbxproj` du template SDK 57 (le prebuild iOS ne tourne pas sous Windows).
+
+**Ce qui n'est volontairement pas monté :**
+
+- **SDK 58** : encore en beta (`next`, React Native 0.88-rc). Les paquets liés au SDK
+  (react-native 0.87, gesture-handler 3, async-storage 3, reanimated 4.7…) montent
+  avec lui, pas à la main.
+- **TypeScript 7** : typescript-eslint exige `typescript <6.1.0`, et la version Go
+  n'expose plus l'API JavaScript dont il dépend. On reste en 6.0.3.
+
+**Risque résiduel accepté — 3 failles d'origine, 23 alertes en cascade :**
+
+| Faille | Gravité | Où | Pourquoi pas corrigée |
+|---|---|---|---|
+| `node-forge` ≤ 1.4.0 | haute | CLI Expo (signature des mises à jour) | Aucun correctif publié |
+| `braces` ≤ 3.0.3 | haute | Metro, via micromatch (build) | Aucun correctif publié |
+| `decode-uri-component` ≤ 0.4.2 | modérée | Expo Router, via `query-string@7` | Le correctif (0.5) et `query-string@9` sont ESM uniquement : ils casseraient la navigation. Disparaît avec expo-router 58 |
+
+Les deux premières ne partent pas dans l'app livrée. La troisième n'est atteignable
+que par un lien `flowday://` malformé ouvert volontairement, avec au pire un gel de
+l'app. **À revérifier à chaque montée de SDK.** Ne jamais lancer
+`npm audit fix --force` : il propose de redescendre à `expo@44` et
+`react-native@0.72`.
 
 ### Critère de réussite
 
@@ -129,29 +178,6 @@ Parce qu'ils touchent au même code, autant les faire ici :
   positionnels `lifeBlockIds[0]/[1]/[2]` par des identifiants explicites.
 - ✅ ~~Renommer `timeSpent` / `timeSpentMinutes`~~ — fait en 0.2.0 (`livedMinutes`).
 
-### Audit des dépendances — fait le 8 octobre 2026 (branche `v0.3.0/audit`)
-
-`npm audit` : **41 → 22** (0 critique, 3 modérées, 19 hautes), sans `--force`.
-
-- ✅ Expo aligné sur 57.0.27 (`npx expo install --fix`).
-- ✅ `vitest` 2 → 5 — retire les 3 critiques et toute la chaîne de dev.
-- ✅ `npm audit fix` sans `--force` (`ws` et autres).
-- ✅ `overrides` : `uuid@^11.1.1` pour `xcode` — n'appelle que `uuid.v4()`, non
-  concerné par la faille, et la 11 garde un build CommonJS.
-- ✅ `package-lock.json` régénéré : il ne contenait plus les binaires natifs de
-  `rolldown` (bug npm #4828), ce qui cassait `vitest` à chaque installation propre.
-
-Les 22 restantes viennent de trois paquets, tous dans la chaîne Expo / navigation :
-
-| Paquet | Pourquoi ce n'est pas corrigé |
-|---|---|
-| `braces@3.0.3` | Aucune version corrigée publiée |
-| `node-forge@1.4.0` | Aucune version corrigée publiée (sert à la signature des mises à jour Expo) |
-| `decode-uri-component@0.2.2` | Le correctif (0.5) est ESM-only ; `query-string@7` le charge en `require` au runtime → l'app casserait |
-
-À revérifier à chaque montée d'Expo. Toujours rien de bloquant : aucune requête réseau
-dans l'app.
-
 ### Explicitement hors 0.3.0
 
 | Reporté | Vers | Pourquoi |
@@ -175,7 +201,8 @@ support, Sentry, import du backup, build EAS et TestFlight. Plus les semaines ty
 d'onboarding et le résumé du dimanche, qui ont besoin du bilan de la 0.3.0 pour
 avoir un sens.
 
-C'est aussi le bon moment pour reprendre `npm audit` sérieusement.
+L'audit a été fait en amont de la 0.3.0 (voir plus haut). Avant la publication,
+il reste à revérifier les 3 failles résiduelles, en principe réglées par le SDK 58.
 
 ---
 
