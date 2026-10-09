@@ -18,7 +18,6 @@ interface LifeBlocksState {
   localizeDefaults: (language: Language) => void;
 }
 
-/** Names of the starter blocks per language, used until the user renames them. */
 const DEFAULT_BLOCK_NAMES: Record<string, Record<Language, string>> = {
   'default-work': { fr: 'Travail', en: 'Work' },
   'default-sport': { fr: 'Sport', en: 'Sport' },
@@ -124,7 +123,6 @@ export const useLifeBlocksStore = create<LifeBlocksState>()(
           let changed = false;
           const blocks = state.blocks.map((block) => {
             const names = DEFAULT_BLOCK_NAMES[block.id];
-            // A name the user typed is theirs; only untouched starter names follow the language.
             if (!names || !Object.values(names).includes(block.name) || block.name === names[language]) {
               return block;
             }

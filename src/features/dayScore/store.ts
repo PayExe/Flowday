@@ -22,12 +22,6 @@ interface DayScoreState {
 
 export const SCORE_WEIGHTS = { blocks: 0.4, tasks: 0.3, pomodoros: 0.2, rituals: 0.1 } as const;
 
-/**
- * Weighted score out of 100. A part with nothing to measure that day (no tasks,
- * no tracked block, no Focus goal) is left out and its weight shared among the
- * others, so an empty category never caps the day below 100. Scores saved
- * before the counts existed have them undefined and keep every part.
- */
 export function computeTotal(score: DayScore, pomodoroGoal: number): number {
   const ritualsPoints =
     (score.morningRitualDone ? 5 : 0) + (score.eveningWrapDone ? 5 : 0);
@@ -151,7 +145,6 @@ export const useDayScoreStore = create<DayScoreState>()(
         if (!Number.isFinite(goal) || goal < 0) return;
         set((state) => {
           const pomodoroGoal = Math.floor(goal);
-          // Today's score depends on the goal, so it must reflect the change at once.
           const today = dateKey();
           const scores = state.scores.map((s) => {
             if (s.date !== today) return s;

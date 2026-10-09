@@ -9,10 +9,8 @@ import { GlassSurface } from './Glass';
 import { Symbol } from './Symbol';
 
 const VISIBLE_MS = 4000;
-// Clears the tab bar so the toast never covers navigation.
 const TAB_BAR_CLEARANCE = 64;
 
-/** Renders the current toast above the tab bar. Mounted once at the root. */
 export function ToastHost() {
   const { colors, typography } = useTheme();
   const insets = useSafeAreaInsets();

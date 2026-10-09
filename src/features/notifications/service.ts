@@ -9,7 +9,6 @@ import {
 
 const ANDROID_CHANNEL_ID = 'flowday-reminders';
 
-/** Local notifications are not available on the web build. */
 const supported = Platform.OS === 'ios' || Platform.OS === 'android';
 
 let configured = false;
@@ -42,10 +41,6 @@ export async function getPermissionGranted(): Promise<boolean> {
   return granted;
 }
 
-/**
- * Asks the system for permission, returning whether we ended up with it.
- * Safe to call when already granted: the OS resolves without a prompt.
- */
 export async function requestPermission(): Promise<boolean> {
   if (!supported) return false;
   const current = await Notifications.getPermissionsAsync();
@@ -76,10 +71,6 @@ function triggerFor(
   };
 }
 
-/**
- * Replaces every reminder we own with `planned`, leaving the pending focus
- * alert and any notification we did not create untouched.
- */
 export async function syncPlannedNotifications(
   planned: PlannedNotification[]
 ): Promise<void> {
@@ -108,7 +99,6 @@ export async function syncPlannedNotifications(
   }
 }
 
-/** How many reminders we currently own, used as feedback in Settings. */
 export async function countOwnedNotifications(): Promise<number> {
   if (!supported) return 0;
   const scheduled = await Notifications.getAllScheduledNotificationsAsync();
@@ -127,10 +117,6 @@ export async function cancelOwnedNotifications(): Promise<void> {
   );
 }
 
-/**
- * Fires once when the running pomodoro or break ends. This is what keeps the
- * timer useful after the app goes to the background and the JS timer stops.
- */
 export async function scheduleFocusAlert(
   seconds: number,
   title: string,

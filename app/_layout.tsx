@@ -26,7 +26,6 @@ import {
   isPastTime,
 } from '../src/utils/ritualNavigation';
 
-// Stores read to tell a first launch from a returning user.
 const ONBOARDING_STORES = [useOnboardingStore, useTaskStore, useRitualStore, useLifeBlocksStore];
 
 function todayISO(): string {
@@ -91,7 +90,6 @@ export default function RootLayout() {
     initializeBlocks();
   }, [initializeBlocks]);
 
-  // Runs again once stores hydrate (blocks change) and whenever the language does.
   useEffect(() => {
     localizeBlocks(language);
   }, [blocks, language, localizeBlocks]);

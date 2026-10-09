@@ -59,7 +59,6 @@ export default function SettingsScreen() {
 
   const [scheduledCount, setScheduledCount] = useState(0);
 
-  // The root layout registers the reminders; we just report what landed.
   useEffect(() => {
     let cancelled = false;
     const refresh = async () => {
@@ -73,7 +72,6 @@ export default function SettingsScreen() {
     };
   }, [ritualsEnabled, blocksEnabled, blockLeadMinutes, permissionGranted, morningConfig, eveningConfig]);
 
-  // Turning a reminder on is the moment the permission actually matters.
   const enableWithPermission = useCallback(
     async (apply: (enabled: boolean) => void, enabled: boolean) => {
       if (!enabled) {

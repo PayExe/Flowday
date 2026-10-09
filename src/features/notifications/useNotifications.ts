@@ -23,16 +23,9 @@ import {
   syncPlannedNotifications,
 } from './service';
 
-/**
- * Owns every local notification of the app: the two ritual reminders, the
- * optional block reminders built from the active weekly template, and the
- * one-shot alert that ends a pomodoro. Mounted once from the root layout.
- */
 export function useNotifications(): void {
   const router = useRouter();
   const language = useLanguageStore((state) => state.language);
-  // A stable translator: `useTranslation` rebuilds its `t` on every render,
-  // which would make the memoized plan below churn needlessly.
   const t = useCallback(
     (key: string, params?: Record<string, string | number>) => translate(key, language, params),
     [language]
@@ -64,11 +57,6 @@ export function useNotifications(): void {
 
   const wantsNotifications = ritualsEnabled || blocksEnabled || focusEnabled;
 
-  /**
-   * A cold permission prompt on the very first screen gets refused. We wait
-   * for the first completed ritual: the user has just seen what the reminder
-   * is for. Settings can always ask earlier, on an explicit toggle.
-   */
   const promptIsEarned = ritualLogs.length > 0;
 
   useEffect(() => {
@@ -77,8 +65,6 @@ export function useNotifications(): void {
     let cancelled = false;
 
     const resolve = async () => {
-      // Only the very first launch shows the system prompt; afterwards we just
-      // read the current status so a revoked permission is picked up.
       const granted = permissionRequested
         ? await getPermissionGranted()
         : await requestPermission();
@@ -116,7 +102,6 @@ export function useNotifications(): void {
         },
       ];
     });
-    // `templates` is listed so the plan follows template edits.
   }, [blocksEnabled, blockLeadMinutes, getActiveTemplate, templates, activeTemplateId, lifeBlocks, t]);
 
   const planned = useMemo(
@@ -185,8 +170,6 @@ export function useNotifications(): void {
       return;
     }
 
-    // Read the remaining time at scheduling time rather than through deps, so
-    // the alert is not re-registered on every one-second tick.
     const remaining = useFocusStore.getState().focusState.timeRemaining;
     void scheduleFocusAlert(
       remaining,

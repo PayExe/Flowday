@@ -101,7 +101,6 @@ describe('undo delete', () => {
     useToastStore.getState().toast?.action?.onPress();
 
     expect(useTaskStore.getState().tasks).toEqual([task]);
-    // Restoring twice must not duplicate it.
     useTaskStore.getState().restoreTask(task);
     expect(useTaskStore.getState().tasks).toHaveLength(1);
   });

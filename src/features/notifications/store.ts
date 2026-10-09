@@ -14,7 +14,6 @@ export interface NotificationPrefs {
 }
 
 interface NotificationState extends NotificationPrefs {
-  /** Set once we have shown the system prompt, so we only ever ask once. */
   permissionRequested: boolean;
   permissionGranted: boolean;
   setRitualsEnabled: (enabled: boolean) => void;

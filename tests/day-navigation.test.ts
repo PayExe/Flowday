@@ -25,7 +25,6 @@ describe('date keys', () => {
   });
 
   it('keeps the Monday-first weekday of a parsed key', () => {
-    // 2026-03-08 is a Sunday, 2026-03-09 a Monday.
     expect(weekDayIndex(parseDateKey('2026-03-08'))).toBe(6);
     expect(weekDayIndex(parseDateKey('2026-03-09'))).toBe(0);
   });

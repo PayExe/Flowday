@@ -479,7 +479,7 @@ L'abonnement ne devient défendable qu'après sync + widget + calendrier.
 ### Quatre points pratiques à régler avant de vendre
 
 - ⚠️ **La licence actuelle l'interdit.** Le projet est sous
-  [CC BY-NC 4.0](../LICENSE), qui interdit explicitement l'usage commercial. En tant
+  [PolyForm Noncommercial 1.0.0](../LICENSE), qui interdit explicitement l'usage commercial. En tant
   que seul auteur, il est possible de relicencier — mais il faut le faire
   consciemment avant toute mise en vente.
 - ⚠️ **Compte Apple Developer** : 99 €/an.
@@ -511,7 +511,7 @@ L'abonnement ne devient défendable qu'après sync + widget + calendrier.
 ### Encore ouvertes
 
 - [ ] Est-ce que Flowday reste un projet portfolio, ou devient un produit ? (licence
-      CC BY-NC et README à changer si produit)
+      PolyForm Noncommercial et README à changer si produit)
 - [ ] E-mail de support et nom de domaine pour la politique de confidentialité.
 
 ---

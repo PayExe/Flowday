@@ -10,11 +10,8 @@ import { formatDuration } from '../../utils/time';
 
 interface LifeBlockCardProps {
   block: LifeBlock;
-  /** Lived share of the weekly goal (or of the plan when there is no goal). */
   progressPercent: number;
-  /** Minutes actually lived this week, from validated blocks. */
   livedMinutes: number;
-  /** Minutes the weekly template sets aside. */
   plannedMinutes: number;
   onEdit: () => void;
   onMoveUp: () => void;

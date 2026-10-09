@@ -109,7 +109,6 @@ export default function PlanningScreen() {
 
   const activeBlocks = useMemo(() => getActiveBlocks(), [lifeBlocks, getActiveBlocks]);
   const isViewingToday = relativeDay(viewedDate) === 'today';
-  // Date keys sort chronologically.
   const isViewingPast = viewedDate < todayISO();
   const viewedLogs = useMemo(
     () => blockLogs.filter((log) => log.date === viewedDate),
@@ -209,7 +208,6 @@ export default function PlanningScreen() {
     if (startFocus(task.id, task.title)) router.push('/focus');
   }, [router, startFocus]);
 
-  // Done tasks sink below the open ones; the animated list makes the move visible.
   const sortedTasks = useMemo(
     () => [...viewedTasks].sort((a, b) => Number(a.completed) - Number(b.completed)),
     [viewedTasks]
@@ -254,7 +252,6 @@ export default function PlanningScreen() {
   const showNowLine =
     isViewingToday && nowMinutes >= TIMELINE_START && nowMinutes <= TIMELINE_END;
   const nowLabel = `${Math.floor(nowMinutes / 60).toString().padStart(2, '0')}:${(nowMinutes % 60).toString().padStart(2, '0')}`;
-  // The now pill sits in the hour column; hide any hour label it would cover.
   const hourHiddenByNow = (hour: number) =>
     showNowLine && Math.abs(nowMinutes - hour * MINUTES_PER_HOUR) < 15;
 

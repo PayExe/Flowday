@@ -8,10 +8,7 @@ import { Card, ProgressBar } from '../ui/List';
 import { ProgressRing } from '../ui/ProgressRing';
 import { Celebration } from '../ui/Celebration';
 
-/** Crossing this score fires the celebration. */
 export const CELEBRATION_SCORE = 80;
-// Stores hydrate asynchronously, so the score can jump right after mount;
-// that is loading, not an achievement.
 const HYDRATION_GRACE_MS = 1500;
 
 interface ScoreCardProps {

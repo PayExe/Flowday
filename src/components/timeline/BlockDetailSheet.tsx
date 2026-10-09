@@ -22,9 +22,7 @@ interface BlockDetailSheetProps {
   onFocusTask?: (task: Task) => void;
   validation?: {
     status?: BlockStatus;
-    /** False for days still ahead: nothing has been lived yet. */
     canValidate: boolean;
-    /** null clears the log. */
     onChange: (status: BlockStatus | null) => void;
   };
 }
@@ -62,7 +60,6 @@ export function BlockDetailSheet({ title, timeRange, color, emoji, tasks, visibl
                     accessibilityLabel={t(meta.label)}
                     onPress={() => {
                       hapticLight();
-                      // Tapping the current answer again takes it back.
                       validation.onChange(selected ? null : status);
                     }}
                     style={({ pressed }) => [

@@ -20,9 +20,7 @@ interface TimelineBlockProps {
   height: number;
   tasks: Task[];
   isActive: boolean;
-  /** What was logged for this slot that day, if anything. */
   status?: BlockStatus;
-  /** Ended without a log: show the "to validate" marker. */
   needsReview?: boolean;
   onToggleTask: (taskId: string) => void;
   onTaskPress?: (task: Task) => void;

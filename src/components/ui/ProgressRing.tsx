@@ -11,7 +11,6 @@ interface ProgressRingProps {
   size: number;
   strokeWidth?: number;
   color: string;
-  /** Second color for a gradient sweep from `color` to `gradientTo`. */
   gradientTo?: string;
   children?: ReactNode;
 }
@@ -23,7 +22,6 @@ export function ProgressRing({ value, size, strokeWidth = 10, color, gradientTo,
   const circumference = 2 * Math.PI * r;
   const gradientId = `ring-${useId().replace(/[^a-zA-Z0-9]/g, '')}`;
 
-  // Starts empty so the ring fills on first appearance, then eases between values.
   const progress = useSharedValue(0);
 
   useEffect(() => {

@@ -22,7 +22,6 @@ import { SymbolNames } from '../../src/components/ui/Symbol';
 import { useTranslation } from '../../src/i18n';
 
 
-/** Minutes the weekly template sets aside for a life block: the intention. */
 function getPlannedWeeklyMinutes(
   blockId: string,
   getBlocksForDay: (dayOfWeek: number) => TemplateBlock[]
@@ -57,7 +56,6 @@ export default function BlocksScreen() {
   useTemplateStore((state) => state.templates);
 
   const blockLogs = useBlockLogStore((state) => state.logs);
-  // The week runs Monday to today: what has been lived so far.
   const livedThisWeek = useMemo(() => {
     const today = dateKey();
     return livedMinutesByBlock(blockLogs, shiftDateKey(today, -weekDayIndex()), today);

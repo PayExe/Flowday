@@ -14,14 +14,7 @@ function formatTime(seconds: number): string {
   return `${minutes.toString().padStart(2, '0')}:${rest.toString().padStart(2, '0')}`;
 }
 
-/**
- * A running session used to be reachable only from the screen that started it:
- * leaving Focus left the timer running with no way back. This row keeps it one
- * tap away from wherever the user is.
- */
 interface FocusBarProps {
-  /** Cards carry no vertical margin here, so a caller outside a section
-   *  (where a SectionHeader would supply the rhythm) passes its own. */
   style?: StyleProp<ViewStyle>;
 }
 
@@ -40,7 +33,6 @@ export function FocusBar({ style }: FocusBarProps) {
 
   useEffect(() => {
     if (!hasSession || !isActive) return;
-    // The store is wall-clock based, so this only drives the displayed countdown.
     const timer = setInterval(() => syncTimer(), 1000);
     return () => clearInterval(timer);
   }, [hasSession, isActive, syncTimer]);
@@ -66,9 +58,6 @@ export function FocusBar({ style }: FocusBarProps) {
         title={focusState.currentTaskTitle ?? t('Focus')}
         subtitle={isActive ? label : `${label} · ${t('En pause')}`}
         trailing={
-          // The countdown lives here rather than in the title so a long task
-          // name cannot push it onto a second line, and so it can use
-          // tabular figures and stop jittering every second.
           <View style={styles.trailing}>
             <Text style={[typography.body, styles.timer, { color: colors.text.primary }]}>
               {formatTime(focusState.timeRemaining)}

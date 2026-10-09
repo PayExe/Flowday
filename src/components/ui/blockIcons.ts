@@ -1,6 +1,3 @@
-// Life block icons: each SF Symbol is paired with a unique emoji. The emoji stays the
-// stored value (LifeBlock.emoji) so existing data and notification titles keep working,
-// and the symbol is resolved from it at render time.
 export const BLOCK_ICONS = [
   { symbol: 'laptopcomputer', emoji: '💻' },
   { symbol: 'briefcase.fill', emoji: '💼' },

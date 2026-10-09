@@ -13,10 +13,6 @@ interface OverdueTasksProps {
   onDelete: (id: string) => void;
 }
 
-/**
- * Overdue tasks used to exist only in the store: nothing in the app ever read
- * `getOverdueTasks`, so a task pushed to a past day became invisible forever.
- */
 export function OverdueTasks({ tasks, onReschedule, onDelete }: OverdueTasksProps) {
   const { colors, typography } = useTheme();
   const { t } = useTranslation();
