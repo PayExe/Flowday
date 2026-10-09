@@ -36,6 +36,7 @@ fr['copyDayIntro'] = ({ day, count }) => `Copier les ${count} créneaux de ${day
 fr['pomodoroProgress'] = ({ done, goal }) => `${done} / ${goal} aujourd’hui`;
 fr['blockReminderSoon'] = ({ minutes, timeRange }) => `Dans ${minutes} min · ${timeRange}`;
 fr['blockReminderNow'] = ({ timeRange }) => `Ça commence · ${timeRange}`;
+fr['blockEndQuestion'] = ({ start, end }) => `Créneau de ${start} à ${end} terminé. Comment s’est-il passé ?`;
 fr['breakReady'] = ({ minutes }) => `${minutes} min de pause, tu l’as méritée.`;
 fr['focusReady'] = ({ minutes }) => `On repart pour ${minutes} min de focus.`;
 fr['blockLeadOption'] = ({ minutes }) => `${minutes} min avant`;
@@ -69,6 +70,7 @@ en['copyDayIntro'] = ({ day, count }) => `Copy the ${count} slots from ${day} to
 en['pomodoroProgress'] = ({ done, goal }) => `${done} / ${goal} today`;
 en['blockReminderSoon'] = ({ minutes, timeRange }) => `In ${minutes} min · ${timeRange}`;
 en['blockReminderNow'] = ({ timeRange }) => `Starting now · ${timeRange}`;
+en['blockEndQuestion'] = ({ start, end }) => `Your ${start} to ${end} slot has ended. How did it go?`;
 en['breakReady'] = ({ minutes }) => `${minutes} min break, you earned it.`;
 en['focusReady'] = ({ minutes }) => `Back for ${minutes} min of focus.`;
 en['blockLeadOption'] = ({ minutes }) => `${minutes} min before`;
@@ -78,7 +80,7 @@ en['lateTasksCount'] = ({ count }) => `${count} overdue task${count === 1 ? '' :
 
 const shared: Record<string, TranslationValue> = {
   'Notifications': 'Notifications', 'Rappels des rituels': 'Ritual reminders',
-  'Début des blocs': 'Block starts', 'Fin de pomodoro': 'Pomodoro end',
+  'Début des blocs': 'Block starts', 'Fin des blocs': 'Block ends', 'Fin de pomodoro': 'Pomodoro end',
   'Anticipation': 'Lead time', 'À l’heure pile': 'On time',
   'Prends deux minutes pour cadrer ta journée.': 'Take two minutes to frame your day.',
   'Fais le bilan avant de couper.': 'Wrap up before you switch off.',
@@ -88,6 +90,8 @@ const shared: Record<string, TranslationValue> = {
     'Flowday reminds you at your ritual times, even when the app is closed.',
   'Un rappel au début de chaque créneau de ta semaine type.':
     'A reminder at the start of each slot in your weekly template.',
+  'À la fin de chaque créneau, réponds Fait, En partie ou Pas fait depuis la notification.':
+    'At the end of each slot, answer Done, Partly or Not done from the notification.',
   'Une alerte quand un pomodoro ou une pause se termine.':
     'An alert when a pomodoro or a break ends.',
   'Les rappels suivent les heures définies ci-dessous.': 'Reminders follow the times set below.',

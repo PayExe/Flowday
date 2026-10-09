@@ -14,18 +14,19 @@ npm run typecheck
 
 ## Couverture
 
-La suite couvre actuellement **86 cas** répartis sur 17 fichiers, un par domaine
+La suite couvre actuellement **97 cas** répartis sur 18 fichiers, un par domaine
 fonctionnel.
 
 | Fichier | Cas | Ce qui est couvert |
 |---|---:|---|
+| `notification-schedule.test.ts` | 15 | Planification des rappels : rituels, début et fin des blocs, anticipation, priorité des fins de bloc dans le budget iOS |
 | `block-logs.test.ts` | 8 | Journal du vécu : minutes déduites du statut, fidélité des blocs sans tâche, créneaux à venir ignorés, écriture dans le store |
 | `score.test.ts` | 9 | Calcul du score, limite à 100, parts sans rien à mesurer dont le poids est réparti |
 | `day-navigation.test.ts` | 9 | Clés de date, tâches par jour, navigation entre les journées |
-| `notification-schedule.test.ts` | 9 | Planification des rappels : rituels, début des blocs, anticipation |
 | `tasks.test.ts` | 7 | Ajout, validation, filtrage, replanification, et undo après suppression |
 | `pomodoro.test.ts` | 6 | Transitions focus → pause → focus, pause et reprise, rattrapage après arrière-plan |
 | `ritual-schedule.test.ts` | 6 | Ouverture automatique des rituels, report avec « Plus tard » |
+| `block-end-notification.test.ts` | 5 | Réponses à la notification de fin de bloc : statut écrit au journal, date du bloc, contenus invalides ignorés |
 | `persistence.test.ts` | 5 | Migrations locales : ordre des étapes, échec sans perte, données non versionnées |
 | `rituals.test.ts` | 5 | Enregistrement du Morning Ritual et de l'Evening Wrap |
 | `templates.test.ts` | 5 | Semaine type : créneaux, chevauchements, copie d'un jour |

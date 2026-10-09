@@ -44,11 +44,13 @@ export default function SettingsScreen() {
 
   const ritualsEnabled = useNotificationStore((state) => state.ritualsEnabled);
   const blocksEnabled = useNotificationStore((state) => state.blocksEnabled);
+  const blockEndsEnabled = useNotificationStore((state) => state.blockEndsEnabled);
   const blockLeadMinutes = useNotificationStore((state) => state.blockLeadMinutes);
   const focusEnabled = useNotificationStore((state) => state.focusEnabled);
   const permissionGranted = useNotificationStore((state) => state.permissionGranted);
   const setRitualsEnabled = useNotificationStore((state) => state.setRitualsEnabled);
   const setBlocksEnabled = useNotificationStore((state) => state.setBlocksEnabled);
+  const setBlockEndsEnabled = useNotificationStore((state) => state.setBlockEndsEnabled);
   const setBlockLeadMinutes = useNotificationStore((state) => state.setBlockLeadMinutes);
   const setFocusEnabled = useNotificationStore((state) => state.setFocusEnabled);
   const setPermission = useNotificationStore((state) => state.setPermission);
@@ -70,7 +72,7 @@ export default function SettingsScreen() {
       cancelled = true;
       clearTimeout(timer);
     };
-  }, [ritualsEnabled, blocksEnabled, blockLeadMinutes, permissionGranted, morningConfig, eveningConfig]);
+  }, [ritualsEnabled, blocksEnabled, blockEndsEnabled, blockLeadMinutes, permissionGranted, morningConfig, eveningConfig]);
 
   const enableWithPermission = useCallback(
     async (apply: (enabled: boolean) => void, enabled: boolean) => {
@@ -126,6 +128,7 @@ export default function SettingsScreen() {
             t('L’Evening Wrap s’ouvre après l’heure que tu définis.'),
             t('Flowday te prévient à l’heure de tes rituels, même app fermée.'),
             t('Un rappel au début de chaque créneau de ta semaine type.'),
+            t('À la fin de chaque créneau, réponds Fait, En partie ou Pas fait depuis la notification.'),
             t('Une alerte quand un pomodoro ou une pause se termine.'),
           ]}
         />
@@ -275,6 +278,17 @@ export default function SettingsScreen() {
               onChange={setBlockLeadMinutes}
             />
           </View>
+        )}
+        {renderCell(
+          SymbolNames.checkmarkCircle,
+          colors.system.green,
+          t('Fin des blocs'),
+          <Switch
+            value={blockEndsEnabled}
+            onValueChange={(enabled) => void enableWithPermission(setBlockEndsEnabled, enabled)}
+            trackColor={{ true: colors.system.green }}
+            accessibilityLabel={t('Fin des blocs')}
+          />
         )}
         {renderCell(
           SymbolNames.timer,
