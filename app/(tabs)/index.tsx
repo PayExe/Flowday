@@ -94,10 +94,10 @@ export default function HomeScreen() {
   const overdueCount = useMemo(() => getOverdueTasks().length, [tasks, getOverdueTasks]);
 
   const handleFocusTask = useCallback(
-    (task: { id: string; title: string }) => {
+    (task: { id: string; title: string; lifeBlockId?: string }) => {
       setStartFocusVisible(false);
       setSelectedTaskId(undefined);
-      if (startFocus(task.id, task.title)) router.push('/focus');
+      if (startFocus(task.id, task.title, task.lifeBlockId)) router.push('/focus');
     },
     [router, startFocus]
   );

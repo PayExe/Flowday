@@ -19,7 +19,7 @@ function todayISO(): string {
 interface FocusStoreState {
   sessions: FocusSession[];
   focusState: FocusState;
-  startFocus: (taskId: string, taskTitle: string) => boolean;
+  startFocus: (taskId: string, taskTitle: string, lifeBlockId?: string) => boolean;
   pauseFocus: () => void;
   resumeFocus: () => void;
   stopFocus: () => void;
@@ -44,7 +44,7 @@ export const useFocusStore = create<FocusStoreState>()(
         focusElapsedSeconds: 0,
       },
 
-      startFocus: (taskId, taskTitle) => {
+      startFocus: (taskId, taskTitle, lifeBlockId) => {
         if (!taskId.trim() || !taskTitle.trim()) return false;
         const state = get();
         if (state.focusState.currentTaskId || state.sessions.some((session) => !session.endedAt)) {
@@ -76,6 +76,7 @@ export const useFocusStore = create<FocusStoreState>()(
                 id: generateId(),
                 taskId,
                 taskTitle,
+                ...(lifeBlockId?.trim() ? { lifeBlockId } : {}),
                 startedAt: new Date().toISOString(),
                 pomodorosCompleted: 0,
                 pomodorosAbandoned: 0,
@@ -184,10 +185,15 @@ export const useFocusStore = create<FocusStoreState>()(
           let dailyPomodoroCount = focusState.dailyPomodoroCount;
           let focusElapsedSeconds = focusState.focusElapsedSeconds ?? 0;
           let sessions = state.sessions;
+          const focusByDate: Record<string, number> = {};
 
           while (elapsed > 0) {
             const consumed = Math.min(elapsed, timeRemaining);
-            if (!isBreak) focusElapsedSeconds += consumed;
+            if (!isBreak && consumed > 0) {
+              focusElapsedSeconds += consumed;
+              const day = dateKey(new Date(elapsedAt));
+              focusByDate[day] = (focusByDate[day] ?? 0) + consumed;
+            }
             timeRemaining -= consumed;
             elapsed -= consumed;
             elapsedAt += consumed * 1000;
@@ -217,6 +223,15 @@ export const useFocusStore = create<FocusStoreState>()(
             dailyPomodoroCount += 1;
             timeRemaining = BREAK_MINUTES * 60;
             isBreak = true;
+          }
+
+          const openSession = sessions[sessions.length - 1];
+          if (openSession && !openSession.endedAt && Object.keys(focusByDate).length > 0) {
+            const merged = { ...openSession.focusSecondsByDate };
+            for (const [day, seconds] of Object.entries(focusByDate)) {
+              merged[day] = (merged[day] ?? 0) + seconds;
+            }
+            sessions = [...sessions.slice(0, -1), { ...openSession, focusSecondsByDate: merged }];
           }
 
           return {
