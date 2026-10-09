@@ -9,9 +9,7 @@ export interface DayScore {
   pomodorosGoal: number;
   morningRitualDone: boolean;
   eveningWrapDone: boolean;
-  /** Planned blocks that have tasks to judge them by; 0 means nothing to score. */
   blocksTracked?: number;
-  /** Tasks scheduled that day; 0 means nothing to score. */
   tasksTotal?: number;
 }
 

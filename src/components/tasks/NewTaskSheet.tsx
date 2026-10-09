@@ -14,7 +14,6 @@ import { usePriorityOptions } from './TaskDetailSheet';
 interface NewTaskSheetProps {
   visible: boolean;
   blocks: LifeBlock[];
-  /** The day the caller is looking at, pre-selected in the date field. */
   defaultDate: string;
   onClose: () => void;
   onAdd: (task: {

@@ -9,7 +9,6 @@ import { useDayScoreStore } from '../dayScore/store';
 interface TaskState {
   tasks: Task[];
   addTask: (task: Omit<Task, 'id' | 'createdAt'>) => void;
-  /** Puts back a deleted task exactly as it was (undo). */
   restoreTask: (task: Task) => void;
   toggleTask: (id: string) => void;
   deleteTask: (id: string) => void;
@@ -114,7 +113,6 @@ export const useTaskStore = create<TaskState>()(
         }
       },
 
-      // An undated task belongs to today, which is also how the score reads it.
       getTasksForDate: (date) => {
         const today = dateKey();
         return get().tasks.filter((task) => (task.scheduledDate || today) === date);

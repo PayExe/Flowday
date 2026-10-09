@@ -216,7 +216,6 @@ export interface SymbolProps {
   weight?: 'ultraLight' | 'thin' | 'light' | 'regular' | 'medium' | 'semibold' | 'bold' | 'heavy' | 'black';
   type?: 'monochrome' | 'hierarchical' | 'palette' | 'multicolor';
   style?: StyleProp<TextStyle>;
-  /** iOS-only SF Symbol effect (bounce, pulse, scale); ignored by the Ionicons fallback. */
   animationSpec?: AnimationSpec;
 }
 

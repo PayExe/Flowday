@@ -16,7 +16,6 @@ interface StartFocusSheetProps {
   onSelect: (task: Task) => void;
 }
 
-/** A pomodoro always runs against one task, so starting one is picking one. */
 export function StartFocusSheet({
   visible,
   tasks,

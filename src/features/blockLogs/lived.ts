@@ -1,6 +1,5 @@
 import { BlockLog, BlockStatus } from '../../types/blockLog';
 
-/** Share of a slot that counts as lived. Users never type minutes: the status is enough. */
 export const STATUS_CREDIT: Record<BlockStatus, number> = {
   done: 1,
   partial: 0.5,
@@ -11,7 +10,6 @@ export function livedMinutes(log: Pick<BlockLog, 'plannedMinutes' | 'status'>): 
   return Math.round(log.plannedMinutes * STATUS_CREDIT[log.status]);
 }
 
-/** Lived minutes per life block for logs dated within [from, to] (YYYY-MM-DD, inclusive). */
 export function livedMinutesByBlock(
   logs: readonly BlockLog[],
   from: string,
@@ -30,12 +28,6 @@ interface PlannedSlot {
   endMinutes: number;
 }
 
-/**
- * How faithfully a day's plan was lived, for the score. A slot counts once it
- * is logged or once it has ended: a slot still ahead can't be missed yet, but
- * one that ended without being logged was not lived. Pass `nowMinutes` as
- * Infinity for a finished day.
- */
 export function blockFidelity(
   slots: readonly PlannedSlot[],
   logs: readonly Pick<BlockLog, 'templateBlockId' | 'status'>[],

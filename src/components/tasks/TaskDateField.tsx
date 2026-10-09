@@ -13,7 +13,6 @@ interface TaskDateFieldProps {
   onChange: (date: string) => void;
 }
 
-/** Today / tomorrow cover almost every case; the picker handles the rest. */
 export function TaskDateField({ value, onChange }: TaskDateFieldProps) {
   const { colors, themeName } = useTheme();
   const { t, language } = useTranslation();

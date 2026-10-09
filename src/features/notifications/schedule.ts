@@ -1,10 +1,6 @@
 import { shiftWeekDay } from '../../utils/dates';
 import { timeToMinutes } from '../../utils/time';
 
-/**
- * iOS keeps at most 64 pending local notifications per app and silently drops
- * the rest, so we budget ourselves a margin below that limit.
- */
 export const MAX_SCHEDULED_NOTIFICATIONS = 56;
 
 export const OWNED_PREFIX = 'flowday-';
@@ -15,7 +11,6 @@ export const MINUTES_IN_DAY = 24 * 60;
 
 export type PlannedTrigger =
   | { kind: 'daily'; hour: number; minute: number }
-  /** `weekday` keeps the app's Monday-first indexing (0 = Monday). */
   | { kind: 'weekly'; weekday: number; hour: number; minute: number };
 
 export interface PlannedNotification {
@@ -49,10 +44,6 @@ export interface NotificationPlanInput {
   max?: number;
 }
 
-/**
- * Moves a weekly slot back by `minutes`, rolling over to the previous day when
- * the lead time crosses midnight (a 00:15 block reminded 30 min early).
- */
 export function shiftSlotBack(
   dayOfWeek: number,
   time: string,
@@ -87,11 +78,6 @@ function ritualNotification(
   };
 }
 
-/**
- * Turns the user's configuration into the exact set of local notifications to
- * register. Rituals come first because they are the backbone of the day and
- * must never be pushed out of the budget by a crowded template.
- */
 export function planNotifications({
   morning,
   evening,
@@ -116,7 +102,6 @@ export function planNotifications({
   for (const block of blocks) {
     if (!Number.isFinite(timeToMinutes(block.startTime))) continue;
     const slot = shiftSlotBack(block.dayOfWeek, block.startTime, leadMinutes);
-    // Two blocks starting at the same minute would buzz twice for one event.
     const key = `${slot.weekday}-${slot.hour}-${slot.minute}`;
     if (seen.has(key)) continue;
     seen.add(key);
@@ -142,12 +127,10 @@ export function planNotifications({
   return [...planned, ...blockNotifications].slice(0, Math.max(0, max));
 }
 
-/** expo-notifications counts weekdays from 1 = Sunday; the app counts 0 = Monday. */
 export function toExpoWeekday(weekday: number): number {
   return weekday === 6 ? 1 : weekday + 2;
 }
 
-/** A stable signature used to avoid re-registering an unchanged plan. */
 export function planSignature(planned: PlannedNotification[]): string {
   return planned
     .map((item) =>

@@ -1,21 +1,21 @@
 # Flowday — Découpage par version
 
 > Complète [`ROADMAP.md`](ROADMAP.md), qui dit *quoi* et *pourquoi*. Ce document dit
-> *dans quelle version*. Mis à jour le 7 octobre 2026.
+> *dans quelle version*. Mis à jour le 9 octobre 2026.
 
 **Principe : une version = une thèse.** Une version qui mélange trois sujets ne se
 raconte pas, ne se teste pas et ne se communique pas.
 
 | Version | Thèse | État |
 |---|---|---|
-| **0.2.0** | « L'app est belle, et elle mesure ce que tu vis » | 🟡 à clôturer |
-| **0.3.0** | « L'app te montre l'écart » | ⚪️ à faire |
+| **0.2.0** | « L'app est belle, et elle mesure ce que tu vis » | ✅ livrée, taguée `v0.2.0` |
+| **0.3.0** | « L'app te montre l'écart » | 🟡 en cours (audit des dépendances fait) |
 | **0.4.0** | « L'app est publiable et testée par de vraies personnes » | ⚪️ plus tard |
 | **0.5.0+** | « L'app est présente hors de l'app » (widgets, calendrier) | ⚪️ quand il y aura un Mac |
 
 ---
 
-## 0.2.0 — Refonte UI **et socle du vécu** *(en cours, part sur `main`)*
+## 0.2.0 — Refonte UI **et socle du vécu** *(livrée sur `main`, tag `v0.2.0`)*
 
 15 commits, 103 fichiers, +9 108 / −3 745. Refonte visuelle, animations, onboarding
 de premier lancement, persistance versionnée, export des données, toast d'undo,
@@ -44,22 +44,22 @@ rend le reste possible.
 | `npm run typecheck` | ✅ propre |
 | `npm run lint` | ✅ propre |
 | `npm test` | ✅ 86 tests, 17 fichiers |
-| `npm audit` | ⚠️ 41 vulnérabilités (1 faible, 13 modérées, 24 hautes, 3 critiques) |
+| `npm audit` | ⚠️ 41 vulnérabilités (1 faible, 13 modérées, 24 hautes, 3 critiques) — **22 depuis l'audit du 8 octobre**, voir 0.3.0 |
 
-### À faire avant de merger sur `main`
+### À faire avant de merger sur `main` — fait
 
 Rien de fonctionnel — uniquement de la cohérence. Compter une soirée.
 
-- [ ] **Bumper la version.** `package.json` et `app.json` annoncent encore `0.1.0`
+- [x] **Bumper la version.** `package.json` et `app.json` annoncent encore `0.1.0`
       alors que la branche s'appelle `v.0.2.0/UI`. Les deux doivent passer à `0.2.0`
       — `app.json` sert déjà de source à l'affichage de version dans les réglages.
-- [ ] **`tests/TESTS.md` est périmé.** Il annonce « 28 cas », il y en a **86**. La
+- [x] **`tests/TESTS.md` est périmé.** Il annonce « 28 cas », il y en a **86**. La
       liste détaillée ne couvre plus la moitié de la suite.
-- [ ] **La liste de fonctionnalités du `README` est périmée.** Elle ne mentionne ni
+- [x] **La liste de fonctionnalités du `README` est périmée.** Elle ne mentionne ni
       l'onboarding, ni les notifications, ni l'export, ni le FR/EN, ni l'undo. Et
       « adding data export and backup » est encore listé dans les améliorations
       *futures* alors que l'export existe.
-- [ ] **Merger et taguer `v0.2.0`.** Le tag sert de point de retour une fois que la
+- [x] **Merger et taguer `v0.2.0`.** Le tag sert de point de retour une fois que la
       0.3.0 commencera à changer le modèle de données.
 
 ### Décisions assumées pour cette version
@@ -128,6 +128,29 @@ Parce qu'ils touchent au même code, autant les faire ici :
 - 〽️ `initializeDefaults` (`templates/store.ts:181`) — remplacer les index
   positionnels `lifeBlockIds[0]/[1]/[2]` par des identifiants explicites.
 - ✅ ~~Renommer `timeSpent` / `timeSpentMinutes`~~ — fait en 0.2.0 (`livedMinutes`).
+
+### Audit des dépendances — fait le 8 octobre 2026 (branche `v0.3.0/audit`)
+
+`npm audit` : **41 → 22** (0 critique, 3 modérées, 19 hautes), sans `--force`.
+
+- ✅ Expo aligné sur 57.0.27 (`npx expo install --fix`).
+- ✅ `vitest` 2 → 5 — retire les 3 critiques et toute la chaîne de dev.
+- ✅ `npm audit fix` sans `--force` (`ws` et autres).
+- ✅ `overrides` : `uuid@^11.1.1` pour `xcode` — n'appelle que `uuid.v4()`, non
+  concerné par la faille, et la 11 garde un build CommonJS.
+- ✅ `package-lock.json` régénéré : il ne contenait plus les binaires natifs de
+  `rolldown` (bug npm #4828), ce qui cassait `vitest` à chaque installation propre.
+
+Les 22 restantes viennent de trois paquets, tous dans la chaîne Expo / navigation :
+
+| Paquet | Pourquoi ce n'est pas corrigé |
+|---|---|
+| `braces@3.0.3` | Aucune version corrigée publiée |
+| `node-forge@1.4.0` | Aucune version corrigée publiée (sert à la signature des mises à jour Expo) |
+| `decode-uri-component@0.2.2` | Le correctif (0.5) est ESM-only ; `query-string@7` le charge en `require` au runtime → l'app casserait |
+
+À revérifier à chaque montée d'Expo. Toujours rien de bloquant : aucune requête réseau
+dans l'app.
 
 ### Explicitement hors 0.3.0
 

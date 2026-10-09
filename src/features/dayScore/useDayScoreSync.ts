@@ -13,11 +13,6 @@ function currentMinutes(): number {
   return now.getHours() * 60 + now.getMinutes();
 }
 
-/**
- * Keeps today's task and block parts of the score in step with the data.
- * Mounted once at the root so it runs whichever screen the change came from.
- * Blocks are judged on what was lived (their logs), not on tasks.
- */
 export function useDayScoreSync(today: string = dateKey()) {
   const tasks = useTaskStore((state) => state.tasks);
   const getTasksForDate = useTaskStore((state) => state.getTasksForDate);
@@ -29,7 +24,6 @@ export function useDayScoreSync(today: string = dateKey()) {
   const updateTasksPercent = useDayScoreStore((state) => state.updateTasksPercent);
   const updateBlockValidation = useDayScoreStore((state) => state.updateBlockValidation);
 
-  // Slots that end while the app is open must start counting without user action.
   const [nowMinutes, setNowMinutes] = useState(currentMinutes);
   useEffect(() => {
     const timer = setInterval(() => setNowMinutes(currentMinutes()), 60_000);

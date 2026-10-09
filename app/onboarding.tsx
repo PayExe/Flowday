@@ -63,7 +63,6 @@ export default function OnboardingScreen() {
     () => blocks.filter((block) => !block.isArchived).sort((a, b) => a.order - b.order),
     [blocks]
   );
-  // Everything starts selected: declining is the deliberate act.
   const [declined, setDeclined] = useState<Set<string>>(() => new Set());
   const keptCount = activeBlocks.filter((block) => !declined.has(block.id)).length;
 
@@ -80,7 +79,6 @@ export default function OnboardingScreen() {
   };
 
   const finish = () => {
-    // Skipping with nothing kept would leave an empty app; keep the starters instead.
     const removed = keptCount === 0
       ? []
       : activeBlocks.filter((block) => declined.has(block.id)).map((block) => block.id);
