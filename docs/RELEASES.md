@@ -9,7 +9,7 @@ raconte pas, ne se teste pas et ne se communique pas.
 | Version | Thèse | État |
 |---|---|---|
 | **0.2.0** | « L'app est belle, et elle mesure ce que tu vis » | ✅ livrée, taguée `v0.2.0` |
-| **0.3.0** | « L'app te montre l'écart » | 🟡 en cours (audit des dépendances fait) |
+| **0.3.0** | « L'app te montre l'écart » | 🟡 en cours (audit, notification de fin de bloc, Focus par domaine) |
 | **0.4.0** | « L'app est publiable et testée par de vraies personnes » | ⚪️ plus tard |
 | **0.5.0+** | « L'app est présente hors de l'app » (widgets, calendrier) | ⚪️ quand il y aura un Mac |
 
@@ -143,15 +143,25 @@ Les deux moitiés comptent : la collecte sans friction, et la restitution.
 
 ### Contenu, dans l'ordre des dépendances
 
-1. **La notification de fin de bloc** — trois actions (Fait / En partie / Pas fait),
-   l'écriture se fait sans ouvrir l'app. C'est le point le plus structurant : le
-   journal n'a aujourd'hui qu'un seul chemin d'écriture, et il exige d'ouvrir l'app.
-   *Technique : il n'existe aucune catégorie ni action de notification dans
-   `src/features/notifications/` pour l'instant — `setNotificationCategoryAsync` et
-   le listener de réponse sont à construire.*
-2. **Le Focus crédite un domaine** — `lifeBlockId` sur `FocusSession`
-   (`src/types/focus.ts`). Troisième chemin d'écriture, et le plus précis : des
-   minutes réellement mesurées au lieu d'être déduites d'un statut.
+1. ✅ **La notification de fin de bloc** — trois actions (Fait / En partie / Pas fait),
+   testée sur appareil le 9 octobre 2026 (branche `v0.3.0/end-of-block-notification`).
+   - Catégorie `flowday-block-end`, réponse écrite au journal avec
+     `source: 'notification'`, datée sur le jour du bloc.
+   - Réglage « Fin des blocs », activé par défaut. Les fins de bloc passent avant les
+     rappels de début dans le budget de 56 notifications.
+   - ⚠️ Les boutons ouvrent l'app : une action en arrière-plan n'est pas transmise
+     quand l'app est fermée sur iOS. La collecte sans ouvrir l'app viendra avec le
+     widget interactif (0.5.0+).
+2. ✅ **Le Focus crédite un domaine** — `lifeBlockId` sur `FocusSession`
+   (`src/types/focus.ts`), branche `v0.3.0/focus-life-block`.
+   - Le domaine vient de la tâche choisie au démarrage. Une tâche sans domaine ne
+     crédite rien.
+   - Les secondes de focus (pauses exclues) sont comptées par jour dans
+     `focusSecondsByDate`, en direct pendant la session.
+   - Pas de double comptage : pour un domaine et un jour, le vécu retenu est le plus
+     grand entre les blocs validés et le Focus.
+   - Les anciennes sessions n'ont ni domaine ni détail par jour : elles ne créditent
+     rien, on n'invente pas de données. Champs facultatifs, donc pas de migration.
 3. **L'écran Bilan** — le nouvel onglet, qui fait passer l'app de 5 à 6. Semaine et
    mois, prévu vs vécu par domaine. Branche enfin `WeekScore`
    (`src/types/dayScore.ts:18`), aujourd'hui type mort. **C'est l'écran qui justifie

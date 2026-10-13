@@ -4,7 +4,8 @@ import Animated, { FadeIn, FadeOut, LayoutAnimationConfig } from 'react-native-r
 import { useLifeBlocksStore } from '../../src/features/lifeBlocks/store';
 import { useTemplateStore } from '../../src/features/templates/store';
 import { useBlockLogStore } from '../../src/features/blockLogs/store';
-import { livedMinutesByBlock } from '../../src/features/blockLogs/lived';
+import { focusCredits, livedMinutesByBlock } from '../../src/features/blockLogs/lived';
+import { useFocusStore } from '../../src/features/focus/store';
 import { dateKey, shiftDateKey, weekDayIndex } from '../../src/utils/dates';
 import { LifeBlock, LifeBlockColor } from '../../src/types/lifeBlock';
 import { TemplateBlock } from '../../src/types/template';
@@ -56,10 +57,16 @@ export default function BlocksScreen() {
   useTemplateStore((state) => state.templates);
 
   const blockLogs = useBlockLogStore((state) => state.logs);
+  const focusSessions = useFocusStore((state) => state.sessions);
   const livedThisWeek = useMemo(() => {
     const today = dateKey();
-    return livedMinutesByBlock(blockLogs, shiftDateKey(today, -weekDayIndex()), today);
-  }, [blockLogs]);
+    return livedMinutesByBlock(
+      blockLogs,
+      shiftDateKey(today, -weekDayIndex()),
+      today,
+      focusCredits(focusSessions)
+    );
+  }, [blockLogs, focusSessions]);
 
   const activeBlocks = getActiveBlocks();
   const archivedBlocks = blocks.filter((b) => b.isArchived);
@@ -122,7 +129,7 @@ export default function BlocksScreen() {
               title={t('Blocs de vie')}
               description={t('Tes grands domaines de vie (travail, sport, santé…) et leur objectif hebdomadaire.')}
               points={[
-                t('La barre montre ton temps planifié cette semaine par rapport à l’objectif.'),
+                t('La barre montre ton temps vécu cette semaine par rapport à l’objectif.'),
                 t('Appuie sur un bloc pour le modifier ou l’archiver.'),
                 t('Le bouton ••• permet de réordonner ou d’archiver un bloc.'),
               ]}
@@ -179,7 +186,7 @@ export default function BlocksScreen() {
         )}
         {activeBlocks.length > 0 && (
           <SectionFooter>
-            {t('Le temps vécu se remplit quand tu valides tes blocs dans le Planning.')}
+            {t('Le temps vécu se remplit quand tu valides tes blocs et avec tes sessions Focus.')}
           </SectionFooter>
         )}
 

@@ -205,7 +205,7 @@ export default function PlanningScreen() {
   const handleFocusTask = useCallback((task: Task) => {
     hapticLight();
     setSelectedTaskId(undefined);
-    if (startFocus(task.id, task.title)) router.push('/focus');
+    if (startFocus(task.id, task.title, task.lifeBlockId)) router.push('/focus');
   }, [router, startFocus]);
 
   const sortedTasks = useMemo(

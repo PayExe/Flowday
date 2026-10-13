@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { blockFidelity, livedMinutes, livedMinutesByBlock } from '../src/features/blockLogs/lived';
+import { blockFidelity, focusCredits, livedMinutes, livedMinutesByBlock } from '../src/features/blockLogs/lived';
 import { useBlockLogStore } from '../src/features/blockLogs/store';
 import type { BlockLog } from '../src/types/blockLog';
 
@@ -39,6 +39,51 @@ describe('lived time', () => {
       log({ date: '2026-09-28' }),
     ];
     expect(livedMinutesByBlock(logs, '2026-10-05', '2026-10-11')).toEqual({ sport: 90, work: 180 });
+  });
+});
+
+describe('focus credit', () => {
+  const session = {
+    id: 's1',
+    taskId: 't1',
+    taskTitle: 'Read',
+    startedAt: '2026-10-05T09:00:00.000Z',
+    pomodorosCompleted: 1,
+    pomodorosAbandoned: 0,
+    totalFocusMinutes: 0,
+  };
+
+  it('turns measured focus seconds into minutes per day for the session domain', () => {
+    expect(
+      focusCredits([
+        { ...session, lifeBlockId: 'learning', focusSecondsByDate: { '2026-10-05': 1500, '2026-10-06': 610 } },
+        { ...session, id: 's2', focusSecondsByDate: { '2026-10-05': 1500 } },
+        { ...session, id: 's3', lifeBlockId: 'sport' },
+      ])
+    ).toEqual([
+      { date: '2026-10-05', lifeBlockId: 'learning', minutes: 25 },
+      { date: '2026-10-06', lifeBlockId: 'learning', minutes: 10 },
+    ]);
+  });
+
+  it('adds focus minutes to a domain with no rated block', () => {
+    const focus = [{ date: '2026-10-06', lifeBlockId: 'learning', minutes: 25 }];
+    expect(livedMinutesByBlock([log({})], '2026-10-05', '2026-10-11', focus)).toEqual({ sport: 60, learning: 25 });
+  });
+
+  it('keeps the larger of the rated block and the focus time on the same day, never both', () => {
+    const logs = [log({ date: '2026-10-05' })];
+    expect(
+      livedMinutesByBlock(logs, '2026-10-05', '2026-10-11', [{ date: '2026-10-05', lifeBlockId: 'sport', minutes: 25 }])
+    ).toEqual({ sport: 60 });
+    expect(
+      livedMinutesByBlock(logs, '2026-10-05', '2026-10-11', [{ date: '2026-10-05', lifeBlockId: 'sport', minutes: 75 }])
+    ).toEqual({ sport: 75 });
+  });
+
+  it('ignores focus time outside the date range', () => {
+    const focus = [{ date: '2026-09-30', lifeBlockId: 'learning', minutes: 25 }];
+    expect(livedMinutesByBlock([], '2026-10-05', '2026-10-11', focus)).toEqual({});
   });
 });
 
