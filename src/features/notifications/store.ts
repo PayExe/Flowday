@@ -9,6 +9,7 @@ export type BlockLeadMinutes = (typeof BLOCK_LEAD_CHOICES)[number];
 export interface NotificationPrefs {
   ritualsEnabled: boolean;
   blocksEnabled: boolean;
+  blockEndsEnabled: boolean;
   blockLeadMinutes: BlockLeadMinutes;
   focusEnabled: boolean;
 }
@@ -18,6 +19,7 @@ interface NotificationState extends NotificationPrefs {
   permissionGranted: boolean;
   setRitualsEnabled: (enabled: boolean) => void;
   setBlocksEnabled: (enabled: boolean) => void;
+  setBlockEndsEnabled: (enabled: boolean) => void;
   setBlockLeadMinutes: (minutes: number) => void;
   setFocusEnabled: (enabled: boolean) => void;
   setPermission: (granted: boolean) => void;
@@ -29,6 +31,7 @@ export const useNotificationStore = create<NotificationState>()(
     (set) => ({
       ritualsEnabled: true,
       blocksEnabled: false,
+      blockEndsEnabled: true,
       blockLeadMinutes: 5,
       focusEnabled: true,
       permissionRequested: false,
@@ -36,6 +39,7 @@ export const useNotificationStore = create<NotificationState>()(
 
       setRitualsEnabled: (ritualsEnabled) => set({ ritualsEnabled }),
       setBlocksEnabled: (blocksEnabled) => set({ blocksEnabled }),
+      setBlockEndsEnabled: (blockEndsEnabled) => set({ blockEndsEnabled }),
       setBlockLeadMinutes: (minutes) => {
         if (!BLOCK_LEAD_CHOICES.includes(minutes as BlockLeadMinutes)) return;
         set({ blockLeadMinutes: minutes as BlockLeadMinutes });

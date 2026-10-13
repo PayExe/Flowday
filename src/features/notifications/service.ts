@@ -1,6 +1,9 @@
 import { Platform } from 'react-native';
 import * as Notifications from 'expo-notifications';
+import { BlockStatus } from '../../types/blockLog';
+import { BLOCK_END_ACTIONS } from './blockEnd';
 import {
+  BLOCK_END_CATEGORY,
   FOCUS_ID,
   OWNED_PREFIX,
   PlannedNotification,
@@ -13,17 +16,29 @@ const supported = Platform.OS === 'ios' || Platform.OS === 'android';
 
 let configured = false;
 
-export function configureNotifications(): void {
+export interface NotificationEvent {
+  actionIdentifier: string;
+  isDefaultAction: boolean;
+  data: Record<string, unknown>;
+  firedAt: Date;
+}
+
+export function configureNotifications(
+  shouldShow: (data: Record<string, unknown>) => boolean = () => true
+): void {
   if (!supported || configured) return;
   configured = true;
 
   Notifications.setNotificationHandler({
-    handleNotification: async () => ({
-      shouldShowBanner: true,
-      shouldShowList: true,
-      shouldPlaySound: true,
-      shouldSetBadge: false,
-    }),
+    handleNotification: async (notification) => {
+      const show = shouldShow(notification.request.content.data ?? {});
+      return {
+        shouldShowBanner: show,
+        shouldShowList: show,
+        shouldPlaySound: show,
+        shouldSetBadge: false,
+      };
+    },
   });
 
   if (Platform.OS === 'android') {
@@ -92,7 +107,8 @@ export async function syncPlannedNotifications(
       content: {
         title: notification.title,
         body: notification.body,
-        data: notification.route ? { route: notification.route } : undefined,
+        data: { ...notification.data, ...(notification.route ? { route: notification.route } : {}) },
+        categoryIdentifier: notification.categoryId,
       },
       trigger: triggerFor(notification),
     });
@@ -141,14 +157,44 @@ export async function cancelFocusAlert(): Promise<void> {
   await Notifications.cancelScheduledNotificationAsync(FOCUS_ID).catch(() => {});
 }
 
-export function addNotificationTapListener(
-  onRoute: (route: string) => void
+export async function registerBlockEndCategory(
+  labels: Record<BlockStatus, string>
+): Promise<void> {
+  if (!supported) return;
+  await Notifications.setNotificationCategoryAsync(
+    BLOCK_END_CATEGORY,
+    BLOCK_END_ACTIONS.map((status) => ({
+      identifier: status,
+      buttonTitle: labels[status],
+    }))
+  );
+}
+
+function toEvent(response: Notifications.NotificationResponse): NotificationEvent {
+  return {
+    actionIdentifier: response.actionIdentifier,
+    isDefaultAction: response.actionIdentifier === Notifications.DEFAULT_ACTION_IDENTIFIER,
+    data: response.notification.request.content.data ?? {},
+    firedAt: new Date(response.notification.date),
+  };
+}
+
+export function takeLaunchResponse(): NotificationEvent | null {
+  if (!supported) return null;
+  const response = Notifications.getLastNotificationResponse();
+  if (!response) return null;
+  Notifications.clearLastNotificationResponse();
+  return toEvent(response);
+}
+
+export function addNotificationResponseListener(
+  onResponse: (event: NotificationEvent) => void
 ): () => void {
   if (!supported) return () => {};
   const subscription = Notifications.addNotificationResponseReceivedListener(
     (response) => {
-      const route = response.notification.request.content.data?.route;
-      if (typeof route === 'string') onRoute(route);
+      Notifications.clearLastNotificationResponse();
+      onResponse(toEvent(response));
     }
   );
   return () => subscription.remove();
