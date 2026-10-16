@@ -3,6 +3,10 @@ export function timeToMinutes(time: string): number {
   return h * 60 + m;
 }
 
+export function currentMinutes(now = new Date()): number {
+  return now.getHours() * 60 + now.getMinutes();
+}
+
 export function formatDuration(minutes: number): string {
   const h = Math.floor(minutes / 60);
   const m = minutes % 60;

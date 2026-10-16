@@ -4,6 +4,8 @@ import { useRouter } from 'expo-router';
 import { useTaskStore } from '../src/features/tasks/store';
 import { useDayScoreStore } from '../src/features/dayScore/store';
 import { useRitualStore } from '../src/features/rituals/store';
+import { balancePercent, periodRange } from '../src/features/review/review';
+import { useReview } from '../src/features/review/useReview';
 import { useTheme } from '../src/theme';
 import { dateKey } from '../src/utils/dates';
 import { hapticLight, hapticWarning } from '../src/utils/haptics';
@@ -52,7 +54,6 @@ export default function EveningWrapScreen() {
 
   const scores = useDayScoreStore((state) => state.scores);
   const getScoreForDate = useDayScoreStore((state) => state.getScoreForDate);
-  const setEveningWrapDone = useDayScoreStore((state) => state.setEveningWrapDone);
 
   const logEveningWrap = useRitualStore((state) => state.logEveningWrap);
 
@@ -61,7 +62,9 @@ export default function EveningWrapScreen() {
   const incompleteTasks = useMemo(() => todayTasks.filter((t) => !t.completed), [todayTasks]);
 
   const score = useMemo(() => getScoreForDate(today), [scores, getScoreForDate, today]);
-  const dayScore = score?.total || 0;
+  const fidelity = score && score.blocksTracked > 0 ? score.fidelity : null;
+  const thisWeek = useMemo(() => periodRange('week', 0, today), [today]);
+  const balance = balancePercent(useReview(thisWeek));
 
   const handleDelete = (taskId: string) => {
     Alert.alert(
@@ -76,7 +79,6 @@ export default function EveningWrapScreen() {
 
   const handleFinish = () => {
     logEveningWrap({ note: note.trim() || undefined });
-    setEveningWrapDone(today);
     router.replace('/');
   };
 
@@ -98,13 +100,7 @@ export default function EveningWrapScreen() {
   const renderReview = () => (
     <>
       <StepHeading title={t('Bilan de la journée')} />
-      <ScoreCard
-        score={dayScore}
-        blocksPercent={score?.blocksPercent}
-        tasksPercent={score?.tasksPercent}
-        pomodorosPercent={score?.pomodorosPercent}
-        ritualsPercent={score?.ritualsPercent}
-      />
+      <ScoreCard fidelity={fidelity} balance={balance} />
     </>
   );
 
@@ -199,9 +195,13 @@ export default function EveningWrapScreen() {
     <>
       <StepHeading title={t('Journée validée.')} subtitle={t('Bonne nuit 🌙')} />
       <View style={styles.finalScore}>
-        <ProgressRing value={dayScore} size={168} strokeWidth={14} color={colors.accent} gradientTo={colors.system.teal}>
-          <Text style={[styles.finalScoreValue, { color: colors.text.primary }]}>{dayScore}</Text>
-          <Text style={typography.footnote}>{getScoreLabel(dayScore, t)}</Text>
+        <ProgressRing value={fidelity ?? 0} size={168} strokeWidth={14} color={colors.accent} gradientTo={colors.system.teal}>
+          <Text style={[styles.finalScoreValue, { color: colors.text.primary }]}>
+            {fidelity === null ? '–' : fidelity}
+          </Text>
+          <Text style={typography.footnote}>
+            {fidelity === null ? t('Rien de prévu aujourd’hui') : getScoreLabel(fidelity, t)}
+          </Text>
         </ProgressRing>
       </View>
 
@@ -224,7 +224,7 @@ export default function EveningWrapScreen() {
           title={t('Evening Wrap')}
           description={t('Termine ta journée proprement et prépare la suivante.')}
           points={[
-            t('Consulte ton score et le détail de ta journée.'),
+            t('Consulte ta fidélité du jour et l’équilibre de ta semaine.'),
             t('Décide quoi faire des tâches non terminées : demain, cette semaine ou supprimer.'),
             t('Ajoute une courte note avant de valider ta journée.'),
           ]}

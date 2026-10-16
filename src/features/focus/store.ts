@@ -2,7 +2,6 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { persistOptions } from '../../utils/persistence';
 import { generateId } from '../../utils/id';
-import { useDayScoreStore } from '../../features/dayScore/store';
 import { FocusSession, FocusState } from '../../types/focus';
 import { dateKey } from '../../utils/dates';
 
@@ -218,7 +217,6 @@ export const useFocusStore = create<FocusStoreState>()(
                   : session
               );
             }
-            useDayScoreStore.getState().incrementPomodoro(completedDate);
             sessionPomodoroCount += 1;
             dailyPomodoroCount += 1;
             timeRemaining = BREAK_MINUTES * 60;

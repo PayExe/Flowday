@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import {
   averageScore,
+  balancePercent,
   buildWeekScore,
   largestGap,
   periodDays,
@@ -24,19 +25,8 @@ function log(overrides: Partial<BlockLog>): BlockLog {
   };
 }
 
-function score(date: string, total: number): DayScore {
-  return {
-    date,
-    total,
-    blocksPercent: 0,
-    tasksPercent: 0,
-    pomodorosPercent: 0,
-    ritualsPercent: 0,
-    pomodorosCompleted: 0,
-    pomodorosGoal: 4,
-    morningRitualDone: false,
-    eveningWrapDone: false,
-  };
+function score(date: string, fidelity: number, blocksTracked = 2): DayScore {
+  return { date, fidelity, blocksTracked };
 }
 
 const slots = [
@@ -146,10 +136,37 @@ describe('largest gap', () => {
   });
 });
 
-describe('week score', () => {
-  const scores = [score('2026-09-29', 50), score('2026-10-05', 80), score('2026-10-06', 61), score('2026-10-12', 99)];
+describe('balance', () => {
+  it('averages each domain lived share of its plan, capped so an overflow never compensates', () => {
+    expect(
+      balancePercent({
+        sport: { plannedMinutes: 360, livedMinutes: 90, unratedMinutes: 0 },
+        work: { plannedMinutes: 1200, livedMinutes: 1860, unratedMinutes: 0 },
+      })
+    ).toBe(63);
+  });
 
-  it('averages the day scores of the period only', () => {
+  it('ignores domains with nothing planned, and has nothing to say without a plan', () => {
+    expect(
+      balancePercent({
+        reading: { plannedMinutes: 120, livedMinutes: 60, unratedMinutes: 0 },
+        learning: { plannedMinutes: 0, livedMinutes: 50, unratedMinutes: 0 },
+      })
+    ).toBe(50);
+    expect(balancePercent({ learning: { plannedMinutes: 0, livedMinutes: 50, unratedMinutes: 0 } })).toBeNull();
+  });
+});
+
+describe('week score', () => {
+  const scores = [
+    score('2026-09-29', 50),
+    score('2026-10-05', 80),
+    score('2026-10-06', 61),
+    score('2026-10-07', 0, 0),
+    score('2026-10-12', 99),
+  ];
+
+  it('averages the fidelity of the days that had something planned', () => {
     expect(averageScore(scores, week)).toBe(71);
     expect(averageScore(scores, { from: '2026-10-13', to: '2026-10-19' })).toBeNull();
   });

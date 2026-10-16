@@ -4,19 +4,17 @@ import Animated, { useAnimatedStyle, useSharedValue, withSequence, withSpring } 
 import { useTheme } from '../../theme';
 import { useTranslation } from '../../i18n';
 import { hapticSuccess } from '../../utils/haptics';
-import { Card, ProgressBar } from '../ui/List';
+import { Card } from '../ui/List';
 import { ProgressRing } from '../ui/ProgressRing';
 import { Celebration } from '../ui/Celebration';
 
 export const CELEBRATION_SCORE = 80;
 const HYDRATION_GRACE_MS = 1500;
+const RING_SIZE = 96;
 
 interface ScoreCardProps {
-  score: number;
-  blocksPercent?: number;
-  tasksPercent?: number;
-  pomodorosPercent?: number;
-  ritualsPercent?: number;
+  fidelity: number | null;
+  balance: number | null;
 }
 
 export function getScoreLabel(score: number, t: (key: string) => string): string {
@@ -28,25 +26,46 @@ export function getScoreLabel(score: number, t: (key: string) => string): string
   return t('scoreIncomplete');
 }
 
-export function ScoreCard({
-  score,
-  blocksPercent = 0,
-  tasksPercent = 0,
-  pomodorosPercent = 0,
-  ritualsPercent = 0,
-}: ScoreCardProps) {
+function useCountUp(value: number): number {
+  const [display, setDisplay] = useState(0);
+  const current = useRef(0);
+
+  useEffect(() => {
+    const duration = 600;
+    const startTime = Date.now();
+    const startValue = current.current;
+    let frame: number;
+
+    const animate = () => {
+      const progress = Math.min((Date.now() - startTime) / duration, 1);
+      const eased = 1 - Math.pow(1 - progress, 3);
+      current.current = Math.round(startValue + (value - startValue) * eased);
+      setDisplay(current.current);
+      if (progress < 1) frame = requestAnimationFrame(animate);
+    };
+
+    frame = requestAnimationFrame(animate);
+    return () => cancelAnimationFrame(frame);
+  }, [value]);
+
+  return display;
+}
+
+export function ScoreCard({ fidelity, balance }: ScoreCardProps) {
   const { colors, typography } = useTheme();
   const { t } = useTranslation();
 
-  const [displayScore, setDisplayScore] = useState(0);
   const [burst, setBurst] = useState(0);
   const ringScale = useSharedValue(1);
   const mountedAt = useRef(Date.now());
-  const previousScore = useRef(score);
+  const previousFidelity = useRef(fidelity ?? 0);
+  const displayFidelity = useCountUp(fidelity ?? 0);
+  const displayBalance = useCountUp(balance ?? 0);
 
   useEffect(() => {
-    const crossed = previousScore.current < CELEBRATION_SCORE && score >= CELEBRATION_SCORE;
-    previousScore.current = score;
+    const value = fidelity ?? 0;
+    const crossed = previousFidelity.current < CELEBRATION_SCORE && value >= CELEBRATION_SCORE;
+    previousFidelity.current = value;
     if (!crossed || Date.now() - mountedAt.current < HYDRATION_GRACE_MS) return;
     hapticSuccess();
     setBurst((n) => n + 1);
@@ -54,84 +73,54 @@ export function ScoreCard({
       withSpring(1.08, { damping: 8, stiffness: 300 }),
       withSpring(1, { damping: 12, stiffness: 200 })
     );
-  }, [score, ringScale]);
+  }, [fidelity, ringScale]);
 
   const ringStyle = useAnimatedStyle(() => ({
     transform: [{ scale: ringScale.value }],
   }));
 
-  useEffect(() => {
-    const duration = 600;
-    const startTime = Date.now();
-    const startValue = displayScore;
-    let frame: number;
-
-    const animate = () => {
-      const elapsed = Date.now() - startTime;
-      const progress = Math.min(elapsed / duration, 1);
-      const eased = 1 - Math.pow(1 - progress, 3);
-      setDisplayScore(Math.round(startValue + (score - startValue) * eased));
-      if (progress < 1) {
-        frame = requestAnimationFrame(animate);
-      }
-    };
-
-    frame = requestAnimationFrame(animate);
-    return () => cancelAnimationFrame(frame);
-  }, [score]);
-
-  const metrics = [
-    { label: t('Blocs'), value: blocksPercent, color: colors.system.blue },
-    { label: t('Tâches'), value: tasksPercent, color: colors.system.green },
-    { label: t('Focus'), value: pomodorosPercent, color: colors.system.purple },
-    { label: t('Rituels'), value: ritualsPercent, color: colors.system.orange },
-  ];
-
-  const hasData = score > 0 || metrics.some((m) => m.value > 0);
+  const axis = (
+    label: string,
+    period: string,
+    value: number | null,
+    display: number,
+    color: string,
+    gradientTo: string
+  ) => (
+    <View style={styles.axis} accessible accessibilityLabel={`${label}, ${period} : ${value === null ? '–' : `${value} %`}`}>
+      <ProgressRing value={value ?? 0} size={RING_SIZE} strokeWidth={10} color={color} gradientTo={gradientTo}>
+        <Text style={[styles.value, { color: colors.text.primary }]}>{value === null ? '–' : `${display}`}</Text>
+        {value !== null && <Text style={typography.caption}>%</Text>}
+      </ProgressRing>
+      <View style={styles.axisText}>
+        <Text style={typography.headline}>{label}</Text>
+        <Text style={typography.caption}>{period}</Text>
+      </View>
+    </View>
+  );
 
   return (
     <Card padded>
+      {fidelity !== null && (
+        <Text style={[typography.headline, styles.label]}>{getScoreLabel(fidelity, t)}</Text>
+      )}
       <View style={styles.row}>
-        <Animated.View style={ringStyle}>
-          <ProgressRing
-            value={score}
-            size={116}
-            strokeWidth={11}
-            color={colors.accent}
-            gradientTo={colors.system.teal}
-          >
-            <Text
-              style={[styles.score, { color: colors.text.primary }]}
-              accessibilityLabel={`${score} ${t('/100')}`}
-            >
-              {displayScore}
-            </Text>
-            <Text style={typography.caption}>{t('/100')}</Text>
-          </ProgressRing>
+        <Animated.View style={[styles.axisWrap, ringStyle]}>
+          {axis(t('Fidélité'), t('aujourd’hui'), fidelity, displayFidelity, colors.accent, colors.system.teal)}
           <Celebration
             trigger={burst}
-            radius={62}
+            radius={54}
             colors={[colors.accent, colors.system.teal, colors.system.yellow, colors.system.pink, colors.system.green]}
           />
         </Animated.View>
-
-        <View style={styles.metrics}>
-          <Text style={typography.headline}>{getScoreLabel(score, t)}</Text>
-          {metrics.map((metric) => (
-            <View key={metric.label} style={styles.metric}>
-              <View style={styles.metricLabels}>
-                <Text style={typography.footnote}>{metric.label}</Text>
-                <Text style={[typography.footnote, styles.tabular]}>{Math.round(metric.value)}%</Text>
-              </View>
-              <ProgressBar value={metric.value} color={metric.color} height={4} />
-            </View>
-          ))}
+        <View style={styles.axisWrap}>
+          {axis(t('Équilibre'), t('cette semaine'), balance, displayBalance, colors.system.green, colors.system.teal)}
         </View>
       </View>
 
-      {!hasData && (
+      {fidelity === null && balance === null && (
         <Text style={[typography.footnote, styles.hint]}>
-          {t('Complète tes blocs, tâches et rituels pour remplir ton score.')}
+          {t('Valide tes blocs à la fin de chaque créneau pour mesurer ta journée.')}
         </Text>
       )}
     </Card>
@@ -139,32 +128,31 @@ export function ScoreCard({
 }
 
 const styles = StyleSheet.create({
+  label: {
+    marginBottom: 14,
+  },
   row: {
     flexDirection: 'row',
-    alignItems: 'center',
-    gap: 20,
+    justifyContent: 'space-around',
   },
-  score: {
-    fontSize: 36,
+  axisWrap: {
+    alignItems: 'center',
+  },
+  axis: {
+    alignItems: 'center',
+    gap: 10,
+  },
+  axisText: {
+    alignItems: 'center',
+  },
+  value: {
+    fontSize: 30,
     fontWeight: '700',
     letterSpacing: -0.5,
     fontVariant: ['tabular-nums'],
   },
-  metrics: {
-    flex: 1,
-    gap: 8,
-  },
-  metric: {
-    gap: 4,
-  },
-  metricLabels: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-  },
-  tabular: {
-    fontVariant: ['tabular-nums'],
-  },
   hint: {
     marginTop: 14,
+    textAlign: 'center',
   },
 });

@@ -156,7 +156,7 @@ export default function SettingsScreen() {
         </View>
       </List>
 
-      <SectionHeader title={t('Score')} variant="plain" />
+      <SectionHeader title={t('Focus')} variant="plain" />
       <List separatorInset={58}>
         {renderCell(
           SymbolNames.timer,
@@ -187,7 +187,7 @@ export default function SettingsScreen() {
         )}
       </List>
       <SectionFooter>
-        {t('Sessions de 25 min pour un score Focus complet. À 0, le Focus ne compte plus dans le score.')}
+        {t('Le nombre de sessions de 25 min que tu vises chaque jour. Le temps de Focus compte dans le vécu du domaine de la tâche.')}
       </SectionFooter>
 
       <SectionHeader title={t('Morning Ritual')} variant="plain" />

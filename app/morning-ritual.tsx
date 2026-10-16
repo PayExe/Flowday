@@ -5,9 +5,7 @@ import { useRitualStore } from '../src/features/rituals/store';
 import { useTaskStore } from '../src/features/tasks/store';
 import { useTemplateStore } from '../src/features/templates/store';
 import { useLifeBlocksStore } from '../src/features/lifeBlocks/store';
-import { useDayScoreStore } from '../src/features/dayScore/store';
 import { radius, useTheme, withAlpha } from '../src/theme';
-import { dateKey } from '../src/utils/dates';
 import { formatLongDate } from '../src/utils/time';
 import { hapticLight } from '../src/utils/haptics';
 import { Mood } from '../src/types/ritual';
@@ -24,10 +22,6 @@ const MOODS: { value: Mood; label: string; symbol: string; color: 'red' | 'yello
   { value: 'meh', label: 'Bof', symbol: 'cloud.sun.fill', color: 'yellow' },
   { value: 'good', label: 'En forme', symbol: 'sun.max.fill', color: 'green' },
 ];
-
-function todayISO(): string {
-  return dateKey();
-}
 
 function capitalize(str: string): string {
   return str.charAt(0).toUpperCase() + str.slice(1);
@@ -52,8 +46,6 @@ export default function MorningRitualScreen() {
 
   const getTodayBlocks = useTemplateStore((state) => state.getTodayBlocks);
   const getBlockById = useLifeBlocksStore((state) => state.getBlockById);
-
-  const setMorningRitualDone = useDayScoreStore((state) => state.setMorningRitualDone);
 
   const stepKeys = useMemo<MorningStep[]>(() => {
     const configuredSteps: MorningStep[] = [];
@@ -91,7 +83,6 @@ export default function MorningRitualScreen() {
       mood: selectedMood || undefined,
       intention: intention.trim() || undefined,
     });
-    setMorningRitualDone(todayISO());
     router.replace('/');
   };
 

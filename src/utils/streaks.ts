@@ -1,5 +1,7 @@
 import { DayScore } from '../types/dayScore';
-import { addDays, calendarDayDifference, dateKey } from './dates';
+import { calendarDayDifference, dateKey, shiftDateKey } from './dates';
+
+export const STREAK_FIDELITY = 60;
 
 export interface StreakResult {
   currentStreak: number;
@@ -7,55 +9,28 @@ export interface StreakResult {
 }
 
 export function calculateStreaks(
-  scores: DayScore[],
-  threshold = 60,
-  maxGapDays = 0
+  scores: readonly DayScore[],
+  threshold = STREAK_FIDELITY,
+  today = dateKey()
 ): StreakResult {
-  if (scores.length === 0) {
-    return { currentStreak: 0, bestStreak: 0 };
-  }
-
   const sorted = [...scores].sort((a, b) => a.date.localeCompare(b.date));
 
-  let currentStreak = 0;
+  let streak = 0;
   let bestStreak = 0;
-  let tempStreak = 0;
+  let previous: string | null = null;
 
-  const today = dateKey();
-  const yesterday = dateKey(addDays(new Date(), -1));
+  for (const score of sorted) {
+    if (previous !== null && calendarDayDifference(previous, score.date) > 1) streak = 0;
+    previous = score.date;
 
-  for (let i = 0; i < sorted.length; i++) {
-    const score = sorted[i];
-    const isValid = score.total >= threshold;
+    // Nothing planned that day, or today is not over yet: the day neither counts nor breaks.
+    if (score.blocksTracked === 0) continue;
+    if (score.fidelity < threshold && score.date === today) continue;
 
-    if (!isValid) {
-      tempStreak = 0;
-      continue;
-    }
-
-    if (i > 0 && tempStreak > 0) {
-      const prev = sorted[i - 1];
-      if (prev.total >= threshold) {
-        const diffDays = calendarDayDifference(prev.date, score.date);
-        if (diffDays > maxGapDays + 1) {
-          tempStreak = 0;
-        }
-      }
-    }
-
-    tempStreak += 1;
-    if (tempStreak > bestStreak) {
-      bestStreak = tempStreak;
-    }
-
-    if (i === sorted.length - 1) {
-      if (score.date === today || score.date === yesterday) {
-        currentStreak = tempStreak;
-      } else {
-        currentStreak = 0;
-      }
-    }
+    streak = score.fidelity >= threshold ? streak + 1 : 0;
+    bestStreak = Math.max(bestStreak, streak);
   }
 
-  return { currentStreak, bestStreak };
+  const alive = previous === today || previous === shiftDateKey(today, -1);
+  return { currentStreak: alive ? streak : 0, bestStreak };
 }

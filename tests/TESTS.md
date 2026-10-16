@@ -14,17 +14,17 @@ npm run typecheck
 
 ## Couverture
 
-La suite couvre actuellement **117 cas** répartis sur 19 fichiers, un par domaine
+La suite couvre actuellement **120 cas** répartis sur 19 fichiers, un par domaine
 fonctionnel.
 
 | Fichier | Cas | Ce qui est couvert |
 |---|---:|---|
 | `notification-schedule.test.ts` | 15 | Planification des rappels : rituels, début et fin des blocs, anticipation, priorité des fins de bloc dans le budget iOS |
-| `review.test.ts` | 14 | Bilan : bornes semaine et mois, prévu par domaine à partir du premier jour du journal, créneaux sans réponse comptés à part, durée prévue gardée après un changement de semaine type, plus gros écart, score moyen comparé à la semaine précédente |
+| `review.test.ts` | 16 | Bilan : bornes semaine et mois, prévu par domaine à partir du premier jour du journal, créneaux sans réponse comptés à part, durée prévue gardée après un changement de semaine type, plus gros écart, Équilibre plafonné par domaine, fidélité moyenne comparée à la semaine précédente |
 | `block-logs.test.ts` | 12 | Journal du vécu : minutes déduites du statut, minutes du Focus par domaine sans double comptage, fidélité des blocs sans tâche, créneaux à venir ignorés, écriture dans le store |
-| `score.test.ts` | 9 | Calcul du score, limite à 100, parts sans rien à mesurer dont le poids est réparti |
+| `score.test.ts` | 7 | Fidélité du jour : part du prévu vécue, journée sans rien de prévu, enregistrement dans le store, migration depuis l'ancien score à quatre catégories |
 | `day-navigation.test.ts` | 9 | Clés de date, tâches par jour, navigation entre les journées |
-| `tasks.test.ts` | 7 | Ajout, validation, filtrage, replanification, et undo après suppression |
+| `tasks.test.ts` | 6 | Ajout, validation, filtrage, replanification, et undo après suppression |
 | `pomodoro.test.ts` | 8 | Transitions focus → pause → focus, pause et reprise, rattrapage après arrière-plan, domaine repris de la tâche, secondes de focus par jour |
 | `ritual-schedule.test.ts` | 6 | Ouverture automatique des rituels, report avec « Plus tard » |
 | `block-end-notification.test.ts` | 5 | Réponses à la notification de fin de bloc : statut écrit au journal, date du bloc, contenus invalides ignorés |
@@ -37,7 +37,7 @@ fonctionnel.
 | `onboarding.test.ts` | 3 | Premier lancement et détection des utilisateurs existants |
 | `i18n.test.ts` | 2 | Complétude des traductions FR/EN |
 | `backup.test.ts` | 1 | Export JSON des données locales |
-| `streaks.test.ts` | 1 | Calcul des séries |
+| `streaks.test.ts` | 5 | Séries à 60 % de fidélité : trou, journée sous le seuil, journée sans rien de prévu, journée en cours |
 
 ## Portée
 

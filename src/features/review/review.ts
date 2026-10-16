@@ -121,10 +121,18 @@ export function largestGap(review: Record<string, DomainReview>): ReviewGap | nu
   return largest;
 }
 
+export function balancePercent(review: Record<string, DomainReview>): number | null {
+  const ratios = Object.values(review)
+    .filter((domain) => domain.plannedMinutes > 0)
+    .map((domain) => Math.min(domain.livedMinutes / domain.plannedMinutes, 1));
+  if (ratios.length === 0) return null;
+  return Math.round((ratios.reduce((sum, ratio) => sum + ratio, 0) / ratios.length) * 100);
+}
+
 export function averageScore(scores: readonly DayScore[], { from, to }: PeriodRange): number | null {
-  const inRange = scores.filter((score) => score.date >= from && score.date <= to);
+  const inRange = scores.filter((score) => score.date >= from && score.date <= to && score.blocksTracked > 0);
   if (inRange.length === 0) return null;
-  return Math.round(inRange.reduce((sum, score) => sum + score.total, 0) / inRange.length);
+  return Math.round(inRange.reduce((sum, score) => sum + score.fidelity, 0) / inRange.length);
 }
 
 export function buildWeekScore(scores: readonly DayScore[], startDate: string): WeekScore | null {
@@ -140,7 +148,7 @@ export function buildWeekScore(scores: readonly DayScore[], startDate: string): 
       to: shiftDateKey(startDate, -1),
     }),
     dayScores: scores
-      .filter((score) => score.date >= range.from && score.date <= range.to)
+      .filter((score) => score.date >= range.from && score.date <= range.to && score.blocksTracked > 0)
       .sort((a, b) => a.date.localeCompare(b.date)),
   };
 }
