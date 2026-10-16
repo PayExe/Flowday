@@ -194,7 +194,7 @@ export default function WeekScreen() {
             title={t('Semaine')}
             description={t('Construis une semaine type qui servira de base à ton planning quotidien.')}
             points={[
-              t('Crée d’abord tes blocs de vie dans l’onglet Blocs.'),
+              t('Crée d’abord tes blocs de vie dans l’onglet Bilan.'),
               t('Ajoute ensuite des créneaux à chaque jour.'),
               t('Appuie sur un créneau pour modifier ses horaires ou le supprimer.'),
             ]}

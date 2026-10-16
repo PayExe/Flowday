@@ -14,12 +14,13 @@ npm run typecheck
 
 ## Couverture
 
-La suite couvre actuellement **103 cas** répartis sur 18 fichiers, un par domaine
+La suite couvre actuellement **117 cas** répartis sur 19 fichiers, un par domaine
 fonctionnel.
 
 | Fichier | Cas | Ce qui est couvert |
 |---|---:|---|
 | `notification-schedule.test.ts` | 15 | Planification des rappels : rituels, début et fin des blocs, anticipation, priorité des fins de bloc dans le budget iOS |
+| `review.test.ts` | 14 | Bilan : bornes semaine et mois, prévu par domaine à partir du premier jour du journal, créneaux sans réponse comptés à part, durée prévue gardée après un changement de semaine type, plus gros écart, score moyen comparé à la semaine précédente |
 | `block-logs.test.ts` | 12 | Journal du vécu : minutes déduites du statut, minutes du Focus par domaine sans double comptage, fidélité des blocs sans tâche, créneaux à venir ignorés, écriture dans le store |
 | `score.test.ts` | 9 | Calcul du score, limite à 100, parts sans rien à mesurer dont le poids est réparti |
 | `day-navigation.test.ts` | 9 | Clés de date, tâches par jour, navigation entre les journées |

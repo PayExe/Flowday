@@ -64,6 +64,7 @@ const SF_TO_IONICON: Record<string, keyof typeof Ionicons.glyphMap> = {
   'tag.fill': 'pricetag',
   'folder.fill': 'folder',
   'doc.text.fill': 'document-text',
+  'chart.bar': 'bar-chart-outline',
   'chart.bar.fill': 'bar-chart',
   'eye.fill': 'eye',
   'eye.slash.fill': 'eye-off',
