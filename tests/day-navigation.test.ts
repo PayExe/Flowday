@@ -7,7 +7,6 @@ import {
   weekDayIndex,
 } from '../src/utils/dates';
 import { useTaskStore } from '../src/features/tasks/store';
-import { useDayScoreStore } from '../src/features/dayScore/store';
 
 vi.mock('@react-native-async-storage/async-storage', () => ({
   default: {
@@ -46,7 +45,6 @@ describe('date keys', () => {
 describe('tasks per day', () => {
   beforeEach(() => {
     useTaskStore.setState({ tasks: [] });
-    useDayScoreStore.setState({ scores: [], currentDayScore: null, pomodoroGoal: 6 });
   });
 
   const addTask = (title: string, scheduledDate?: string, lifeBlockId?: string) =>

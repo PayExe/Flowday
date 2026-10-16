@@ -7,10 +7,12 @@ import { useLifeBlocksStore } from '../../src/features/lifeBlocks/store';
 import { useDayScoreStore } from '../../src/features/dayScore/store';
 import { useRitualStore } from '../../src/features/rituals/store';
 import { useFocusStore } from '../../src/features/focus/store';
+import { balancePercent, periodRange } from '../../src/features/review/review';
+import { useReview } from '../../src/features/review/useReview';
 import { useTheme } from '../../src/theme';
 import { dateKey } from '../../src/utils/dates';
 import { addDays } from '../../src/utils/dates';
-import { formatLongDate, timeToMinutes } from '../../src/utils/time';
+import { currentMinutes, formatLongDate, timeToMinutes } from '../../src/utils/time';
 import { SymbolNames } from '../../src/components/ui/Symbol';
 import { IconButton } from '../../src/components/ui/Glass';
 import { Card, IconTile, List, Row, SectionHeader } from '../../src/components/ui/List';
@@ -31,11 +33,6 @@ function todayISO(): string {
   return dateKey();
 }
 
-function currentMinutes(): number {
-  const now = new Date();
-  return now.getHours() * 60 + now.getMinutes();
-}
-
 const CHART_HEIGHT = 96;
 
 
@@ -46,8 +43,10 @@ export default function HomeScreen() {
 
   const scores = useDayScoreStore((state) => state.scores);
   const getScoreForDate = useDayScoreStore((state) => state.getScoreForDate);
-  const getAllScores = useDayScoreStore((state) => state.getAllScores);
   const todayScore = useMemo(() => getScoreForDate(todayISO()), [scores, getScoreForDate]);
+  const today = todayISO();
+  const thisWeek = useMemo(() => periodRange('week', 0, today), [today]);
+  const balance = balancePercent(useReview(thisWeek));
 
   const hasDoneMorningToday = useRitualStore((state) => state.hasDoneMorningToday);
   const getTodayLog = useRitualStore((state) => state.getTodayLog);
@@ -125,8 +124,7 @@ export default function HomeScreen() {
     };
   }, [templateBlocks, getBlockById, t, colors]);
 
-  const normalizedScores = useMemo(() => getAllScores(), [scores, getAllScores]);
-  const streaks = useMemo(() => calculateStreaks(normalizedScores), [normalizedScores]);
+  const streaks = useMemo(() => calculateStreaks(scores), [scores]);
 
   const last7Days = useMemo(() => {
     const dayShort = ['daySunShort', 'dayMonShort', 'dayTueShort', 'dayWedShort', 'dayThuShort', 'dayFriShort', 'daySatShort'].map((key) => t(key));
@@ -134,11 +132,11 @@ export default function HomeScreen() {
     for (let i = 6; i >= 0; i--) {
       const d = addDays(new Date(), -i);
       const iso = dateKey(d);
-      const s = normalizedScores.find((sc) => sc.date === iso);
-      result.push({ key: iso, label: dayShort[d.getDay()], score: s?.total || 0 });
+      const s = scores.find((sc) => sc.date === iso);
+      result.push({ key: iso, label: dayShort[d.getDay()], score: s && s.blocksTracked > 0 ? s.fidelity : null });
     }
     return result;
-  }, [normalizedScores, t]);
+  }, [scores, t]);
 
   return (
     <>
@@ -156,11 +154,10 @@ export default function HomeScreen() {
               title={t('Aujourd’hui')}
               description={t('Ton tableau de bord du jour : score, prochain bloc, séries et tâches prioritaires.')}
               points={[
-                t('Le score /100 se compose des blocs (40 %), des tâches (30 %), du focus (20 %) et des rituels (10 %).'),
-                t('Un bloc compte quand tu le valides dans le Planning : Fait, En partie ou Pas fait. Un bloc passé sans réponse compte comme manqué.'),
-                t('Une catégorie sans rien à mesurer ce jour-là ne compte pas : son poids est réparti sur les autres.'),
+                t('La Fidélité, c’est la part de ta journée prévue que tu as vraiment vécue : Fait compte en entier, En partie à moitié, Pas fait ou sans réponse ne compte pas.'),
+                t('L’Équilibre regarde ta semaine : pour chaque domaine, le vécu face au prévu, plafonné à 100 %. Un domaine qui déborde ne rattrape pas celui qu’il a pris.'),
                 t('« En ce moment / Prochain bloc » reflète ton planning actuel.'),
-                t('Les Streaks comptent tes journées à 60+ points consécutives.'),
+                t('Les Streaks comptent tes journées consécutives à 60 % de fidélité ou plus. Une journée sans rien de prévu ne casse pas la série.'),
                 t('Les tâches prioritaires sont tes 3 tâches en cours les plus importantes.'),
               ]}
             />
@@ -177,11 +174,8 @@ export default function HomeScreen() {
           {!morningDone && <RitualPrompt />}
 
           <ScoreCard
-            score={todayScore?.total || 0}
-            blocksPercent={todayScore?.blocksPercent}
-            tasksPercent={todayScore?.tasksPercent}
-            pomodorosPercent={todayScore?.pomodorosPercent}
-            ritualsPercent={todayScore?.ritualsPercent}
+            fidelity={todayScore && todayScore.blocksTracked > 0 ? todayScore.fidelity : null}
+            balance={balance}
           />
         </View>
 
@@ -295,12 +289,12 @@ export default function HomeScreen() {
           <View style={styles.chart}>
             {last7Days.map((day) => {
               const isToday = day.key === todayISO();
-              const barHeight = day.score > 0 ? Math.max(6, (day.score / 100) * CHART_HEIGHT) : 4;
+              const barHeight = day.score !== null ? Math.max(6, (day.score / 100) * CHART_HEIGHT) : 4;
               return (
                 <View
                   key={day.key}
                   style={styles.chartColumn}
-                  accessibilityLabel={`${day.label} ${day.score} ${t('/100')}`}
+                  accessibilityLabel={`${day.label} ${day.score === null ? '–' : `${day.score} %`}`}
                 >
                   <Text
                     style={[
@@ -310,7 +304,7 @@ export default function HomeScreen() {
                       isToday && styles.strong,
                     ]}
                   >
-                    {day.score > 0 ? day.score : '–'}
+                    {day.score !== null ? day.score : '–'}
                   </Text>
                   <View style={styles.chartTrack}>
                     <View
@@ -319,7 +313,7 @@ export default function HomeScreen() {
                         borderRadius: 6,
                         backgroundColor: isToday
                           ? colors.accent
-                          : day.score > 0
+                          : day.score !== null
                             ? colors.system.gray3
                             : colors.bg.tertiary,
                       }}

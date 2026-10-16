@@ -3,20 +3,17 @@ import { Pressable, Text, View, StyleSheet } from 'react-native';
 import Animated, { FadeIn, FadeOut, LayoutAnimationConfig } from 'react-native-reanimated';
 import { useRouter } from 'expo-router';
 import { useLifeBlocksStore } from '../../src/features/lifeBlocks/store';
-import { useTemplateStore } from '../../src/features/templates/store';
-import { useBlockLogStore } from '../../src/features/blockLogs/store';
-import { focusCredits } from '../../src/features/blockLogs/lived';
-import { useFocusStore } from '../../src/features/focus/store';
 import { useDayScoreStore } from '../../src/features/dayScore/store';
 import {
   averageScore,
+  balancePercent,
   buildWeekScore,
   largestGap,
   periodDays,
   periodRange,
   ReviewPeriod,
-  reviewByBlock,
 } from '../../src/features/review/review';
+import { useReview } from '../../src/features/review/useReview';
 import { dateKey } from '../../src/utils/dates';
 import { LifeBlock, LifeBlockColor } from '../../src/types/lifeBlock';
 import { LifeBlockCard } from '../../src/components/lifeBlocks/LifeBlockCard';
@@ -35,11 +32,6 @@ import { Symbol, SymbolNames } from '../../src/components/ui/Symbol';
 import { useTranslation } from '../../src/i18n';
 
 
-function currentMinutes(): number {
-  const now = new Date();
-  return now.getHours() * 60 + now.getMinutes();
-}
-
 export default function BlocksScreen() {
   const { colors, typography } = useTheme();
   const { t } = useTranslation();
@@ -55,26 +47,16 @@ export default function BlocksScreen() {
   const reorderBlock = useLifeBlocksStore((state) => state.reorderBlock);
   const getActiveBlocks = useLifeBlocksStore((state) => state.getActiveBlocks);
 
-  const getActiveTemplate = useTemplateStore((state) => state.getActiveTemplate);
-  const templates = useTemplateStore((state) => state.templates);
-  const blockLogs = useBlockLogStore((state) => state.logs);
-  const focusSessions = useFocusStore((state) => state.sessions);
   const scores = useDayScoreStore((state) => state.scores);
 
   const [period, setPeriod] = useState<ReviewPeriod>('week');
   const [offset, setOffset] = useState(0);
   const today = dateKey();
-  const nowMinutes = currentMinutes();
   const range = useMemo(() => periodRange(period, offset, today), [period, offset, today]);
+  const review = useReview(range);
+  const balance = balancePercent(review);
 
-  const focus = useMemo(() => focusCredits(focusSessions), [focusSessions]);
-  const review = useMemo(() => {
-    const activeIds = new Set(blocks.filter((block) => !block.isArchived).map((block) => block.id));
-    const slots = (getActiveTemplate()?.blocks ?? []).filter((slot) => activeIds.has(slot.lifeBlockId));
-    return reviewByBlock({ slots, logs: blockLogs, focus, range, today, nowMinutes });
-  }, [blocks, templates, getActiveTemplate, blockLogs, focus, range, today, nowMinutes]);
-
-  const scoreSummary = useMemo(() => {
+  const fidelitySummary = useMemo(() => {
     if (period === 'week') {
       const week = buildWeekScore(scores, range.from);
       return week && { average: week.averageDayScore, previous: week.previousWeekAverage };
@@ -85,8 +67,7 @@ export default function BlocksScreen() {
 
   const activeBlocks = getActiveBlocks();
   const archivedBlocks = blocks.filter((b) => b.isArchived);
-  const activeReview = activeBlocks.map((block) => review[block.id]).filter(Boolean);
-  const totals = activeReview.reduce(
+  const totals = Object.values(review).reduce(
     (sum, domain) => ({
       planned: sum.planned + domain.plannedMinutes,
       lived: sum.lived + domain.livedMinutes,
@@ -94,11 +75,9 @@ export default function BlocksScreen() {
     }),
     { planned: 0, lived: 0, unrated: 0 }
   );
-  const gap = largestGap(
-    Object.fromEntries(activeBlocks.filter((block) => review[block.id]).map((block) => [block.id, review[block.id]]))
-  );
+  const gap = largestGap(review);
   const gapBlock = gap && activeBlocks.find((block) => block.id === gap.lifeBlockId);
-  const delta = scoreSummary?.previous != null ? scoreSummary.average - scoreSummary.previous : null;
+  const delta = fidelitySummary?.previous != null ? fidelitySummary.average - fidelitySummary.previous : null;
 
   const handleCreate = useCallback(() => {
     setEditingBlock(null);
@@ -215,20 +194,25 @@ export default function BlocksScreen() {
                   {t('Rien de mesuré sur cette période. Valide tes blocs ou lance un Focus : ton vécu apparaîtra ici.')}
                 </Text>
               )}
-              {scoreSummary && (
-                <>
-                  <View style={[styles.divider, { backgroundColor: colors.separator.hairline }]} />
-                  <Text style={typography.body}>
-                    {t('averageScore', { score: scoreSummary.average })}
-                    {delta !== null && (
-                      <Text style={[typography.footnote, { color: colors.text.secondary }]}>
-                        {`  ${t(period === 'week' ? 'vsPreviousWeek' : 'vsPreviousMonth', {
-                          delta: delta > 0 ? `+${delta}` : `${delta}`,
-                        })}`}
-                      </Text>
-                    )}
-                  </Text>
-                </>
+              {(fidelitySummary || balance !== null) && (
+                <View style={[styles.divider, { backgroundColor: colors.separator.hairline }]} />
+              )}
+              {fidelitySummary && (
+                <Text style={typography.body}>
+                  {t('averageFidelity', { score: fidelitySummary.average })}
+                  {delta !== null && (
+                    <Text style={[typography.footnote, { color: colors.text.secondary }]}>
+                      {`  ${t(period === 'week' ? 'vsPreviousWeek' : 'vsPreviousMonth', {
+                        delta: delta > 0 ? `+${delta}` : `${delta}`,
+                      })}`}
+                    </Text>
+                  )}
+                </Text>
+              )}
+              {balance !== null && (
+                <Text style={[typography.body, fidelitySummary && styles.summaryLine]}>
+                  {t('balanceValue', { score: balance })}
+                </Text>
               )}
             </Card>
 

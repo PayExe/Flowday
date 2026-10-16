@@ -37,8 +37,8 @@ const FEATURES = [
   {
     symbol: 'chart.pie.fill',
     color: '#30D158',
-    title: 'Score du jour',
-    subtitle: 'Blocs, tâches, focus et rituels résumés en un chiffre sur 100.',
+    title: 'Fidélité et équilibre',
+    subtitle: 'Ce que tu as vécu face à ce que tu avais prévu, chaque jour et sur la semaine.',
   },
 ] as const;
 

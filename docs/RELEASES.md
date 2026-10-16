@@ -9,7 +9,7 @@ raconte pas, ne se teste pas et ne se communique pas.
 | Version | Thèse | État |
 |---|---|---|
 | **0.2.0** | « L'app est belle, et elle mesure ce que tu vis » | ✅ livrée, taguée `v0.2.0` |
-| **0.3.0** | « L'app te montre l'écart » | 🟡 en cours (audit, notification de fin de bloc, Focus par domaine, Bilan ; reste le score) |
+| **0.3.0** | « L'app te montre l'écart » | 🟡 contenu terminé, reste les tests sur appareil et la publication sur `main` |
 | **0.4.0** | « L'app est publiable et testée par de vraies personnes » | ⚪️ plus tard |
 | **0.5.0+** | « L'app est présente hors de l'app » (widgets, calendrier) | ⚪️ quand il y aura un Mac |
 
@@ -177,9 +177,24 @@ Les deux moitiés comptent : la collecte sans friction, et la restitution.
      compté comme un écart.
    - Le plus gros écart confirmé (30 min ou plus) donne une phrase factuelle, qui
      renvoie vers la semaine type (ROADMAP, point 20).
-   - `WeekScore` est branché : score moyen de la période, comparé à la précédente.
-4. **Le score à deux axes** — Fidélité / Équilibre, en remplacement des quatre
-   catégories et de `updateBlockValidation`. *(décision à confirmer, cf. ROADMAP §9)*
+   - `WeekScore` est branché : fidélité moyenne de la période, comparée à la
+     précédente, et Équilibre de la période.
+4. ✅ **Le score à deux axes** — à tester sur appareil. Remplace les quatre catégories
+   pondérées et `updateBlockValidation`.
+   - **Fidélité (du jour)** : la part du prévu vécue — Fait 1, En partie 0,5, Pas fait
+     ou sans réponse 0. Sans réponse compte 0 ici, sinon ne pas répondre protégerait
+     le score ; le Bilan, lui, l'affiche à part.
+   - **Équilibre (de la semaine)** : pour chaque domaine prévu, vécu ÷ prévu plafonné à
+     100 %, moyenné sans pondération. Un domaine qui déborde ne rattrape pas celui
+     qu'il a pris. Calculé depuis le journal, rien de plus n'est stocké.
+   - Les tâches, le Focus et les rituels sortent du score. Le Focus compte déjà dans
+     le vécu de son domaine ; l'objectif de pomodoros reste affiché, sans noter la
+     journée.
+   - Séries à 60 % de fidélité, célébration à 80 %. Une journée sans rien de prévu ne
+     casse pas la série, et la journée en cours ne la casse qu'une fois finie.
+   - Migration `flowday-dayscores` v1 → v2 : on garde `blocksPercent`, qui était déjà
+     la part du prévu vécue. Les jours sans `blocksTracked` (avant la 0.2.0) deviennent
+     des journées sans rien à mesurer : on n'invente pas de fidélité.
 
 ### Déjà livré en 0.2.0 — à ne pas refaire
 

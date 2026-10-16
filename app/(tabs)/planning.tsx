@@ -8,7 +8,7 @@ import { useRitualStore } from '../../src/features/rituals/store';
 import { useFocusStore } from '../../src/features/focus/store';
 import { useTheme } from '../../src/theme';
 import { dateKey, parseDateKey, relativeDay, weekDayIndex } from '../../src/utils/dates';
-import { formatDuration, formatLongDate, timeToMinutes } from '../../src/utils/time';
+import { currentMinutes, formatDuration, formatLongDate, timeToMinutes } from '../../src/utils/time';
 import { SymbolNames } from '../../src/components/ui/Symbol';
 import { Button, IconButton } from '../../src/components/ui/Glass';
 import { IconTile, List, Row, SectionHeader } from '../../src/components/ui/List';
@@ -36,11 +36,6 @@ import { useTranslation } from '../../src/i18n';
 
 function todayISO(): string {
   return dateKey();
-}
-
-function currentMinutes(): number {
-  const now = new Date();
-  return now.getHours() * 60 + now.getMinutes();
 }
 
 type TimelineItem = {

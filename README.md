@@ -72,7 +72,7 @@ Other features include:
 - Block validation (done, partial or skipped), from the planning or straight from the end-of-block notification.
 - Review tab: planned versus lived time per life block, by week or month, with Focus time credited to its area.
 - Tasks with priorities, completion tracking, rescheduling and undo on delete.
-- Daily score and streak tracking.
+- Two-axis score: fidelity to today's plan and weekly balance across life blocks, with streaks.
 - Morning Ritual and Evening Wrap workflows.
 - Focus mode with Pomodoro sessions.
 - First-launch onboarding with starter life blocks.
