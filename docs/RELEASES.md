@@ -9,7 +9,7 @@ raconte pas, ne se teste pas et ne se communique pas.
 | Version | Thèse | État |
 |---|---|---|
 | **0.2.0** | « L'app est belle, et elle mesure ce que tu vis » | ✅ livrée, taguée `v0.2.0` |
-| **0.3.0** | « L'app te montre l'écart » | 🟡 en cours (audit, notification de fin de bloc, Focus par domaine) |
+| **0.3.0** | « L'app te montre l'écart » | 🟡 en cours (audit, notification de fin de bloc, Focus par domaine, Bilan ; reste le score) |
 | **0.4.0** | « L'app est publiable et testée par de vraies personnes » | ⚪️ plus tard |
 | **0.5.0+** | « L'app est présente hors de l'app » (widgets, calendrier) | ⚪️ quand il y aura un Mac |
 
@@ -162,10 +162,22 @@ Les deux moitiés comptent : la collecte sans friction, et la restitution.
      grand entre les blocs validés et le Focus.
    - Les anciennes sessions n'ont ni domaine ni détail par jour : elles ne créditent
      rien, on n'invente pas de données. Champs facultatifs, donc pas de migration.
-3. **L'écran Bilan** — le nouvel onglet, qui fait passer l'app de 5 à 6. Semaine et
-   mois, prévu vs vécu par domaine. Branche enfin `WeekScore`
-   (`src/types/dayScore.ts:18`), aujourd'hui type mort. **C'est l'écran qui justifie
-   l'application.**
+3. ✅ **L'écran Bilan** — branche `v0.3.0/bilan`, à tester sur appareil.
+   - **Il remplace l'onglet Blocs** au lieu d'en ajouter un sixième : sur iPhone, iOS
+     n'affiche que 5 onglets et range le reste dans « Plus ». L'écran Blocs montrait
+     déjà le vécu de la semaine ; la gestion des domaines (ajout, édition, archivage)
+     reste dans le Bilan.
+   - Semaine et mois, navigation entre les périodes, prévu vs vécu par domaine
+     (`src/features/review/review.ts`).
+   - Le prévu vient de la semaine type active ; pour un créneau déjà noté, on garde
+     la durée enregistrée dans le journal. Rien n'est prévu avant le premier jour du
+     journal : on n'invente pas d'écart. Les créneaux pas encore terminés aujourd'hui
+     ne comptent pas.
+   - Un créneau sans réponse est affiché à part, « non renseigné », et n'est pas
+     compté comme un écart.
+   - Le plus gros écart confirmé (30 min ou plus) donne une phrase factuelle, qui
+     renvoie vers la semaine type (ROADMAP, point 20).
+   - `WeekScore` est branché : score moyen de la période, comparé à la précédente.
 4. **Le score à deux axes** — Fidélité / Équilibre, en remplacement des quatre
    catégories et de `updateBlockValidation`. *(décision à confirmer, cf. ROADMAP §9)*
 
@@ -181,7 +193,7 @@ Parce qu'ils touchent au même code, autant les faire ici :
 
 - ❌ `estimatedMinutes` (`src/types/task.ts:11`) — champ mort, à supprimer ou à
   brancher sur le calcul de capacité.
-- ❌ `WeekScore` — cesse d'être mort en étant branché sur l'écran Bilan (point 3).
+- ✅ `WeekScore` — branché sur l'écran Bilan (point 3).
 - 〽️ `isFlexible` — trancher : lui donner un effet réel (décalage automatique quand
   la journée glisse) ou le retirer. Un réglage qui ne fait rien érode la confiance.
 - 〽️ `initializeDefaults` (`templates/store.ts:181`) — remplacer les index

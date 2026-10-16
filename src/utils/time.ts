@@ -20,3 +20,12 @@ const MONTHS = [
 export function formatLongDate(date: Date, t: (key: string) => string): string {
   return `${t(WEEKDAYS[date.getDay()])} ${date.getDate()} ${t(MONTHS[date.getMonth()])}`;
 }
+
+export function formatDayMonth(date: Date, t: (key: string) => string): string {
+  return `${date.getDate()} ${t(MONTHS[date.getMonth()])}`;
+}
+
+export function formatMonthYear(date: Date, t: (key: string) => string): string {
+  const month = t(MONTHS[date.getMonth()]);
+  return `${month.charAt(0).toUpperCase()}${month.slice(1)} ${date.getFullYear()}`;
+}

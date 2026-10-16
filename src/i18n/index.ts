@@ -20,15 +20,21 @@ fr['scoreIncomplete'] = 'Journée à compléter';
 fr['blocksKeptCount'] = ({ count }) => `${count} bloc${count === 1 ? '' : 's'} gardé${count === 1 ? '' : 's'}`;
 fr['pendingTasksCount'] = ({ count }) => `${count} tâche${count === 1 ? '' : 's'} en attente`;
 fr['plannedBlocksCount'] = ({ count }) => `${count} bloc${count === 1 ? '' : 's'} prévu${count === 1 ? '' : 's'}`;
-fr['activeBlocksCount'] = ({ count }) => `${count} bloc${count === 1 ? '' : 's'} actif${count === 1 ? '' : 's'}`;
 fr['streakCount'] = ({ count }) => `${count} jour${count === 1 ? '' : 's'} consécutif${count === 1 ? '' : 's'}`;
 fr['bestStreakCount'] = ({ count }) => `Record : ${count} jour${count === 1 ? '' : 's'}`;
 fr['tasksCount'] = ({ count }) => `${count} tâche${count === 1 ? '' : 's'}`;
 fr['otherCount'] = ({ count }) => `+${count} autre${count === 1 ? '' : 's'}`;
 fr['daySunShort'] = 'D'; fr['dayMonShort'] = 'L'; fr['dayTueShort'] = 'M'; fr['dayWedShort'] = 'M'; fr['dayThuShort'] = 'J'; fr['dayFriShort'] = 'V'; fr['daySatShort'] = 'S';
 fr['plannedDuration'] = ({ duration }) => `${duration} planifiées`;
-fr['livedOfGoal'] = ({ lived, goal, planned }) => `${lived} vécu sur ${goal} · ${planned} prévu`;
 fr['livedOfPlanned'] = ({ lived, planned }) => `${lived} vécu sur ${planned} prévu`;
+fr['livedOfPlannedTotal'] = ({ planned }) => `vécu sur ${planned} prévu`;
+fr['livedUnplanned'] = ({ lived }) => `${lived} vécu, rien de prévu`;
+fr['weeklyGoalShort'] = ({ goal }) => `objectif ${goal}/sem.`;
+fr['unratedDuration'] = ({ duration }) => `${duration} non renseigné`;
+fr['averageScore'] = ({ score }) => `Score moyen ${score}/100`;
+fr['vsPreviousWeek'] = ({ delta }) => `${delta} vs semaine précédente`;
+fr['vsPreviousMonth'] = ({ delta }) => `${delta} vs mois précédent`;
+fr['gapInsight'] = ({ name, lived, planned }) => `${name} : ${lived} vécu sur ${planned} prévu. Tu veux réduire le créneau ?`;
 fr['weekSummary'] = ({ count, duration }) => `${count} créneau${count === 1 ? '' : 'x'} · ${duration}`;
 fr['slotsToCreate'] = ({ count }) => `${count} créneaux seront créés.`;
 fr['overlapOnDay'] = ({ day, timeRange }) => `${day} : chevauchement avec ${timeRange}`;
@@ -54,15 +60,21 @@ en['scoreIncomplete'] = 'Day to complete';
 en['blocksKeptCount'] = ({ count }) => `${count} block${count === 1 ? '' : 's'} kept`;
 en['pendingTasksCount'] = ({ count }) => `${count} pending task${count === 1 ? '' : 's'}`;
 en['plannedBlocksCount'] = ({ count }) => `${count} planned block${count === 1 ? '' : 's'}`;
-en['activeBlocksCount'] = ({ count }) => `${count} active block${count === 1 ? '' : 's'}`;
 en['streakCount'] = ({ count }) => `${count} consecutive day${count === 1 ? '' : 's'}`;
 en['bestStreakCount'] = ({ count }) => `Record: ${count} day${count === 1 ? '' : 's'}`;
 en['tasksCount'] = ({ count }) => `${count} task${count === 1 ? '' : 's'}`;
 en['otherCount'] = ({ count }) => `+${count} other${count === 1 ? '' : 's'}`;
 en['daySunShort'] = 'S'; en['dayMonShort'] = 'M'; en['dayTueShort'] = 'T'; en['dayWedShort'] = 'W'; en['dayThuShort'] = 'T'; en['dayFriShort'] = 'F'; en['daySatShort'] = 'S';
 en['plannedDuration'] = ({ duration }) => `${duration} planned`;
-en['livedOfGoal'] = ({ lived, goal, planned }) => `${lived} lived of ${goal} · ${planned} planned`;
 en['livedOfPlanned'] = ({ lived, planned }) => `${lived} lived of ${planned} planned`;
+en['livedOfPlannedTotal'] = ({ planned }) => `lived of ${planned} planned`;
+en['livedUnplanned'] = ({ lived }) => `${lived} lived, nothing planned`;
+en['weeklyGoalShort'] = ({ goal }) => `goal ${goal}/wk`;
+en['unratedDuration'] = ({ duration }) => `${duration} not rated`;
+en['averageScore'] = ({ score }) => `Average score ${score}/100`;
+en['vsPreviousWeek'] = ({ delta }) => `${delta} vs previous week`;
+en['vsPreviousMonth'] = ({ delta }) => `${delta} vs previous month`;
+en['gapInsight'] = ({ name, lived, planned }) => `${name}: ${lived} lived of ${planned} planned. Want to shorten the slot?`;
 en['weekSummary'] = ({ count, duration }) => `${count} slot${count === 1 ? '' : 's'} · ${duration}`;
 en['slotsToCreate'] = ({ count }) => `${count} slots will be created.`;
 en['overlapOnDay'] = ({ day, timeRange }) => `${day}: overlaps with ${timeRange}`;
@@ -166,7 +178,23 @@ const shared: Record<string, TranslationValue> = {
   'Un bloc compte quand tu le valides dans le Planning : Fait, En partie ou Pas fait. Un bloc passé sans réponse compte comme manqué.': 'A block counts when you rate it in Planning: Done, Partly or Not done. A past block left unrated counts as missed.',
   'En partie': 'Partly', 'Pas fait': 'Not done', 'À valider': 'To rate',
   'Comment ça s’est passé ?': 'How did it go?', 'Tu pourras le valider le jour venu.': 'You can rate it when the day comes.',
-  'Rien de prévu cette semaine': 'Nothing planned this week',
+  'Rien de prévu sur cette période': 'Nothing planned for this period',
+  'Bilan': 'Review', 'Mois': 'Month', 'Domaines': 'Areas',
+  'Semaine dernière': 'Last week', 'Ce mois-ci': 'This month', 'Le mois dernier': 'Last month',
+  'Période précédente': 'Previous period', 'Période suivante': 'Next period',
+  'Revenir à la période en cours': 'Back to the current period',
+  'Ajuster la semaine type': 'Adjust the weekly template',
+  'Vécu, sans rien de prévu': 'Lived, with nothing planned',
+  'Rien de mesuré sur cette période. Valide tes blocs ou lance un Focus : ton vécu apparaîtra ici.':
+    'Nothing measured for this period. Rate your blocks or start a Focus: your lived time will show up here.',
+  'Ce que tu avais prévu, face à ce que tu as vécu, pour chaque domaine de ta vie.':
+    'What you planned, next to what you lived, for each area of your life.',
+  'Le prévu vient de ta semaine type, le vécu de tes blocs validés et de tes sessions Focus.':
+    'Planned time comes from your weekly template, lived time from your rated blocks and Focus sessions.',
+  'Un créneau sans réponse est compté à part, comme non renseigné.':
+    'A slot left unanswered is counted separately, as not rated.',
+  'Appuie sur un domaine pour le modifier, ou sur ••• pour le réordonner ou l’archiver.':
+    'Tap an area to edit it, or ••• to reorder or archive it.',
   'Le temps vécu se remplit quand tu valides tes blocs et avec tes sessions Focus.': 'Lived time fills in as you rate your blocks and run Focus sessions.',
   'Données': 'Data', 'Données Flowday': 'Flowday data', 'Exporter mes données': 'Export my data',
   'Export impossible. Réessaie.': 'Export failed. Try again.',
@@ -191,7 +219,7 @@ const shared: Record<string, TranslationValue> = {
   'Le total indique le temps planifié sur toute la semaine.': 'The total shows the planned time for the whole week.',
   'La timeline de ta journée, heure par heure, avec tes tâches et tes blocs.': 'Your day timeline, hour by hour, with tasks and blocks.',
   'Organise ta journée avec une timeline, des tâches et des blocs de vie.': 'Organize your day with a timeline, tasks and life blocks.',
-  'Crée d’abord un template dans Semaine et des blocs de vie dans Blocs.': 'First create a template in Week and life blocks in Blocks.',
+  'Crée d’abord un template dans Semaine et des blocs de vie dans Bilan.': 'First create a template in Week and life blocks in Review.',
   'Une fois configuré, ajoute tes tâches et associe-les au bon bloc.': 'Once configured, add your tasks and assign them to the right block.',
   'Ajoute une tâche en haut, puis choisis éventuellement son bloc de vie.': 'Add a task at the top, then optionally choose its life block.',
   'Appuie sur une tâche pour la modifier ou lancer une session Focus.': 'Tap a task to edit it or start a Focus session.',
@@ -207,7 +235,7 @@ const shared: Record<string, TranslationValue> = {
   'Démarrer Focus pour': 'Start Focus for',
   'Ajouter un bloc le': 'Add a block on', 'Définis ton template hebdomadaire': 'Define your weekly template',
   'Construis une semaine type qui servira de base à ton planning quotidien.': 'Build a typical week to use as the basis for your daily schedule.',
-  'Crée d’abord tes blocs de vie dans l’onglet Blocs.': 'First create your life blocks in the Blocks tab.',
+  'Crée d’abord tes blocs de vie dans l’onglet Bilan.': 'First create your life blocks in the Review tab.',
   'Utilise + pour ajouter un créneau à un jour.': 'Use + to add a time slot to a day.',
   'Appuie sur un créneau pour modifier ses horaires ou le supprimer.': 'Tap a time slot to edit its hours or delete it.',
   'Ton planning type, répété chaque semaine.': 'Your typical schedule, repeated every week.',
@@ -230,9 +258,6 @@ const shared: Record<string, TranslationValue> = {
   'Mets la session en pause ou reprends-la à tout moment.': 'Pause or resume the session at any time.',
   'Abandonner arrête la session sans la comptabiliser comme terminée.': 'Abandoning stops the session without counting it as completed.',
   'Blocs de vie': 'Life blocks',
-  'Tes grands domaines de vie (travail, sport, santé…) et leur objectif hebdomadaire.': 'Your main areas of life (work, sport, health…) and their weekly goal.',
-  'La barre montre ton temps vécu cette semaine par rapport à l’objectif.': 'The bar shows your lived time this week against your goal.',
-  'Appuie sur un bloc pour le modifier ou l’archiver.': 'Tap a block to edit or archive it.',
   'Utilise les flèches ↑ ↓ pour réordonner les blocs.': 'Use the ↑ ↓ arrows to reorder blocks.',
   'Fermer': 'Close', 'Aide': 'Help', 'Auto': 'Auto', 'Apparence': 'Appearance', 'Passer': 'Skip', 'Suivant': 'Next',
   'Priorité': 'Priority', 'Basse': 'Low', 'Moyenne': 'Medium', 'Haute': 'High', 'Terminée': 'Completed',
@@ -243,7 +268,6 @@ const shared: Record<string, TranslationValue> = {
   'Utilise + pour ajouter une tâche et l’associer à un bloc.': 'Use + to add a task and assign it to a block.',
   'Ajoute ensuite des créneaux à chaque jour.': 'Then add time slots to each day.',
   'Ajoute des créneaux à chaque jour avec « Ajouter un créneau ».': 'Add time slots to each day with “Add a time slot”.',
-  'Le bouton ••• permet de réordonner ou d’archiver un bloc.': 'The ••• button lets you reorder or archive a block.',
   'Le thème Auto suit l’apparence de ton iPhone.': 'The Auto theme follows your iPhone’s appearance.',
   'Lundi': 'Monday', 'Mardi': 'Tuesday', 'Mercredi': 'Wednesday', 'Jeudi': 'Thursday',
   'Vendredi': 'Friday', 'Samedi': 'Saturday', 'Dimanche': 'Sunday',

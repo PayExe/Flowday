@@ -228,7 +228,7 @@ export default function PlanningScreen() {
             title={t('Planning')}
             description={t('Organise ta journée avec une timeline, des tâches et des blocs de vie.')}
             points={[
-              t('Crée d’abord un template dans Semaine et des blocs de vie dans Blocs.'),
+              t('Crée d’abord un template dans Semaine et des blocs de vie dans Bilan.'),
               t('Une fois configuré, ajoute tes tâches et associe-les au bon bloc.'),
             ]}
           />

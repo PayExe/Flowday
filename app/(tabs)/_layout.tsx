@@ -9,7 +9,7 @@ const TABS = [
   { name: 'index', title: 'Aujourd’hui', icon: 'house', selectedIcon: 'house.fill' },
   { name: 'planning', title: 'Planning', icon: 'calendar.day.timeline.left', selectedIcon: 'calendar.day.timeline.left' },
   { name: 'week', title: 'Semaine', icon: 'calendar', selectedIcon: 'calendar' },
-  { name: 'blocks', title: 'Blocs', icon: 'square.grid.2x2', selectedIcon: 'square.grid.2x2.fill' },
+  { name: 'blocks', title: 'Bilan', icon: 'chart.bar', selectedIcon: 'chart.bar.fill' },
   { name: 'settings', title: 'Réglages', icon: 'gearshape', selectedIcon: 'gearshape.fill' },
 ] as const;
 

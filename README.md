@@ -69,13 +69,14 @@ Flowday is a personal planning mobile application built with React Native and Ex
 
 Other features include:
 
-- Block validation (done, partial or skipped) and lived time per life block.
+- Block validation (done, partial or skipped), from the planning or straight from the end-of-block notification.
+- Review tab: planned versus lived time per life block, by week or month, with Focus time credited to its area.
 - Tasks with priorities, completion tracking, rescheduling and undo on delete.
 - Daily score and streak tracking.
 - Morning Ritual and Evening Wrap workflows.
 - Focus mode with Pomodoro sessions.
 - First-launch onboarding with starter life blocks.
-- Local notifications for rituals, block starts and the end of a Pomodoro.
+- Local notifications for rituals, block starts and ends, and the end of a Pomodoro.
 - French and English, switchable in the settings.
 - Light and dark themes.
 - Haptic feedback and reusable mobile components.
@@ -145,7 +146,6 @@ Possible future improvements include:
 - improving accessibility and automated UI testing;
 - adding cloud synchronization;
 - adding a restore path for the exported data;
-- showing planned versus lived time per life block over a week and a month;
 - refining the focus and planning workflows;
 - publishing a production build.
 
