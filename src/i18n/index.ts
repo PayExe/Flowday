@@ -185,6 +185,7 @@ const shared: Record<string, TranslationValue> = {
   'En partie': 'Partly', 'Pas fait': 'Not done', 'À valider': 'To rate',
   'Comment ça s’est passé ?': 'How did it go?', 'Tu pourras le valider le jour venu.': 'You can rate it when the day comes.',
   'Rien de prévu sur cette période': 'Nothing planned for this period',
+  'Pas encore mesuré sur cette période': 'Not measured yet for this period',
   'Bilan': 'Review', 'Mois': 'Month', 'Domaines': 'Areas',
   'Semaine dernière': 'Last week', 'Ce mois-ci': 'This month', 'Le mois dernier': 'Last month',
   'Période précédente': 'Previous period', 'Période suivante': 'Next period',

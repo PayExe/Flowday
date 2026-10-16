@@ -67,13 +67,14 @@ interface PlannedSlot {
 export function blockFidelity(
   slots: readonly PlannedSlot[],
   logs: readonly Pick<BlockLog, 'templateBlockId' | 'status'>[],
-  nowMinutes: number
+  nowMinutes: number,
+  fromMinutes = -1
 ): { validated: number; tracked: number } {
   let validated = 0;
   let tracked = 0;
   for (const slot of slots) {
     const log = logs.find((candidate) => candidate.templateBlockId === slot.templateBlockId);
-    if (!log && slot.endMinutes > nowMinutes) continue;
+    if (!log && (slot.endMinutes > nowMinutes || slot.endMinutes <= fromMinutes)) continue;
     tracked += 1;
     if (log) validated += STATUS_CREDIT[log.status];
   }

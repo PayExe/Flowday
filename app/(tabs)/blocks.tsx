@@ -53,7 +53,7 @@ export default function BlocksScreen() {
   const [offset, setOffset] = useState(0);
   const today = dateKey();
   const range = useMemo(() => periodRange(period, offset, today), [period, offset, today]);
-  const review = useReview(range);
+  const { domains: review, measured } = useReview(range);
   const balance = balancePercent(review);
 
   const fidelitySummary = useMemo(() => {
@@ -270,6 +270,7 @@ export default function BlocksScreen() {
                         livedMinutes={lived}
                         plannedMinutes={planned}
                         unratedMinutes={domain?.unratedMinutes ?? 0}
+                        measured={measured}
                         onEdit={() => handleEdit(block)}
                         onMoveUp={() => reorderBlock(block.id, 'up')}
                         onMoveDown={() => reorderBlock(block.id, 'down')}

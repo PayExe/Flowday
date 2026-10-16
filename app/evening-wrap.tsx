@@ -64,7 +64,7 @@ export default function EveningWrapScreen() {
   const score = useMemo(() => getScoreForDate(today), [scores, getScoreForDate, today]);
   const fidelity = score && score.blocksTracked > 0 ? score.fidelity : null;
   const thisWeek = useMemo(() => periodRange('week', 0, today), [today]);
-  const balance = balancePercent(useReview(thisWeek));
+  const balance = balancePercent(useReview(thisWeek).domains);
 
   const handleDelete = (taskId: string) => {
     Alert.alert(

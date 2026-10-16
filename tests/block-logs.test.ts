@@ -111,6 +111,14 @@ describe('block fidelity', () => {
     });
   });
 
+  it('does not count a slot that ended before measuring started, unless it was rated', () => {
+    expect(blockFidelity(slots, [], Infinity, 15 * 60)).toEqual({ validated: 0, tracked: 1 });
+    expect(blockFidelity(slots, [{ templateBlockId: 'morning', status: 'done' }], Infinity, 15 * 60)).toEqual({
+      validated: 1,
+      tracked: 2,
+    });
+  });
+
   it('counts a slot rated early, before it ends', () => {
     expect(blockFidelity(slots, [{ templateBlockId: 'evening', status: 'done' }], 9 * 60)).toEqual({
       validated: 1,

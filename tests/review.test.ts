@@ -53,7 +53,17 @@ describe('review periods', () => {
     expect(trackingStart([], [])).toBeNull();
     expect(
       trackingStart([log({ date: '2026-10-06' })], [{ date: '2026-10-04', lifeBlockId: 'sport', minutes: 25 }])
-    ).toBe('2026-10-04');
+    ).toEqual({ day: '2026-10-04', fromMinutes: -1 });
+  });
+
+  it('starts tracking when the onboarding ended, unless the journal is older', () => {
+    const installedAt = new Date(2026, 9, 5, 15, 30).toISOString();
+    expect(trackingStart([], [], installedAt)).toEqual({ day: '2026-10-05', fromMinutes: 15 * 60 + 30 });
+    expect(trackingStart([log({ date: '2026-10-07' })], [], installedAt)).toEqual({
+      day: '2026-10-05',
+      fromMinutes: 15 * 60 + 30,
+    });
+    expect(trackingStart([log({ date: '2026-09-30' })], [], installedAt)).toEqual({ day: '2026-09-30', fromMinutes: -1 });
   });
 });
 
@@ -88,6 +98,13 @@ describe('planned vs lived', () => {
     const review = reviewByBlock({ ...base, logs: [log({ date: '2026-10-07', templateBlockId: 'sport-wed' })] });
     expect(review.work).toBeUndefined();
     expect(review.sport.plannedMinutes).toBe(60);
+  });
+
+  it('counts nothing that ended before the app was installed', () => {
+    const trackingSince = new Date(2026, 9, 5, 15, 30).toISOString();
+    expect(reviewByBlock({ ...base, logs: [], trackingSince })).toEqual({
+      sport: { plannedMinutes: 120, livedMinutes: 0, unratedMinutes: 120 },
+    });
   });
 
   it('ignores slots that are still to come today, and future days', () => {

@@ -46,7 +46,7 @@ export default function HomeScreen() {
   const todayScore = useMemo(() => getScoreForDate(todayISO()), [scores, getScoreForDate]);
   const today = todayISO();
   const thisWeek = useMemo(() => periodRange('week', 0, today), [today]);
-  const balance = balancePercent(useReview(thisWeek));
+  const balance = balancePercent(useReview(thisWeek).domains);
 
   const hasDoneMorningToday = useRitualStore((state) => state.hasDoneMorningToday);
   const getTodayLog = useRitualStore((state) => state.getTodayLog);

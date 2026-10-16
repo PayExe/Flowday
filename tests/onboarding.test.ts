@@ -23,6 +23,17 @@ describe('onboarding', () => {
     expect(isReturningUser({ tasks: [], ritualLogs: [], lifeBlocks: [...starters, { id: 'abc' }] })).toBe(true);
   });
 
+  it('remembers when the first onboarding ended, even if it is replayed', async () => {
+    const { useOnboardingStore } = await import('../src/features/onboarding/store');
+    useOnboardingStore.setState({ completed: false, completedAt: undefined });
+    useOnboardingStore.getState().complete();
+    const first = useOnboardingStore.getState().completedAt;
+    expect(first).toEqual(expect.any(String));
+
+    useOnboardingStore.getState().complete();
+    expect(useOnboardingStore.getState().completedAt).toBe(first);
+  });
+
   it('removes the week slots of declined blocks', () => {
     useTemplateStore.setState({ templates: [], activeTemplateId: null });
     useTemplateStore.getState().initializeDefaults(['default-work', 'default-sport', 'default-health']);

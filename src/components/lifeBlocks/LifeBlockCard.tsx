@@ -14,6 +14,7 @@ interface LifeBlockCardProps {
   livedMinutes: number;
   plannedMinutes: number;
   unratedMinutes: number;
+  measured?: boolean;
   onEdit: () => void;
   onMoveUp: () => void;
   onMoveDown: () => void;
@@ -28,6 +29,7 @@ export function LifeBlockCard({
   livedMinutes,
   plannedMinutes,
   unratedMinutes,
+  measured = true,
   onEdit,
   onMoveUp,
   onMoveDown,
@@ -39,7 +41,7 @@ export function LifeBlockCard({
   const { t } = useTranslation();
   const openMenu = useActionMenu();
   const hasGoal = block.weeklyGoalMinutes > 0;
-  const hasTarget = hasGoal || plannedMinutes > 0;
+  const hasTarget = measured && (hasGoal || plannedMinutes > 0);
 
   const handleArchive = () => {
     hapticWarning();
@@ -90,14 +92,16 @@ export function LifeBlockCard({
               {block.name}
             </Text>
             <Text style={[typography.footnote, styles.subtitle]}>
-              {plannedMinutes > 0
-                ? t('livedOfPlanned', {
-                    lived: formatDuration(livedMinutes),
-                    planned: formatDuration(plannedMinutes),
-                  })
-                : livedMinutes > 0
-                  ? t('livedUnplanned', { lived: formatDuration(livedMinutes) })
-                  : t('Rien de prévu sur cette période')}
+              {!measured
+                ? t('Pas encore mesuré sur cette période')
+                : plannedMinutes > 0
+                  ? t('livedOfPlanned', {
+                      lived: formatDuration(livedMinutes),
+                      planned: formatDuration(plannedMinutes),
+                    })
+                  : livedMinutes > 0
+                    ? t('livedUnplanned', { lived: formatDuration(livedMinutes) })
+                    : t('Rien de prévu sur cette période')}
               {hasGoal ? ` · ${t('weeklyGoalShort', { goal: formatDuration(block.weeklyGoalMinutes) })}` : ''}
             </Text>
             {unratedMinutes > 0 && (

@@ -2,7 +2,7 @@ import { BlockLog } from '../../types/blockLog';
 import { DayScore, WeekScore } from '../../types/dayScore';
 import { TemplateBlock } from '../../types/template';
 import { calendarDayDifference, dateKey, parseDateKey, shiftDateKey, weekDayIndex } from '../../utils/dates';
-import { timeToMinutes } from '../../utils/time';
+import { currentMinutes, timeToMinutes } from '../../utils/time';
 import { FocusCredit, livedMinutesByBlock } from '../blockLogs/lived';
 
 export type ReviewPeriod = 'week' | 'month';
@@ -27,12 +27,27 @@ export function periodDays({ from, to }: PeriodRange): number {
   return calendarDayDifference(from, to) + 1;
 }
 
-export function trackingStart(logs: readonly BlockLog[], focus: readonly FocusCredit[]): string | null {
+export interface TrackingStart {
+  day: string;
+  fromMinutes: number;
+}
+
+// Measuring starts when the onboarding ended, or on the first rated block or Focus day
+// if that came earlier. Slots that ended before that moment were never lived with the app.
+export function trackingStart(
+  logs: readonly BlockLog[],
+  focus: readonly FocusCredit[],
+  trackingSince?: string | null
+): TrackingStart | null {
   let first: string | null = null;
   for (const { date } of [...logs, ...focus]) {
     if (first === null || date < first) first = date;
   }
-  return first;
+  const since = trackingSince ? new Date(trackingSince) : null;
+  if (since && !Number.isNaN(since.getTime()) && (first === null || dateKey(since) <= first)) {
+    return { day: dateKey(since), fromMinutes: currentMinutes(since) };
+  }
+  return first === null ? null : { day: first, fromMinutes: -1 };
 }
 
 export interface DomainReview {
@@ -48,6 +63,7 @@ interface ReviewInput {
   range: PeriodRange;
   today: string;
   nowMinutes: number;
+  trackingSince?: string | null;
 }
 
 export function reviewByBlock({
@@ -57,13 +73,14 @@ export function reviewByBlock({
   range,
   today,
   nowMinutes,
+  trackingSince,
 }: ReviewInput): Record<string, DomainReview> {
   const review: Record<string, DomainReview> = {};
   const entry = (lifeBlockId: string) =>
     (review[lifeBlockId] ??= { plannedMinutes: 0, livedMinutes: 0, unratedMinutes: 0 });
 
-  const start = trackingStart(logs, focus);
-  const from = start && start > range.from ? start : range.from;
+  const start = trackingStart(logs, focus, trackingSince);
+  const from = start && start.day > range.from ? start.day : range.from;
   const to = today < range.to ? today : range.to;
 
   if (start !== null && from <= to) {
@@ -83,6 +100,7 @@ export function reviewByBlock({
         if (log) continue;
         const end = timeToMinutes(slot.endTime);
         if (day === today && end > nowMinutes) continue;
+        if (day === start.day && end <= start.fromMinutes) continue;
         const minutes = end - timeToMinutes(slot.startTime);
         entry(slot.lifeBlockId).plannedMinutes += minutes;
         entry(slot.lifeBlockId).unratedMinutes += minutes;
