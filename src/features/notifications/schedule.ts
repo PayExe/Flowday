@@ -1,21 +1,17 @@
 import { shiftWeekDay } from '../../utils/dates';
 import { timeToMinutes } from '../../utils/time';
 
-/**
- * iOS keeps at most 64 pending local notifications per app and silently drops
- * the rest, so we budget ourselves a margin below that limit.
- */
 export const MAX_SCHEDULED_NOTIFICATIONS = 56;
 
 export const OWNED_PREFIX = 'flowday-';
 export const MORNING_ID = `${OWNED_PREFIX}morning-ritual`;
 export const EVENING_ID = `${OWNED_PREFIX}evening-wrap`;
 export const FOCUS_ID = `${OWNED_PREFIX}focus-alert`;
+export const BLOCK_END_CATEGORY = `${OWNED_PREFIX}block-end`;
 export const MINUTES_IN_DAY = 24 * 60;
 
 export type PlannedTrigger =
   | { kind: 'daily'; hour: number; minute: number }
-  /** `weekday` keeps the app's Monday-first indexing (0 = Monday). */
   | { kind: 'weekly'; weekday: number; hour: number; minute: number };
 
 export interface PlannedNotification {
@@ -23,6 +19,8 @@ export interface PlannedNotification {
   title: string;
   body: string;
   route?: string;
+  categoryId?: string;
+  data?: Record<string, string | number>;
   trigger: PlannedTrigger;
 }
 
@@ -41,18 +39,25 @@ export interface BlockReminderInput {
   body: string;
 }
 
+export interface BlockEndInput {
+  id: string;
+  lifeBlockId: string;
+  dayOfWeek: number;
+  startTime: string;
+  endTime: string;
+  title: string;
+  body: string;
+}
+
 export interface NotificationPlanInput {
   morning?: RitualReminderInput;
   evening?: RitualReminderInput;
   blocks?: BlockReminderInput[];
+  blockEnds?: BlockEndInput[];
   leadMinutes?: number;
   max?: number;
 }
 
-/**
- * Moves a weekly slot back by `minutes`, rolling over to the previous day when
- * the lead time crosses midnight (a 00:15 block reminded 30 min early).
- */
 export function shiftSlotBack(
   dayOfWeek: number,
   time: string,
@@ -87,15 +92,39 @@ function ritualNotification(
   };
 }
 
-/**
- * Turns the user's configuration into the exact set of local notifications to
- * register. Rituals come first because they are the backbone of the day and
- * must never be pushed out of the budget by a crowded template.
- */
+type WeeklyTrigger = Extract<PlannedTrigger, { kind: 'weekly' }>;
+
+function byWeekTime(a: PlannedNotification, b: PlannedNotification): number {
+  const left = a.trigger as WeeklyTrigger;
+  const right = b.trigger as WeeklyTrigger;
+  return left.weekday - right.weekday || left.hour - right.hour || left.minute - right.minute;
+}
+
+function blockEndNotification(block: BlockEndInput): PlannedNotification | null {
+  const start = timeToMinutes(block.startTime);
+  const end = timeToMinutes(block.endTime);
+  if (!Number.isFinite(start) || !Number.isFinite(end) || end <= start) return null;
+  return {
+    id: `${OWNED_PREFIX}block-end-${block.id}`,
+    title: block.title,
+    body: block.body,
+    route: '/planning',
+    categoryId: BLOCK_END_CATEGORY,
+    data: {
+      templateBlockId: block.id,
+      lifeBlockId: block.lifeBlockId,
+      dayOfWeek: block.dayOfWeek,
+      plannedMinutes: end - start,
+    },
+    trigger: { kind: 'weekly', ...shiftSlotBack(block.dayOfWeek, block.endTime, 0) },
+  };
+}
+
 export function planNotifications({
   morning,
   evening,
   blocks = [],
+  blockEnds = [],
   leadMinutes = 0,
   max = MAX_SCHEDULED_NOTIFICATIONS,
 }: NotificationPlanInput): PlannedNotification[] {
@@ -116,7 +145,6 @@ export function planNotifications({
   for (const block of blocks) {
     if (!Number.isFinite(timeToMinutes(block.startTime))) continue;
     const slot = shiftSlotBack(block.dayOfWeek, block.startTime, leadMinutes);
-    // Two blocks starting at the same minute would buzz twice for one event.
     const key = `${slot.weekday}-${slot.hour}-${slot.minute}`;
     if (seen.has(key)) continue;
     seen.add(key);
@@ -129,31 +157,28 @@ export function planNotifications({
     });
   }
 
-  blockNotifications.sort((a, b) => {
-    const left = a.trigger as Extract<PlannedTrigger, { kind: 'weekly' }>;
-    const right = b.trigger as Extract<PlannedTrigger, { kind: 'weekly' }>;
-    return (
-      left.weekday - right.weekday ||
-      left.hour - right.hour ||
-      left.minute - right.minute
-    );
-  });
+  blockNotifications.sort(byWeekTime);
 
-  return [...planned, ...blockNotifications].slice(0, Math.max(0, max));
+  const endNotifications = blockEnds
+    .map(blockEndNotification)
+    .filter((item): item is PlannedNotification => item !== null)
+    .sort(byWeekTime);
+
+  return [...planned, ...endNotifications, ...blockNotifications].slice(0, Math.max(0, max));
 }
 
-/** expo-notifications counts weekdays from 1 = Sunday; the app counts 0 = Monday. */
 export function toExpoWeekday(weekday: number): number {
   return weekday === 6 ? 1 : weekday + 2;
 }
 
-/** A stable signature used to avoid re-registering an unchanged plan. */
 export function planSignature(planned: PlannedNotification[]): string {
   return planned
-    .map((item) =>
-      item.trigger.kind === 'daily'
-        ? `${item.id}|${item.title}|${item.body}|d${item.trigger.hour}:${item.trigger.minute}`
-        : `${item.id}|${item.title}|${item.body}|w${item.trigger.weekday}:${item.trigger.hour}:${item.trigger.minute}`
-    )
+    .map((item) => {
+      const when =
+        item.trigger.kind === 'daily'
+          ? `d${item.trigger.hour}:${item.trigger.minute}`
+          : `w${item.trigger.weekday}:${item.trigger.hour}:${item.trigger.minute}`;
+      return `${item.id}|${item.title}|${item.body}|${when}|${JSON.stringify(item.data ?? {})}`;
+    })
     .join('~');
 }

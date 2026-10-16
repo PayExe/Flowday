@@ -44,11 +44,13 @@ export default function SettingsScreen() {
 
   const ritualsEnabled = useNotificationStore((state) => state.ritualsEnabled);
   const blocksEnabled = useNotificationStore((state) => state.blocksEnabled);
+  const blockEndsEnabled = useNotificationStore((state) => state.blockEndsEnabled);
   const blockLeadMinutes = useNotificationStore((state) => state.blockLeadMinutes);
   const focusEnabled = useNotificationStore((state) => state.focusEnabled);
   const permissionGranted = useNotificationStore((state) => state.permissionGranted);
   const setRitualsEnabled = useNotificationStore((state) => state.setRitualsEnabled);
   const setBlocksEnabled = useNotificationStore((state) => state.setBlocksEnabled);
+  const setBlockEndsEnabled = useNotificationStore((state) => state.setBlockEndsEnabled);
   const setBlockLeadMinutes = useNotificationStore((state) => state.setBlockLeadMinutes);
   const setFocusEnabled = useNotificationStore((state) => state.setFocusEnabled);
   const setPermission = useNotificationStore((state) => state.setPermission);
@@ -59,7 +61,6 @@ export default function SettingsScreen() {
 
   const [scheduledCount, setScheduledCount] = useState(0);
 
-  // The root layout registers the reminders; we just report what landed.
   useEffect(() => {
     let cancelled = false;
     const refresh = async () => {
@@ -71,9 +72,8 @@ export default function SettingsScreen() {
       cancelled = true;
       clearTimeout(timer);
     };
-  }, [ritualsEnabled, blocksEnabled, blockLeadMinutes, permissionGranted, morningConfig, eveningConfig]);
+  }, [ritualsEnabled, blocksEnabled, blockEndsEnabled, blockLeadMinutes, permissionGranted, morningConfig, eveningConfig]);
 
-  // Turning a reminder on is the moment the permission actually matters.
   const enableWithPermission = useCallback(
     async (apply: (enabled: boolean) => void, enabled: boolean) => {
       if (!enabled) {
@@ -128,6 +128,7 @@ export default function SettingsScreen() {
             t('L’Evening Wrap s’ouvre après l’heure que tu définis.'),
             t('Flowday te prévient à l’heure de tes rituels, même app fermée.'),
             t('Un rappel au début de chaque créneau de ta semaine type.'),
+            t('À la fin de chaque créneau, réponds Fait, En partie ou Pas fait depuis la notification.'),
             t('Une alerte quand un pomodoro ou une pause se termine.'),
           ]}
         />
@@ -155,7 +156,7 @@ export default function SettingsScreen() {
         </View>
       </List>
 
-      <SectionHeader title={t('Score')} variant="plain" />
+      <SectionHeader title={t('Focus')} variant="plain" />
       <List separatorInset={58}>
         {renderCell(
           SymbolNames.timer,
@@ -186,7 +187,7 @@ export default function SettingsScreen() {
         )}
       </List>
       <SectionFooter>
-        {t('Sessions de 25 min pour un score Focus complet. À 0, le Focus ne compte plus dans le score.')}
+        {t('Le nombre de sessions de 25 min que tu vises chaque jour. Le temps de Focus compte dans le vécu du domaine de la tâche.')}
       </SectionFooter>
 
       <SectionHeader title={t('Morning Ritual')} variant="plain" />
@@ -277,6 +278,17 @@ export default function SettingsScreen() {
               onChange={setBlockLeadMinutes}
             />
           </View>
+        )}
+        {renderCell(
+          SymbolNames.checkmarkCircle,
+          colors.system.green,
+          t('Fin des blocs'),
+          <Switch
+            value={blockEndsEnabled}
+            onValueChange={(enabled) => void enableWithPermission(setBlockEndsEnabled, enabled)}
+            trackColor={{ true: colors.system.green }}
+            accessibilityLabel={t('Fin des blocs')}
+          />
         )}
         {renderCell(
           SymbolNames.timer,

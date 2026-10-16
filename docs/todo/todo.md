@@ -41,7 +41,8 @@
 ✅ À faire rapidement aussi
 - Corriger tests/TESTS.md : il indique maintenant 28 tests. ✅
 - Ajouter une section Known limitations dans le README. ✅
-- Vérifier les vulnérabilités avec npm audit, sans utiliser --force aveuglément. 〽️
-  22 vulnérabilités restent à traiter, dont certaines nécessitent des mises à jour majeures.
+- Vérifier les vulnérabilités avec npm audit, sans utiliser --force aveuglément. ✅
+  Audit du 8 octobre 2026 : 42 → 23, plus aucune critique. Les 3 failles d'origine
+  restantes sont sans correctif compatible, voir `docs/RELEASES.md`.
 - Ajouter quelques accessibilityLabel et accessibilityRole aux boutons avec icônes. ✅
 - Valider les valeurs dans les stores : objectifs négatifs, horaires invalides, identifiants inexistants. ✅

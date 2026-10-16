@@ -5,7 +5,6 @@ import { BlockLog, BlockStatus } from '../../types/blockLog';
 
 interface BlockLogState {
   logs: BlockLog[];
-  /** Records (or replaces) the outcome of one slot on one day. */
   setStatus: (entry: Omit<BlockLog, 'updatedAt'>) => void;
   clearStatus: (date: string, templateBlockId: string) => void;
   getLog: (date: string, templateBlockId: string) => BlockLog | undefined;

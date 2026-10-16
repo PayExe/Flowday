@@ -31,7 +31,6 @@ interface ListProps {
   children: ReactNode;
   separatorInset?: number;
   style?: StyleProp<ViewStyle>;
-  /** Animate rows being added, removed and reordered. Rows need stable keys. */
   animated?: boolean;
 }
 
@@ -43,7 +42,6 @@ export function List({ children, separatorInset = 16, style, animated }: ListPro
 
   if (animated) {
     return (
-      // Rows present on first render appear with the screen; only later arrivals animate in.
       <LayoutAnimationConfig skipEntering>
           <Animated.View
             layout={ROW_TRANSITION}

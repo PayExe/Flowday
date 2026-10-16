@@ -3,10 +3,6 @@ import Constants from 'expo-constants';
 
 const STORE_PREFIX = 'flowday-';
 
-/**
- * Everything Flowday keeps on the device, as one JSON document. Data never
- * leaves the phone otherwise, so this is the user's only copy outside the app.
- */
 export async function buildExport(now: Date = new Date()): Promise<string> {
   const keys = (await AsyncStorage.getAllKeys()).filter((key) => key.startsWith(STORE_PREFIX)).sort();
   const entries = await AsyncStorage.multiGet(keys);

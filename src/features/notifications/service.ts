@@ -1,6 +1,9 @@
 import { Platform } from 'react-native';
 import * as Notifications from 'expo-notifications';
+import { BlockStatus } from '../../types/blockLog';
+import { BLOCK_END_ACTIONS } from './blockEnd';
 import {
+  BLOCK_END_CATEGORY,
   FOCUS_ID,
   OWNED_PREFIX,
   PlannedNotification,
@@ -9,22 +12,33 @@ import {
 
 const ANDROID_CHANNEL_ID = 'flowday-reminders';
 
-/** Local notifications are not available on the web build. */
 const supported = Platform.OS === 'ios' || Platform.OS === 'android';
 
 let configured = false;
 
-export function configureNotifications(): void {
+export interface NotificationEvent {
+  actionIdentifier: string;
+  isDefaultAction: boolean;
+  data: Record<string, unknown>;
+  firedAt: Date;
+}
+
+export function configureNotifications(
+  shouldShow: (data: Record<string, unknown>) => boolean = () => true
+): void {
   if (!supported || configured) return;
   configured = true;
 
   Notifications.setNotificationHandler({
-    handleNotification: async () => ({
-      shouldShowBanner: true,
-      shouldShowList: true,
-      shouldPlaySound: true,
-      shouldSetBadge: false,
-    }),
+    handleNotification: async (notification) => {
+      const show = shouldShow(notification.request.content.data ?? {});
+      return {
+        shouldShowBanner: show,
+        shouldShowList: show,
+        shouldPlaySound: show,
+        shouldSetBadge: false,
+      };
+    },
   });
 
   if (Platform.OS === 'android') {
@@ -42,10 +56,6 @@ export async function getPermissionGranted(): Promise<boolean> {
   return granted;
 }
 
-/**
- * Asks the system for permission, returning whether we ended up with it.
- * Safe to call when already granted: the OS resolves without a prompt.
- */
 export async function requestPermission(): Promise<boolean> {
   if (!supported) return false;
   const current = await Notifications.getPermissionsAsync();
@@ -76,10 +86,6 @@ function triggerFor(
   };
 }
 
-/**
- * Replaces every reminder we own with `planned`, leaving the pending focus
- * alert and any notification we did not create untouched.
- */
 export async function syncPlannedNotifications(
   planned: PlannedNotification[]
 ): Promise<void> {
@@ -101,14 +107,14 @@ export async function syncPlannedNotifications(
       content: {
         title: notification.title,
         body: notification.body,
-        data: notification.route ? { route: notification.route } : undefined,
+        data: { ...notification.data, ...(notification.route ? { route: notification.route } : {}) },
+        categoryIdentifier: notification.categoryId,
       },
       trigger: triggerFor(notification),
     });
   }
 }
 
-/** How many reminders we currently own, used as feedback in Settings. */
 export async function countOwnedNotifications(): Promise<number> {
   if (!supported) return 0;
   const scheduled = await Notifications.getAllScheduledNotificationsAsync();
@@ -127,10 +133,6 @@ export async function cancelOwnedNotifications(): Promise<void> {
   );
 }
 
-/**
- * Fires once when the running pomodoro or break ends. This is what keeps the
- * timer useful after the app goes to the background and the JS timer stops.
- */
 export async function scheduleFocusAlert(
   seconds: number,
   title: string,
@@ -155,14 +157,44 @@ export async function cancelFocusAlert(): Promise<void> {
   await Notifications.cancelScheduledNotificationAsync(FOCUS_ID).catch(() => {});
 }
 
-export function addNotificationTapListener(
-  onRoute: (route: string) => void
+export async function registerBlockEndCategory(
+  labels: Record<BlockStatus, string>
+): Promise<void> {
+  if (!supported) return;
+  await Notifications.setNotificationCategoryAsync(
+    BLOCK_END_CATEGORY,
+    BLOCK_END_ACTIONS.map((status) => ({
+      identifier: status,
+      buttonTitle: labels[status],
+    }))
+  );
+}
+
+function toEvent(response: Notifications.NotificationResponse): NotificationEvent {
+  return {
+    actionIdentifier: response.actionIdentifier,
+    isDefaultAction: response.actionIdentifier === Notifications.DEFAULT_ACTION_IDENTIFIER,
+    data: response.notification.request.content.data ?? {},
+    firedAt: new Date(response.notification.date),
+  };
+}
+
+export function takeLaunchResponse(): NotificationEvent | null {
+  if (!supported) return null;
+  const response = Notifications.getLastNotificationResponse();
+  if (!response) return null;
+  Notifications.clearLastNotificationResponse();
+  return toEvent(response);
+}
+
+export function addNotificationResponseListener(
+  onResponse: (event: NotificationEvent) => void
 ): () => void {
   if (!supported) return () => {};
   const subscription = Notifications.addNotificationResponseReceivedListener(
     (response) => {
-      const route = response.notification.request.content.data?.route;
-      if (typeof route === 'string') onRoute(route);
+      Notifications.clearLastNotificationResponse();
+      onResponse(toEvent(response));
     }
   );
   return () => subscription.remove();

@@ -10,12 +10,10 @@ import { formatDuration } from '../../utils/time';
 
 interface LifeBlockCardProps {
   block: LifeBlock;
-  /** Lived share of the weekly goal (or of the plan when there is no goal). */
   progressPercent: number;
-  /** Minutes actually lived this week, from validated blocks. */
   livedMinutes: number;
-  /** Minutes the weekly template sets aside. */
   plannedMinutes: number;
+  unratedMinutes: number;
   onEdit: () => void;
   onMoveUp: () => void;
   onMoveDown: () => void;
@@ -29,6 +27,7 @@ export function LifeBlockCard({
   progressPercent,
   livedMinutes,
   plannedMinutes,
+  unratedMinutes,
   onEdit,
   onMoveUp,
   onMoveDown,
@@ -91,19 +90,21 @@ export function LifeBlockCard({
               {block.name}
             </Text>
             <Text style={[typography.footnote, styles.subtitle]}>
-              {hasGoal
-                ? t('livedOfGoal', {
+              {plannedMinutes > 0
+                ? t('livedOfPlanned', {
                     lived: formatDuration(livedMinutes),
-                    goal: formatDuration(block.weeklyGoalMinutes),
                     planned: formatDuration(plannedMinutes),
                   })
-                : plannedMinutes > 0
-                  ? t('livedOfPlanned', {
-                      lived: formatDuration(livedMinutes),
-                      planned: formatDuration(plannedMinutes),
-                    })
-                  : t('Rien de prévu cette semaine')}
+                : livedMinutes > 0
+                  ? t('livedUnplanned', { lived: formatDuration(livedMinutes) })
+                  : t('Rien de prévu sur cette période')}
+              {hasGoal ? ` · ${t('weeklyGoalShort', { goal: formatDuration(block.weeklyGoalMinutes) })}` : ''}
             </Text>
+            {unratedMinutes > 0 && (
+              <Text style={[typography.caption, styles.subtitle, { color: colors.text.secondary }]}>
+                {t('unratedDuration', { duration: formatDuration(unratedMinutes) })}
+              </Text>
+            )}
           </View>
 
           <View style={styles.moreSpacer} />

@@ -65,7 +65,6 @@ describe('versioned stores', () => {
     await useLifeBlocksStore.persist.rehydrate();
 
     expect(useLifeBlocksStore.getState().blocks).toEqual([block]);
-    // The next write stamps the current version.
     useLifeBlocksStore.getState().updateBlock('legacy', { name: 'Renamed' });
     expect(JSON.parse(storage.get('flowday-lifeblocks')!).version).toBe(1);
   });

@@ -1,6 +1,6 @@
 import { BlockLog, BlockStatus } from '../../types/blockLog';
+import { FocusSession } from '../../types/focus';
 
-/** Share of a slot that counts as lived. Users never type minutes: the status is enough. */
 export const STATUS_CREDIT: Record<BlockStatus, number> = {
   done: 1,
   partial: 0.5,
@@ -11,16 +11,50 @@ export function livedMinutes(log: Pick<BlockLog, 'plannedMinutes' | 'status'>): 
   return Math.round(log.plannedMinutes * STATUS_CREDIT[log.status]);
 }
 
-/** Lived minutes per life block for logs dated within [from, to] (YYYY-MM-DD, inclusive). */
+export interface FocusCredit {
+  date: string;
+  lifeBlockId: string;
+  minutes: number;
+}
+
+export function focusCredits(sessions: readonly FocusSession[]): FocusCredit[] {
+  return sessions.flatMap((session) => {
+    if (!session.lifeBlockId || !session.focusSecondsByDate) return [];
+    const lifeBlockId = session.lifeBlockId;
+    return Object.entries(session.focusSecondsByDate).map(([date, seconds]) => ({
+      date,
+      lifeBlockId,
+      minutes: Math.round(seconds / 60),
+    }));
+  });
+}
+
 export function livedMinutesByBlock(
   logs: readonly BlockLog[],
   from: string,
-  to: string
+  to: string,
+  focus: readonly FocusCredit[] = []
 ): Record<string, number> {
-  const totals: Record<string, number> = {};
+  const fromLogs: Record<string, number> = {};
+  const fromFocus: Record<string, number> = {};
+  const key = (date: string, lifeBlockId: string) => `${date}|${lifeBlockId}`;
+
   for (const log of logs) {
     if (log.date < from || log.date > to) continue;
-    totals[log.lifeBlockId] = (totals[log.lifeBlockId] ?? 0) + livedMinutes(log);
+    const day = key(log.date, log.lifeBlockId);
+    fromLogs[day] = (fromLogs[day] ?? 0) + livedMinutes(log);
+  }
+  for (const credit of focus) {
+    if (credit.date < from || credit.date > to) continue;
+    const day = key(credit.date, credit.lifeBlockId);
+    fromFocus[day] = (fromFocus[day] ?? 0) + credit.minutes;
+  }
+
+  const totals: Record<string, number> = {};
+  for (const day of new Set([...Object.keys(fromLogs), ...Object.keys(fromFocus)])) {
+    const lifeBlockId = day.slice(day.indexOf('|') + 1);
+    const minutes = Math.max(fromLogs[day] ?? 0, fromFocus[day] ?? 0);
+    totals[lifeBlockId] = (totals[lifeBlockId] ?? 0) + minutes;
   }
   return totals;
 }
@@ -30,12 +64,6 @@ interface PlannedSlot {
   endMinutes: number;
 }
 
-/**
- * How faithfully a day's plan was lived, for the score. A slot counts once it
- * is logged or once it has ended: a slot still ahead can't be missed yet, but
- * one that ended without being logged was not lived. Pass `nowMinutes` as
- * Infinity for a finished day.
- */
 export function blockFidelity(
   slots: readonly PlannedSlot[],
   logs: readonly Pick<BlockLog, 'templateBlockId' | 'status'>[],

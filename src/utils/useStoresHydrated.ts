@@ -7,11 +7,16 @@ export interface PersistedStore {
   };
 }
 
-/**
- * True once every given store has loaded its saved state. Decisions that depend
- * on saved data (is this a first launch?) must wait for it, since AsyncStorage
- * hydration finishes after the first render.
- */
+export function waitForHydration(store: PersistedStore): Promise<void> {
+  if (store.persist.hasHydrated()) return Promise.resolve();
+  return new Promise((resolve) => {
+    const unsubscribe = store.persist.onFinishHydration(() => {
+      unsubscribe();
+      resolve();
+    });
+  });
+}
+
 export function useStoresHydrated(stores: readonly PersistedStore[]): boolean {
   const [hydrated, setHydrated] = useState(() => stores.every((store) => store.persist.hasHydrated()));
 

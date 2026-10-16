@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import {
+  BLOCK_END_CATEGORY,
   EVENING_ID,
   MORNING_ID,
   planNotifications,
@@ -24,6 +25,10 @@ const evening = {
 
 function block(id: string, dayOfWeek: number, startTime: string) {
   return { id, dayOfWeek, startTime, title: id, body: 'body' };
+}
+
+function blockEnd(id: string, dayOfWeek: number, startTime: string, endTime: string) {
+  return { id, lifeBlockId: 'sport', dayOfWeek, startTime, endTime, title: id, body: 'body' };
 }
 
 describe('planNotifications', () => {
@@ -104,5 +109,52 @@ describe('planNotifications', () => {
     expect(planSignature(base)).not.toBe(
       planSignature(planNotifications({ morning: { ...morning, body: 'Wake up.' } }))
     );
+  });
+});
+
+describe('block end notifications', () => {
+  it('fires at the end of the block with the answer category and the log payload', () => {
+    const [planned] = planNotifications({ blockEnds: [blockEnd('a', 2, '19:00', '20:30')] });
+
+    expect(planned).toMatchObject({
+      id: 'flowday-block-end-a',
+      categoryId: BLOCK_END_CATEGORY,
+      route: '/planning',
+      trigger: { kind: 'weekly', weekday: 2, hour: 20, minute: 30 },
+      data: { templateBlockId: 'a', lifeBlockId: 'sport', dayOfWeek: 2, plannedMinutes: 90 },
+    });
+  });
+
+  it('ignores the start lead time', () => {
+    const [planned] = planNotifications({ blockEnds: [blockEnd('a', 0, '09:00', '10:00')], leadMinutes: 10 });
+    expect(planned.trigger).toEqual({ kind: 'weekly', weekday: 0, hour: 10, minute: 0 });
+  });
+
+  it('skips blocks with a malformed or empty time range', () => {
+    expect(planNotifications({ blockEnds: [blockEnd('a', 0, 'nope', '10:00')] })).toEqual([]);
+    expect(planNotifications({ blockEnds: [blockEnd('b', 0, '10:00', '10:00')] })).toEqual([]);
+  });
+
+  it('asks about each block even when two end at the same minute', () => {
+    const planned = planNotifications({
+      blockEnds: [blockEnd('a', 1, '08:00', '09:00'), blockEnd('b', 1, '08:30', '09:00')],
+    });
+    expect(planned).toHaveLength(2);
+  });
+
+  it('keeps block ends ahead of start reminders when the budget overflows', () => {
+    const planned = planNotifications({
+      morning,
+      blocks: [block('start', 0, '07:00')],
+      blockEnds: [blockEnd('end', 4, '18:00', '19:00')],
+      max: 2,
+    });
+    expect(planned.map((item) => item.id)).toEqual([MORNING_ID, 'flowday-block-end-end']);
+  });
+
+  it('changes its signature when the planned duration changes', () => {
+    const before = planNotifications({ blockEnds: [blockEnd('a', 0, '09:00', '10:00')] });
+    const after = planNotifications({ blockEnds: [blockEnd('a', 0, '09:30', '10:00')] });
+    expect(planSignature(before)).not.toBe(planSignature(after));
   });
 });

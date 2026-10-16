@@ -479,7 +479,7 @@ L'abonnement ne devient défendable qu'après sync + widget + calendrier.
 ### Quatre points pratiques à régler avant de vendre
 
 - ⚠️ **La licence actuelle l'interdit.** Le projet est sous
-  [CC BY-NC 4.0](../LICENSE), qui interdit explicitement l'usage commercial. En tant
+  [PolyForm Noncommercial 1.0.0](../LICENSE), qui interdit explicitement l'usage commercial. En tant
   que seul auteur, il est possible de relicencier — mais il faut le faire
   consciemment avant toute mise en vente.
 - ⚠️ **Compte Apple Developer** : 99 €/an.
@@ -498,20 +498,21 @@ L'abonnement ne devient défendable qu'après sync + widget + calendrier.
       porte sur un problème (« ce que tu prévois vs ce que tu vis »), pas sur un
       profil. Voir section 2.
 - [x] **Ton** : honnête et factuel, jamais moralisateur. Voir point 20.
+- [x] **Validation d'un bloc** : par notification de fin de bloc, à la main depuis le
+      planning, et minutes exactes via le Focus. La validation par tâche a disparu
+      (0.2.0 et 0.3.0).
+- [x] **Score** : deux axes, Fidélité du jour et Équilibre de la semaine. Tâches,
+      Focus et rituels sortent du score (0.3.0, voir `RELEASES.md`).
 
 ### Recommandées, à confirmer
 
-- [ ] **Validation d'un bloc** : par notification de fin de bloc, à la main depuis le
-      planning, et minutes exactes via le Focus. La validation par tâche disparaît.
-      (cf. `docs/todo/todo.md`)
-- [ ] **Score** : deux axes (Fidélité / Équilibre), une fois `BlockLog` en place.
 - [ ] **Plateforme** : iOS d'abord. Android reste supporté par React Native, sans
       widgets natifs pour l'instant.
 
 ### Encore ouvertes
 
 - [ ] Est-ce que Flowday reste un projet portfolio, ou devient un produit ? (licence
-      CC BY-NC et README à changer si produit)
+      PolyForm Noncommercial et README à changer si produit)
 - [ ] E-mail de support et nom de domaine pour la politique de confidentialité.
 
 ---

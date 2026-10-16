@@ -1,168 +1,79 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import { persistOptions } from '../../utils/persistence';
+import { persistOptions, type Migrations } from '../../utils/persistence';
 import { DayScore } from '../../types/dayScore';
-import { dateKey } from '../../utils/dates';
 
 interface DayScoreState {
   scores: DayScore[];
-  currentDayScore: DayScore | null;
   pomodoroGoal: number;
   setPomodoroGoal: (goal: number) => void;
-  recalculateScore: (date: string) => void;
   getScoreForDate: (date: string) => DayScore | undefined;
-  getAllScores: () => DayScore[];
-
-  incrementPomodoro: (date: string) => void;
-  setMorningRitualDone: (date: string) => void;
-  setEveningWrapDone: (date: string) => void;
-  updateBlockValidation: (date: string, blocksValidated: number, totalBlocks: number) => void;
-  updateTasksPercent: (date: string, completed: number, total: number) => void;
+  updateFidelity: (date: string, validated: number, tracked: number) => void;
 }
 
-export const SCORE_WEIGHTS = { blocks: 0.4, tasks: 0.3, pomodoros: 0.2, rituals: 0.1 } as const;
-
-/**
- * Weighted score out of 100. A part with nothing to measure that day (no tasks,
- * no tracked block, no Focus goal) is left out and its weight shared among the
- * others, so an empty category never caps the day below 100. Scores saved
- * before the counts existed have them undefined and keep every part.
- */
-export function computeTotal(score: DayScore, pomodoroGoal: number): number {
-  const ritualsPoints =
-    (score.morningRitualDone ? 5 : 0) + (score.eveningWrapDone ? 5 : 0);
-  const pomodorosPercent = pomodoroGoal > 0
-    ? Math.min((score.pomodorosCompleted / pomodoroGoal) * 100, 100)
-    : 0;
-  const blocksPercent = Math.min(Math.max(score.blocksPercent, 0), 100);
-  const tasksPercent = Math.min(Math.max(score.tasksPercent, 0), 100);
-  const ritualsPercent = Math.min(ritualsPoints * 10, 100);
-  score.blocksPercent = blocksPercent;
-  score.tasksPercent = tasksPercent;
-  score.pomodorosPercent = pomodorosPercent;
-  score.ritualsPercent = ritualsPercent;
-  const parts = [
-    { weight: SCORE_WEIGHTS.blocks, percent: blocksPercent, counts: score.blocksTracked !== 0 },
-    { weight: SCORE_WEIGHTS.tasks, percent: tasksPercent, counts: score.tasksTotal !== 0 },
-    { weight: SCORE_WEIGHTS.pomodoros, percent: pomodorosPercent, counts: pomodoroGoal > 0 },
-    { weight: SCORE_WEIGHTS.rituals, percent: ritualsPercent, counts: true },
-  ].filter((part) => part.counts);
-  const weight = parts.reduce((sum, part) => sum + part.weight, 0);
-  const total = parts.reduce((sum, part) => sum + part.percent * part.weight, 0) / weight;
-  return Math.min(Math.round(total), 100);
+export function fidelityPercent(validated: number, tracked: number): number {
+  if (!(tracked > 0) || !Number.isFinite(validated)) return 0;
+  return Math.round(Math.min(Math.max(validated / tracked, 0), 1) * 100);
 }
 
-function getOrCreateScore(state: DayScoreState, date: string): DayScore {
-  const defaults: DayScore = {
-    date,
-    total: 0,
-    blocksPercent: 0,
-    tasksPercent: 0,
-    pomodorosPercent: 0,
-    ritualsPercent: 0,
-    pomodorosCompleted: 0,
-    pomodorosGoal: state.pomodoroGoal,
-    morningRitualDone: false,
-    eveningWrapDone: false,
-  };
-  const existing = state.scores.find((s) => s.date === date);
-  return existing ? { ...defaults, ...existing } : defaults;
+export function normalizeScore(raw: Partial<DayScore> & { date: string }): DayScore {
+  const blocksTracked = Number.isFinite(raw.blocksTracked) ? Math.max(0, raw.blocksTracked as number) : 0;
+  const fidelity = Number.isFinite(raw.fidelity) ? Math.min(Math.max(raw.fidelity as number, 0), 100) : 0;
+  return { date: raw.date, fidelity: blocksTracked > 0 ? fidelity : 0, blocksTracked };
 }
 
-function updateScore(
-  state: DayScoreState,
-  date: string,
-  updater: (score: DayScore) => void
-): { scores: DayScore[]; currentDayScore: DayScore } {
-  const score = getOrCreateScore(state, date);
-  updater(score);
-  score.total = computeTotal(score, state.pomodoroGoal);
-  const existingIndex = state.scores.findIndex((s) => s.date === date);
-  const scores =
-    existingIndex >= 0
-      ? state.scores.map((s, i) => (i === existingIndex ? score : s))
-      : [...state.scores, score];
-  return { scores, currentDayScore: score };
-}
+export const DAY_SCORE_MIGRATIONS: Migrations = {
+  // v2: the score keeps only the fidelity to the plan. The old weighted total mixed
+  // tasks, Focus and rituals; `blocksPercent` was already the share of the plan lived.
+  2: (state) => {
+    const scores = Array.isArray(state.scores) ? state.scores : [];
+    return {
+      pomodoroGoal: state.pomodoroGoal,
+      scores: scores
+        .filter((score): score is Record<string, unknown> & { date: string } =>
+          !!score && typeof (score as { date?: unknown }).date === 'string'
+        )
+        .map((score) =>
+          normalizeScore({
+            date: score.date,
+            fidelity: score.blocksPercent as number,
+            blocksTracked: score.blocksTracked as number,
+          })
+        ),
+    };
+  },
+};
 
 export const useDayScoreStore = create<DayScoreState>()(
   persist(
     (set, get) => ({
       scores: [],
-      currentDayScore: null,
       pomodoroGoal: 6,
 
-      recalculateScore: (date) =>
+      updateFidelity: (date, validated, tracked) =>
         set((state) => {
-          const existingIndex = state.scores.findIndex((s) => s.date === date);
-          if (existingIndex < 0) return state;
-          const score = { ...state.scores[existingIndex] };
-          score.total = computeTotal(score, state.pomodoroGoal);
+          const score = normalizeScore({ date, fidelity: fidelityPercent(validated, tracked), blocksTracked: tracked });
+          const existing = state.scores.find((candidate) => candidate.date === date);
+          if (existing && existing.fidelity === score.fidelity && existing.blocksTracked === score.blocksTracked) {
+            return state;
+          }
           return {
-            scores: state.scores.map((s, i) => (i === existingIndex ? score : s)),
-            currentDayScore: score,
+            scores: existing
+              ? state.scores.map((candidate) => (candidate.date === date ? score : candidate))
+              : [...state.scores, score],
           };
         }),
 
-      incrementPomodoro: (date) =>
-        set((state) => updateScore(state, date, (s) => { s.pomodorosCompleted += 1; })),
-
-      setMorningRitualDone: (date) =>
-        set((state) => updateScore(state, date, (s) => { s.morningRitualDone = true; })),
-
-      setEveningWrapDone: (date) =>
-        set((state) => updateScore(state, date, (s) => { s.eveningWrapDone = true; })),
-
-      updateBlockValidation: (date, blocksValidated, totalBlocks) =>
-        set((state) =>
-          updateScore(state, date, (s) => {
-            s.blocksTracked = totalBlocks;
-            s.blocksPercent = totalBlocks > 0
-              ? Math.min((blocksValidated / totalBlocks) * 100, 100)
-              : 0;
-          })
-        ),
-
-      updateTasksPercent: (date, completed, total) =>
-        set((state) =>
-          updateScore(state, date, (s) => {
-            s.tasksTotal = total;
-            s.tasksPercent = total > 0 ? Math.min((completed / total) * 100, 100) : 0;
-          })
-        ),
-
       getScoreForDate: (date) => {
-        const score = get().scores.find((s) => s.date === date);
-        if (!score) return undefined;
-        const normalized = getOrCreateScore(get(), date);
-        normalized.total = computeTotal(normalized, get().pomodoroGoal);
-        return normalized;
-      },
-
-      getAllScores: () => {
-        return get().scores.map((score) => {
-          const normalized = getOrCreateScore(get(), score.date);
-          normalized.total = computeTotal(normalized, get().pomodoroGoal);
-          return normalized;
-        });
+        const score = get().scores.find((candidate) => candidate.date === date);
+        return score ? normalizeScore(score) : undefined;
       },
 
       setPomodoroGoal: (goal) => {
         if (!Number.isFinite(goal) || goal < 0) return;
-        set((state) => {
-          const pomodoroGoal = Math.floor(goal);
-          // Today's score depends on the goal, so it must reflect the change at once.
-          const today = dateKey();
-          const scores = state.scores.map((s) => {
-            if (s.date !== today) return s;
-            const next = { ...s, pomodorosGoal: pomodoroGoal };
-            next.total = computeTotal(next, pomodoroGoal);
-            return next;
-          });
-          return { pomodoroGoal, scores };
-        });
+        set({ pomodoroGoal: Math.floor(goal) });
       },
     }),
-    persistOptions<DayScoreState>('flowday-dayscores', { version: 1 })
+    persistOptions<DayScoreState>('flowday-dayscores', { version: 2, migrations: DAY_SCORE_MIGRATIONS })
   )
 );

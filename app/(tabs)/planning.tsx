@@ -8,7 +8,7 @@ import { useRitualStore } from '../../src/features/rituals/store';
 import { useFocusStore } from '../../src/features/focus/store';
 import { useTheme } from '../../src/theme';
 import { dateKey, parseDateKey, relativeDay, weekDayIndex } from '../../src/utils/dates';
-import { formatDuration, formatLongDate, timeToMinutes } from '../../src/utils/time';
+import { currentMinutes, formatDuration, formatLongDate, timeToMinutes } from '../../src/utils/time';
 import { SymbolNames } from '../../src/components/ui/Symbol';
 import { Button, IconButton } from '../../src/components/ui/Glass';
 import { IconTile, List, Row, SectionHeader } from '../../src/components/ui/List';
@@ -36,11 +36,6 @@ import { useTranslation } from '../../src/i18n';
 
 function todayISO(): string {
   return dateKey();
-}
-
-function currentMinutes(): number {
-  const now = new Date();
-  return now.getHours() * 60 + now.getMinutes();
 }
 
 type TimelineItem = {
@@ -109,7 +104,6 @@ export default function PlanningScreen() {
 
   const activeBlocks = useMemo(() => getActiveBlocks(), [lifeBlocks, getActiveBlocks]);
   const isViewingToday = relativeDay(viewedDate) === 'today';
-  // Date keys sort chronologically.
   const isViewingPast = viewedDate < todayISO();
   const viewedLogs = useMemo(
     () => blockLogs.filter((log) => log.date === viewedDate),
@@ -206,10 +200,9 @@ export default function PlanningScreen() {
   const handleFocusTask = useCallback((task: Task) => {
     hapticLight();
     setSelectedTaskId(undefined);
-    if (startFocus(task.id, task.title)) router.push('/focus');
+    if (startFocus(task.id, task.title, task.lifeBlockId)) router.push('/focus');
   }, [router, startFocus]);
 
-  // Done tasks sink below the open ones; the animated list makes the move visible.
   const sortedTasks = useMemo(
     () => [...viewedTasks].sort((a, b) => Number(a.completed) - Number(b.completed)),
     [viewedTasks]
@@ -230,7 +223,7 @@ export default function PlanningScreen() {
             title={t('Planning')}
             description={t('Organise ta journée avec une timeline, des tâches et des blocs de vie.')}
             points={[
-              t('Crée d’abord un template dans Semaine et des blocs de vie dans Blocs.'),
+              t('Crée d’abord un template dans Semaine et des blocs de vie dans Bilan.'),
               t('Une fois configuré, ajoute tes tâches et associe-les au bon bloc.'),
             ]}
           />
@@ -254,7 +247,6 @@ export default function PlanningScreen() {
   const showNowLine =
     isViewingToday && nowMinutes >= TIMELINE_START && nowMinutes <= TIMELINE_END;
   const nowLabel = `${Math.floor(nowMinutes / 60).toString().padStart(2, '0')}:${(nowMinutes % 60).toString().padStart(2, '0')}`;
-  // The now pill sits in the hour column; hide any hour label it would cover.
   const hourHiddenByNow = (hour: number) =>
     showNowLine && Math.abs(nowMinutes - hour * MINUTES_PER_HOUR) < 15;
 

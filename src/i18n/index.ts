@@ -20,15 +20,22 @@ fr['scoreIncomplete'] = 'Journée à compléter';
 fr['blocksKeptCount'] = ({ count }) => `${count} bloc${count === 1 ? '' : 's'} gardé${count === 1 ? '' : 's'}`;
 fr['pendingTasksCount'] = ({ count }) => `${count} tâche${count === 1 ? '' : 's'} en attente`;
 fr['plannedBlocksCount'] = ({ count }) => `${count} bloc${count === 1 ? '' : 's'} prévu${count === 1 ? '' : 's'}`;
-fr['activeBlocksCount'] = ({ count }) => `${count} bloc${count === 1 ? '' : 's'} actif${count === 1 ? '' : 's'}`;
 fr['streakCount'] = ({ count }) => `${count} jour${count === 1 ? '' : 's'} consécutif${count === 1 ? '' : 's'}`;
 fr['bestStreakCount'] = ({ count }) => `Record : ${count} jour${count === 1 ? '' : 's'}`;
 fr['tasksCount'] = ({ count }) => `${count} tâche${count === 1 ? '' : 's'}`;
 fr['otherCount'] = ({ count }) => `+${count} autre${count === 1 ? '' : 's'}`;
 fr['daySunShort'] = 'D'; fr['dayMonShort'] = 'L'; fr['dayTueShort'] = 'M'; fr['dayWedShort'] = 'M'; fr['dayThuShort'] = 'J'; fr['dayFriShort'] = 'V'; fr['daySatShort'] = 'S';
 fr['plannedDuration'] = ({ duration }) => `${duration} planifiées`;
-fr['livedOfGoal'] = ({ lived, goal, planned }) => `${lived} vécu sur ${goal} · ${planned} prévu`;
 fr['livedOfPlanned'] = ({ lived, planned }) => `${lived} vécu sur ${planned} prévu`;
+fr['livedOfPlannedTotal'] = ({ planned }) => `vécu sur ${planned} prévu`;
+fr['livedUnplanned'] = ({ lived }) => `${lived} vécu, rien de prévu`;
+fr['weeklyGoalShort'] = ({ goal }) => `objectif ${goal}/sem.`;
+fr['unratedDuration'] = ({ duration }) => `${duration} non renseigné`;
+fr['averageFidelity'] = ({ score }) => `Fidélité moyenne ${score} %`;
+fr['balanceValue'] = ({ score }) => `Équilibre ${score} %`;
+fr['vsPreviousWeek'] = ({ delta }) => `${delta} pts vs semaine précédente`;
+fr['vsPreviousMonth'] = ({ delta }) => `${delta} pts vs mois précédent`;
+fr['gapInsight'] = ({ name, lived, planned }) => `${name} : ${lived} vécu sur ${planned} prévu. Tu veux réduire le créneau ?`;
 fr['weekSummary'] = ({ count, duration }) => `${count} créneau${count === 1 ? '' : 'x'} · ${duration}`;
 fr['slotsToCreate'] = ({ count }) => `${count} créneaux seront créés.`;
 fr['overlapOnDay'] = ({ day, timeRange }) => `${day} : chevauchement avec ${timeRange}`;
@@ -36,6 +43,7 @@ fr['copyDayIntro'] = ({ day, count }) => `Copier les ${count} créneaux de ${day
 fr['pomodoroProgress'] = ({ done, goal }) => `${done} / ${goal} aujourd’hui`;
 fr['blockReminderSoon'] = ({ minutes, timeRange }) => `Dans ${minutes} min · ${timeRange}`;
 fr['blockReminderNow'] = ({ timeRange }) => `Ça commence · ${timeRange}`;
+fr['blockEndQuestion'] = ({ start, end }) => `Créneau de ${start} à ${end} terminé. Comment s’est-il passé ?`;
 fr['breakReady'] = ({ minutes }) => `${minutes} min de pause, tu l’as méritée.`;
 fr['focusReady'] = ({ minutes }) => `On repart pour ${minutes} min de focus.`;
 fr['blockLeadOption'] = ({ minutes }) => `${minutes} min avant`;
@@ -53,15 +61,22 @@ en['scoreIncomplete'] = 'Day to complete';
 en['blocksKeptCount'] = ({ count }) => `${count} block${count === 1 ? '' : 's'} kept`;
 en['pendingTasksCount'] = ({ count }) => `${count} pending task${count === 1 ? '' : 's'}`;
 en['plannedBlocksCount'] = ({ count }) => `${count} planned block${count === 1 ? '' : 's'}`;
-en['activeBlocksCount'] = ({ count }) => `${count} active block${count === 1 ? '' : 's'}`;
 en['streakCount'] = ({ count }) => `${count} consecutive day${count === 1 ? '' : 's'}`;
 en['bestStreakCount'] = ({ count }) => `Record: ${count} day${count === 1 ? '' : 's'}`;
 en['tasksCount'] = ({ count }) => `${count} task${count === 1 ? '' : 's'}`;
 en['otherCount'] = ({ count }) => `+${count} other${count === 1 ? '' : 's'}`;
 en['daySunShort'] = 'S'; en['dayMonShort'] = 'M'; en['dayTueShort'] = 'T'; en['dayWedShort'] = 'W'; en['dayThuShort'] = 'T'; en['dayFriShort'] = 'F'; en['daySatShort'] = 'S';
 en['plannedDuration'] = ({ duration }) => `${duration} planned`;
-en['livedOfGoal'] = ({ lived, goal, planned }) => `${lived} lived of ${goal} · ${planned} planned`;
 en['livedOfPlanned'] = ({ lived, planned }) => `${lived} lived of ${planned} planned`;
+en['livedOfPlannedTotal'] = ({ planned }) => `lived of ${planned} planned`;
+en['livedUnplanned'] = ({ lived }) => `${lived} lived, nothing planned`;
+en['weeklyGoalShort'] = ({ goal }) => `goal ${goal}/wk`;
+en['unratedDuration'] = ({ duration }) => `${duration} not rated`;
+en['averageFidelity'] = ({ score }) => `Average fidelity ${score}%`;
+en['balanceValue'] = ({ score }) => `Balance ${score}%`;
+en['vsPreviousWeek'] = ({ delta }) => `${delta} pts vs previous week`;
+en['vsPreviousMonth'] = ({ delta }) => `${delta} pts vs previous month`;
+en['gapInsight'] = ({ name, lived, planned }) => `${name}: ${lived} lived of ${planned} planned. Want to shorten the slot?`;
 en['weekSummary'] = ({ count, duration }) => `${count} slot${count === 1 ? '' : 's'} · ${duration}`;
 en['slotsToCreate'] = ({ count }) => `${count} slots will be created.`;
 en['overlapOnDay'] = ({ day, timeRange }) => `${day}: overlaps with ${timeRange}`;
@@ -69,6 +84,7 @@ en['copyDayIntro'] = ({ day, count }) => `Copy the ${count} slots from ${day} to
 en['pomodoroProgress'] = ({ done, goal }) => `${done} / ${goal} today`;
 en['blockReminderSoon'] = ({ minutes, timeRange }) => `In ${minutes} min · ${timeRange}`;
 en['blockReminderNow'] = ({ timeRange }) => `Starting now · ${timeRange}`;
+en['blockEndQuestion'] = ({ start, end }) => `Your ${start} to ${end} slot has ended. How did it go?`;
 en['breakReady'] = ({ minutes }) => `${minutes} min break, you earned it.`;
 en['focusReady'] = ({ minutes }) => `Back for ${minutes} min of focus.`;
 en['blockLeadOption'] = ({ minutes }) => `${minutes} min before`;
@@ -78,7 +94,7 @@ en['lateTasksCount'] = ({ count }) => `${count} overdue task${count === 1 ? '' :
 
 const shared: Record<string, TranslationValue> = {
   'Notifications': 'Notifications', 'Rappels des rituels': 'Ritual reminders',
-  'Début des blocs': 'Block starts', 'Fin de pomodoro': 'Pomodoro end',
+  'Début des blocs': 'Block starts', 'Fin des blocs': 'Block ends', 'Fin de pomodoro': 'Pomodoro end',
   'Anticipation': 'Lead time', 'À l’heure pile': 'On time',
   'Prends deux minutes pour cadrer ta journée.': 'Take two minutes to frame your day.',
   'Fais le bilan avant de couper.': 'Wrap up before you switch off.',
@@ -88,6 +104,8 @@ const shared: Record<string, TranslationValue> = {
     'Flowday reminds you at your ritual times, even when the app is closed.',
   'Un rappel au début de chaque créneau de ta semaine type.':
     'A reminder at the start of each slot in your weekly template.',
+  'À la fin de chaque créneau, réponds Fait, En partie ou Pas fait depuis la notification.':
+    'At the end of each slot, answer Done, Partly or Not done from the notification.',
   'Une alerte quand un pomodoro ou une pause se termine.':
     'An alert when a pomodoro or a break ends.',
   'Les rappels suivent les heures définies ci-dessous.': 'Reminders follow the times set below.',
@@ -140,7 +158,10 @@ const shared: Record<string, TranslationValue> = {
   'Pas de tâches en cours': 'No tasks in progress', "Voici ce qui attend aujourd'hui": "Here's what's waiting today", 'Aucune priorité pour le moment.': 'No priorities right now.',
   'Un mot pour cette journée ?': 'One word for today?', 'Focus, Récupération, Sprint...': 'Focus, Recovery, Sprint...', 'Objectif : journée à 80+': 'Goal: an 80+ day',
   'Tes priorités': 'Your priorities', 'Intention': 'Intention', "C'est parti.": "Let's go.", 'Humeur': 'Mood',
-  'Priorités': 'Priorities', 'Complète tes blocs, tâches et rituels pour remplir ton score.': 'Complete your blocks, tasks and rituals to fill your score.',
+  'Priorités': 'Priorities',
+  'Valide tes blocs à la fin de chaque créneau pour mesurer ta journée.': 'Rate your blocks at the end of each slot to measure your day.',
+  'Fidélité': 'Fidelity', 'Équilibre': 'Balance', 'aujourd’hui': 'today', 'cette semaine': 'this week',
+  'Rien de prévu aujourd’hui': 'Nothing planned today',
   'Cliquer pour voir les tâches': 'Tap to see tasks', 'autre': 'other', 'planifiées': 'planned', 'actif': 'active',
   'Aujourd’hui': 'Today', 'Format HH:MM (ex: 08:00)': 'Format HH:MM (e.g. 08:00)',
   'Ex: Deep Work, Sport...': 'E.g. Deep Work, Sport...', 'Ex: 5h, 1h30, 90min...': 'E.g. 5h, 1h30, 90min...',
@@ -148,7 +169,7 @@ const shared: Record<string, TranslationValue> = {
   'Une action irréversible.': 'This action cannot be undone.', 'Cette action est irréversible.': 'This action cannot be undone.',
   'Rituel du matin': 'Morning ritual', 'Bilan du soir': 'Evening wrap',
   'Termine ta journée proprement et prépare la suivante.': 'Finish your day cleanly and prepare for the next one.',
-  'Consulte ton score et le détail de ta journée.': 'Review your score and the details of your day.',
+  'Consulte ta fidélité du jour et l’équilibre de ta semaine.': 'Check today’s fidelity and your week’s balance.',
   'Décide quoi faire des tâches non terminées : demain, cette semaine ou supprimer.': 'Decide what to do with unfinished tasks: tomorrow, this week, or delete them.',
   'Ajoute une courte note avant de valider ta journée.': 'Add a short note before completing your day.',
   'Personnalise l\'apparence et les rituels automatiques.': 'Customize the appearance and automatic rituals.',
@@ -157,13 +178,30 @@ const shared: Record<string, TranslationValue> = {
   'L’Evening Wrap s’ouvre après l’heure que tu définis.': 'Evening Wrap opens after the time you set.',
   'Heure du Morning Ritual': 'Morning Ritual time', 'Heure de l\'Evening Wrap': 'Evening Wrap time',
   '08:00': '08:00', 'Made by PayExe · Built with Expo': 'Made by PayExe · Built with Expo',
-  'Le score /100 se compose des blocs (40 %), des tâches (30 %), du focus (20 %) et des rituels (10 %).': 'The /100 score is made of blocks (40%), tasks (30%), focus (20%) and rituals (10%).',
-  'Une catégorie sans rien à mesurer ce jour-là ne compte pas : son poids est réparti sur les autres.': 'A category with nothing to measure that day is left out: its weight goes to the others.',
-  'Un bloc compte quand tu le valides dans le Planning : Fait, En partie ou Pas fait. Un bloc passé sans réponse compte comme manqué.': 'A block counts when you rate it in Planning: Done, Partly or Not done. A past block left unrated counts as missed.',
+  'La Fidélité, c’est la part de ta journée prévue que tu as vraiment vécue : Fait compte en entier, En partie à moitié, Pas fait ou sans réponse ne compte pas.':
+    'Fidelity is the share of your planned day you actually lived: Done counts in full, Partly by half, Not done or unanswered not at all.',
+  'L’Équilibre regarde ta semaine : pour chaque domaine, le vécu face au prévu, plafonné à 100 %. Un domaine qui déborde ne rattrape pas celui qu’il a pris.':
+    'Balance looks at your week: for each area, lived time against planned time, capped at 100%. An area that overflows does not make up for the one it took from.',
   'En partie': 'Partly', 'Pas fait': 'Not done', 'À valider': 'To rate',
   'Comment ça s’est passé ?': 'How did it go?', 'Tu pourras le valider le jour venu.': 'You can rate it when the day comes.',
-  'Rien de prévu cette semaine': 'Nothing planned this week',
-  'Le temps vécu se remplit quand tu valides tes blocs dans le Planning.': 'Lived time fills in as you rate your blocks in Planning.',
+  'Rien de prévu sur cette période': 'Nothing planned for this period',
+  'Bilan': 'Review', 'Mois': 'Month', 'Domaines': 'Areas',
+  'Semaine dernière': 'Last week', 'Ce mois-ci': 'This month', 'Le mois dernier': 'Last month',
+  'Période précédente': 'Previous period', 'Période suivante': 'Next period',
+  'Revenir à la période en cours': 'Back to the current period',
+  'Ajuster la semaine type': 'Adjust the weekly template',
+  'Vécu, sans rien de prévu': 'Lived, with nothing planned',
+  'Rien de mesuré sur cette période. Valide tes blocs ou lance un Focus : ton vécu apparaîtra ici.':
+    'Nothing measured for this period. Rate your blocks or start a Focus: your lived time will show up here.',
+  'Ce que tu avais prévu, face à ce que tu as vécu, pour chaque domaine de ta vie.':
+    'What you planned, next to what you lived, for each area of your life.',
+  'Le prévu vient de ta semaine type, le vécu de tes blocs validés et de tes sessions Focus.':
+    'Planned time comes from your weekly template, lived time from your rated blocks and Focus sessions.',
+  'Un créneau sans réponse est compté à part, comme non renseigné.':
+    'A slot left unanswered is counted separately, as not rated.',
+  'Appuie sur un domaine pour le modifier, ou sur ••• pour le réordonner ou l’archiver.':
+    'Tap an area to edit it, or ••• to reorder or archive it.',
+  'Le temps vécu se remplit quand tu valides tes blocs et avec tes sessions Focus.': 'Lived time fills in as you rate your blocks and run Focus sessions.',
   'Données': 'Data', 'Données Flowday': 'Flowday data', 'Exporter mes données': 'Export my data',
   'Export impossible. Réessaie.': 'Export failed. Try again.',
   'Tes données restent sur ton téléphone. L’export en fait une copie que tu peux garder où tu veux.': 'Your data stays on your phone. Exporting makes a copy you can keep anywhere.',
@@ -171,23 +209,26 @@ const shared: Record<string, TranslationValue> = {
   'Planifie ta semaine, avance bloc par bloc et mesure chaque journée.': 'Plan your week, move block by block and measure every day.',
   'Les grands domaines de ta vie : travail, sport, repos…': 'The big areas of your life: work, sport, rest…',
   'Semaine type': 'Typical week', 'Un planning qui se répète, à ajuster quand tu veux.': 'A schedule that repeats, to adjust whenever you want.',
-  'Score du jour': 'Daily score', 'Blocs, tâches, focus et rituels résumés en un chiffre sur 100.': 'Blocks, tasks, focus and rituals summed up in one number out of 100.',
+  'Fidélité et équilibre': 'Fidelity and balance',
+  'Ce que tu as vécu face à ce que tu avais prévu, chaque jour et sur la semaine.': 'What you lived next to what you planned, each day and across the week.',
   'Tes blocs de vie': 'Your life blocks', 'Garde ceux qui te parlent. Tu pourras les modifier ou en créer d’autres.': 'Keep the ones that fit you. You can edit them or create more later.',
   'Garde au moins un bloc pour commencer.': 'Keep at least one block to get started.',
   'Tes rituels': 'Your rituals', 'Deux minutes le matin pour lancer la journée, et le soir pour la clôturer.': 'Two minutes in the morning to start the day, and in the evening to wrap it up.',
   'Reste dans le rythme': 'Stay in rhythm', 'Flowday te rappelle tes rituels à l’heure choisie. Rien d’autre, pas de spam.': 'Flowday reminds you of your rituals at the time you pick. Nothing else, no spam.',
   'Tu peux changer ça à tout moment dans les Réglages.': 'You can change this anytime in Settings.', 'Activer les rappels': 'Turn on reminders',
   'Revoir la présentation': 'Replay the introduction',
-  'Score': 'Score', 'Tâche supprimée': 'Task deleted', 'Objectif Focus quotidien': 'Daily Focus goal',
+  'Tâche supprimée': 'Task deleted', 'Objectif Focus quotidien': 'Daily Focus goal',
   'Diminuer l’objectif Focus': 'Decrease Focus goal', 'Augmenter l’objectif Focus': 'Increase Focus goal',
-  'Sessions de 25 min pour un score Focus complet. À 0, le Focus ne compte plus dans le score.': '25-minute sessions for a full Focus score. At 0, Focus no longer counts toward the score.',
+  'Le nombre de sessions de 25 min que tu vises chaque jour. Le temps de Focus compte dans le vécu du domaine de la tâche.':
+    'How many 25-minute sessions you aim for each day. Focus time counts as lived time for the task’s area.',
   '« En ce moment / Prochain bloc » reflète ton planning actuel.': '“Now / Next block” reflects your current schedule.',
-  'Les Streaks comptent tes journées à 60+ points consécutives.': 'Streaks count your consecutive days at 60+ points.',
+  'Les Streaks comptent tes journées consécutives à 60 % de fidélité ou plus. Une journée sans rien de prévu ne casse pas la série.':
+    'Streaks count your consecutive days at 60% fidelity or more. A day with nothing planned does not break the streak.',
   'Les tâches prioritaires sont tes 3 tâches en cours les plus importantes.': 'Priority tasks are your 3 most important unfinished tasks.',
   'Le total indique le temps planifié sur toute la semaine.': 'The total shows the planned time for the whole week.',
   'La timeline de ta journée, heure par heure, avec tes tâches et tes blocs.': 'Your day timeline, hour by hour, with tasks and blocks.',
   'Organise ta journée avec une timeline, des tâches et des blocs de vie.': 'Organize your day with a timeline, tasks and life blocks.',
-  'Crée d’abord un template dans Semaine et des blocs de vie dans Blocs.': 'First create a template in Week and life blocks in Blocks.',
+  'Crée d’abord un template dans Semaine et des blocs de vie dans Bilan.': 'First create a template in Week and life blocks in Review.',
   'Une fois configuré, ajoute tes tâches et associe-les au bon bloc.': 'Once configured, add your tasks and assign them to the right block.',
   'Ajoute une tâche en haut, puis choisis éventuellement son bloc de vie.': 'Add a task at the top, then optionally choose its life block.',
   'Appuie sur une tâche pour la modifier ou lancer une session Focus.': 'Tap a task to edit it or start a Focus session.',
@@ -203,7 +244,7 @@ const shared: Record<string, TranslationValue> = {
   'Démarrer Focus pour': 'Start Focus for',
   'Ajouter un bloc le': 'Add a block on', 'Définis ton template hebdomadaire': 'Define your weekly template',
   'Construis une semaine type qui servira de base à ton planning quotidien.': 'Build a typical week to use as the basis for your daily schedule.',
-  'Crée d’abord tes blocs de vie dans l’onglet Blocs.': 'First create your life blocks in the Blocks tab.',
+  'Crée d’abord tes blocs de vie dans l’onglet Bilan.': 'First create your life blocks in the Review tab.',
   'Utilise + pour ajouter un créneau à un jour.': 'Use + to add a time slot to a day.',
   'Appuie sur un créneau pour modifier ses horaires ou le supprimer.': 'Tap a time slot to edit its hours or delete it.',
   'Ton planning type, répété chaque semaine.': 'Your typical schedule, repeated every week.',
@@ -215,7 +256,6 @@ const shared: Record<string, TranslationValue> = {
   'dimanche': 'Sunday', 'lundi': 'Monday', 'mardi': 'Tuesday', 'mercredi': 'Wednesday', 'jeudi': 'Thursday', 'vendredi': 'Friday', 'samedi': 'Saturday',
   'janvier': 'January', 'février': 'February', 'mars': 'March', 'avril': 'April', 'mai': 'May', 'juin': 'June', 'juillet': 'July', 'août': 'August', 'septembre': 'September', 'octobre': 'October', 'novembre': 'November', 'décembre': 'December',
   'h': 'h', 'min': 'min', '/ semaine': '/ week', '...': '...',
-  '/100': '/100',
   'Prépare ta journée en quelques étapes avant de commencer.': 'Prepare your day in a few steps before you begin.',
   'Indique ton humeur pour adapter ton point de départ.': 'Share your mood to adapt your starting point.',
   'Consulte tes blocs et tes priorités du jour.': 'Review your blocks and priorities for the day.',
@@ -226,9 +266,6 @@ const shared: Record<string, TranslationValue> = {
   'Mets la session en pause ou reprends-la à tout moment.': 'Pause or resume the session at any time.',
   'Abandonner arrête la session sans la comptabiliser comme terminée.': 'Abandoning stops the session without counting it as completed.',
   'Blocs de vie': 'Life blocks',
-  'Tes grands domaines de vie (travail, sport, santé…) et leur objectif hebdomadaire.': 'Your main areas of life (work, sport, health…) and their weekly goal.',
-  'La barre montre ton temps planifié cette semaine par rapport à l’objectif.': 'The bar shows your planned time this week against your goal.',
-  'Appuie sur un bloc pour le modifier ou l’archiver.': 'Tap a block to edit or archive it.',
   'Utilise les flèches ↑ ↓ pour réordonner les blocs.': 'Use the ↑ ↓ arrows to reorder blocks.',
   'Fermer': 'Close', 'Aide': 'Help', 'Auto': 'Auto', 'Apparence': 'Appearance', 'Passer': 'Skip', 'Suivant': 'Next',
   'Priorité': 'Priority', 'Basse': 'Low', 'Moyenne': 'Medium', 'Haute': 'High', 'Terminée': 'Completed',
@@ -239,7 +276,6 @@ const shared: Record<string, TranslationValue> = {
   'Utilise + pour ajouter une tâche et l’associer à un bloc.': 'Use + to add a task and assign it to a block.',
   'Ajoute ensuite des créneaux à chaque jour.': 'Then add time slots to each day.',
   'Ajoute des créneaux à chaque jour avec « Ajouter un créneau ».': 'Add time slots to each day with “Add a time slot”.',
-  'Le bouton ••• permet de réordonner ou d’archiver un bloc.': 'The ••• button lets you reorder or archive a block.',
   'Le thème Auto suit l’apparence de ton iPhone.': 'The Auto theme follows your iPhone’s appearance.',
   'Lundi': 'Monday', 'Mardi': 'Tuesday', 'Mercredi': 'Wednesday', 'Jeudi': 'Thursday',
   'Vendredi': 'Friday', 'Samedi': 'Saturday', 'Dimanche': 'Sunday',

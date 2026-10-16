@@ -99,3 +99,30 @@ describe('pomodoro transitions', () => {
     expect(useFocusStore.getState().focusState.lastResetDate).toBe(dateKey());
   });
 });
+
+describe('focus credited to a life block', () => {
+  beforeEach(() => {
+    useFocusStore.setState({ sessions: [], focusState: { ...emptyFocusState } });
+  });
+
+  it('takes the domain of the task it starts from', () => {
+    useFocusStore.getState().startFocus('task-1', 'Focus', 'learning');
+    expect(useFocusStore.getState().sessions[0].lifeBlockId).toBe('learning');
+
+    useFocusStore.setState({ sessions: [], focusState: { ...emptyFocusState } });
+    useFocusStore.getState().startFocus('task-2', 'Focus');
+    expect(useFocusStore.getState().sessions[0]).not.toHaveProperty('lifeBlockId');
+  });
+
+  it('records focus seconds per day while the session runs, breaks excluded', () => {
+    useFocusStore.getState().startFocus('task-1', 'Focus', 'learning');
+    const startedAt = useFocusStore.getState().focusState.lastTickAt!;
+
+    useFocusStore.getState().syncTimer(startedAt + (1500 + 300 + 60) * 1000);
+
+    const session = useFocusStore.getState().sessions[0];
+    const total = Object.values(session.focusSecondsByDate ?? {}).reduce((sum, seconds) => sum + seconds, 0);
+    expect(total).toBe(1560);
+    expect(Object.keys(session.focusSecondsByDate ?? {})).toContain(dateKey(new Date(startedAt)));
+  });
+});

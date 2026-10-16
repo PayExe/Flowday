@@ -1,21 +1,21 @@
 # Flowday — Découpage par version
 
 > Complète [`ROADMAP.md`](ROADMAP.md), qui dit *quoi* et *pourquoi*. Ce document dit
-> *dans quelle version*. Mis à jour le 7 octobre 2026.
+> *dans quelle version*. Mis à jour le 9 octobre 2026.
 
 **Principe : une version = une thèse.** Une version qui mélange trois sujets ne se
 raconte pas, ne se teste pas et ne se communique pas.
 
 | Version | Thèse | État |
 |---|---|---|
-| **0.2.0** | « L'app est belle, et elle mesure ce que tu vis » | 🟡 à clôturer |
-| **0.3.0** | « L'app te montre l'écart » | ⚪️ à faire |
+| **0.2.0** | « L'app est belle, et elle mesure ce que tu vis » | ✅ livrée, taguée `v0.2.0` |
+| **0.3.0** | « L'app te montre l'écart » | 🟡 contenu terminé, reste les tests sur appareil et la publication sur `main` |
 | **0.4.0** | « L'app est publiable et testée par de vraies personnes » | ⚪️ plus tard |
 | **0.5.0+** | « L'app est présente hors de l'app » (widgets, calendrier) | ⚪️ quand il y aura un Mac |
 
 ---
 
-## 0.2.0 — Refonte UI **et socle du vécu** *(en cours, part sur `main`)*
+## 0.2.0 — Refonte UI **et socle du vécu** *(livrée sur `main`, tag `v0.2.0`)*
 
 15 commits, 103 fichiers, +9 108 / −3 745. Refonte visuelle, animations, onboarding
 de premier lancement, persistance versionnée, export des données, toast d'undo,
@@ -44,22 +44,22 @@ rend le reste possible.
 | `npm run typecheck` | ✅ propre |
 | `npm run lint` | ✅ propre |
 | `npm test` | ✅ 86 tests, 17 fichiers |
-| `npm audit` | ⚠️ 41 vulnérabilités (1 faible, 13 modérées, 24 hautes, 3 critiques) |
+| `npm audit` | ⚠️ 41 vulnérabilités (1 faible, 13 modérées, 24 hautes, 3 critiques) — **22 au 9 octobre**, voir 0.3.0 |
 
-### À faire avant de merger sur `main`
+### À faire avant de merger sur `main` — fait
 
 Rien de fonctionnel — uniquement de la cohérence. Compter une soirée.
 
-- [ ] **Bumper la version.** `package.json` et `app.json` annoncent encore `0.1.0`
+- [x] **Bumper la version.** `package.json` et `app.json` annoncent encore `0.1.0`
       alors que la branche s'appelle `v.0.2.0/UI`. Les deux doivent passer à `0.2.0`
       — `app.json` sert déjà de source à l'affichage de version dans les réglages.
-- [ ] **`tests/TESTS.md` est périmé.** Il annonce « 28 cas », il y en a **86**. La
+- [x] **`tests/TESTS.md` est périmé.** Il annonce « 28 cas », il y en a **86**. La
       liste détaillée ne couvre plus la moitié de la suite.
-- [ ] **La liste de fonctionnalités du `README` est périmée.** Elle ne mentionne ni
+- [x] **La liste de fonctionnalités du `README` est périmée.** Elle ne mentionne ni
       l'onboarding, ni les notifications, ni l'export, ni le FR/EN, ni l'undo. Et
       « adding data export and backup » est encore listé dans les améliorations
       *futures* alors que l'export existe.
-- [ ] **Merger et taguer `v0.2.0`.** Le tag sert de point de retour une fois que la
+- [x] **Merger et taguer `v0.2.0`.** Le tag sert de point de retour une fois que la
       0.3.0 commencera à changer le modèle de données.
 
 ### Décisions assumées pour cette version
@@ -85,6 +85,55 @@ Le journal du vécu existe depuis la 0.2.0, mais **personne ne le voit** : il al
 une barre de progression sur l'écran Blocs, et c'est tout. Cette version lui donne
 son écran, et les deux chemins d'écriture qui lui manquent.
 
+### Prérequis : audit des dépendances *(branche `v0.3.0/audits`, 8 octobre 2026)*
+
+Fait avant toute fonctionnalité, pour partir sur une base saine.
+
+| Contrôle | Avant | Après |
+|---|---|---|
+| `npm audit` | 42 (3 critiques, 25 hautes, 13 modérées, 1 faible)¹ | **23 (0 critique, 20 hautes, 3 modérées)** |
+| `npx expo install --check` | 5 paquets en retard | ✅ à jour |
+| `npx expo-doctor` | — | ✅ 21/21 |
+| typecheck / lint / tests | ✅ / ✅ / 86 | ✅ / ✅ / 86 |
+| Bundle iOS + Android, prebuild Android | — | ✅ |
+
+¹ *41 au 7 octobre, une nouvelle alerte publiée entre-temps.*
+
+**Ce qui a été fait :**
+
+- Tous les paquets Expo au dernier correctif du **SDK 57** (`expo` 57.0.27, router,
+  notifications, linking, constants) et mineures à jour (eslint, typescript-eslint,
+  zustand, react-native-web).
+- `npm audit fix` **sans** `--force` : shell-quote (critique), ws, source-map-js,
+  brace-expansion, @babel/core.
+- **Vitest 2 → 5**, avec `vite` 8 désormais déclaré en `devDependencies` (peer
+  dependency de Vitest 5). Supprime tinypool et esbuild, et les 2 critiques
+  restantes. Aucun test à réécrire.
+- `overrides` : `xcode` → `uuid@^11.1.1`. Vérifié en manipulant un vrai
+  `project.pbxproj` du template SDK 57 (le prebuild iOS ne tourne pas sous Windows).
+
+**Ce qui n'est volontairement pas monté :**
+
+- **SDK 58** : encore en beta (`next`, React Native 0.88-rc). Les paquets liés au SDK
+  (react-native 0.87, gesture-handler 3, async-storage 3, reanimated 4.7…) montent
+  avec lui, pas à la main.
+- **TypeScript 7** : typescript-eslint exige `typescript <6.1.0`, et la version Go
+  n'expose plus l'API JavaScript dont il dépend. On reste en 6.0.3.
+
+**Risque résiduel accepté — 3 failles d'origine, 23 alertes en cascade :**
+
+| Faille | Gravité | Où | Pourquoi pas corrigée |
+|---|---|---|---|
+| `node-forge` ≤ 1.4.0 | haute | CLI Expo (signature des mises à jour) | Aucun correctif publié |
+| `braces` ≤ 3.0.3 | haute | Metro, via micromatch (build) | Aucun correctif publié |
+| `decode-uri-component` ≤ 0.4.2 | modérée | Expo Router, via `query-string@7` | Le correctif (0.5) et `query-string@9` sont ESM uniquement : ils casseraient la navigation. Disparaît avec expo-router 58 |
+
+Les deux premières ne partent pas dans l'app livrée. La troisième n'est atteignable
+que par un lien `flowday://` malformé ouvert volontairement, avec au pire un gel de
+l'app. **À revérifier à chaque montée de SDK.** Ne jamais lancer
+`npm audit fix --force` : il propose de redescendre à `expo@44` et
+`react-native@0.72`.
+
 ### Critère de réussite
 
 > Après une semaine d'usage **sans jamais ouvrir l'app pour valider**, voir
@@ -94,21 +143,58 @@ Les deux moitiés comptent : la collecte sans friction, et la restitution.
 
 ### Contenu, dans l'ordre des dépendances
 
-1. **La notification de fin de bloc** — trois actions (Fait / En partie / Pas fait),
-   l'écriture se fait sans ouvrir l'app. C'est le point le plus structurant : le
-   journal n'a aujourd'hui qu'un seul chemin d'écriture, et il exige d'ouvrir l'app.
-   *Technique : il n'existe aucune catégorie ni action de notification dans
-   `src/features/notifications/` pour l'instant — `setNotificationCategoryAsync` et
-   le listener de réponse sont à construire.*
-2. **Le Focus crédite un domaine** — `lifeBlockId` sur `FocusSession`
-   (`src/types/focus.ts`). Troisième chemin d'écriture, et le plus précis : des
-   minutes réellement mesurées au lieu d'être déduites d'un statut.
-3. **L'écran Bilan** — le nouvel onglet, qui fait passer l'app de 5 à 6. Semaine et
-   mois, prévu vs vécu par domaine. Branche enfin `WeekScore`
-   (`src/types/dayScore.ts:18`), aujourd'hui type mort. **C'est l'écran qui justifie
-   l'application.**
-4. **Le score à deux axes** — Fidélité / Équilibre, en remplacement des quatre
-   catégories et de `updateBlockValidation`. *(décision à confirmer, cf. ROADMAP §9)*
+1. ✅ **La notification de fin de bloc** — trois actions (Fait / En partie / Pas fait),
+   testée sur appareil le 9 octobre 2026 (branche `v0.3.0/end-of-block-notification`).
+   - Catégorie `flowday-block-end`, réponse écrite au journal avec
+     `source: 'notification'`, datée sur le jour du bloc.
+   - Réglage « Fin des blocs », activé par défaut. Les fins de bloc passent avant les
+     rappels de début dans le budget de 56 notifications.
+   - ⚠️ Les boutons ouvrent l'app : une action en arrière-plan n'est pas transmise
+     quand l'app est fermée sur iOS. La collecte sans ouvrir l'app viendra avec le
+     widget interactif (0.5.0+).
+2. ✅ **Le Focus crédite un domaine** — `lifeBlockId` sur `FocusSession`
+   (`src/types/focus.ts`), branche `v0.3.0/focus-life-block`.
+   - Le domaine vient de la tâche choisie au démarrage. Une tâche sans domaine ne
+     crédite rien.
+   - Les secondes de focus (pauses exclues) sont comptées par jour dans
+     `focusSecondsByDate`, en direct pendant la session.
+   - Pas de double comptage : pour un domaine et un jour, le vécu retenu est le plus
+     grand entre les blocs validés et le Focus.
+   - Les anciennes sessions n'ont ni domaine ni détail par jour : elles ne créditent
+     rien, on n'invente pas de données. Champs facultatifs, donc pas de migration.
+3. ✅ **L'écran Bilan** — branche `v0.3.0/bilan`, à tester sur appareil.
+   - **Il remplace l'onglet Blocs** au lieu d'en ajouter un sixième : sur iPhone, iOS
+     n'affiche que 5 onglets et range le reste dans « Plus ». L'écran Blocs montrait
+     déjà le vécu de la semaine ; la gestion des domaines (ajout, édition, archivage)
+     reste dans le Bilan.
+   - Semaine et mois, navigation entre les périodes, prévu vs vécu par domaine
+     (`src/features/review/review.ts`).
+   - Le prévu vient de la semaine type active ; pour un créneau déjà noté, on garde
+     la durée enregistrée dans le journal. Rien n'est prévu avant le premier jour du
+     journal : on n'invente pas d'écart. Les créneaux pas encore terminés aujourd'hui
+     ne comptent pas.
+   - Un créneau sans réponse est affiché à part, « non renseigné », et n'est pas
+     compté comme un écart.
+   - Le plus gros écart confirmé (30 min ou plus) donne une phrase factuelle, qui
+     renvoie vers la semaine type (ROADMAP, point 20).
+   - `WeekScore` est branché : fidélité moyenne de la période, comparée à la
+     précédente, et Équilibre de la période.
+4. ✅ **Le score à deux axes** — à tester sur appareil. Remplace les quatre catégories
+   pondérées et `updateBlockValidation`.
+   - **Fidélité (du jour)** : la part du prévu vécue — Fait 1, En partie 0,5, Pas fait
+     ou sans réponse 0. Sans réponse compte 0 ici, sinon ne pas répondre protégerait
+     le score ; le Bilan, lui, l'affiche à part.
+   - **Équilibre (de la semaine)** : pour chaque domaine prévu, vécu ÷ prévu plafonné à
+     100 %, moyenné sans pondération. Un domaine qui déborde ne rattrape pas celui
+     qu'il a pris. Calculé depuis le journal, rien de plus n'est stocké.
+   - Les tâches, le Focus et les rituels sortent du score. Le Focus compte déjà dans
+     le vécu de son domaine ; l'objectif de pomodoros reste affiché, sans noter la
+     journée.
+   - Séries à 60 % de fidélité, célébration à 80 %. Une journée sans rien de prévu ne
+     casse pas la série, et la journée en cours ne la casse qu'une fois finie.
+   - Migration `flowday-dayscores` v1 → v2 : on garde `blocksPercent`, qui était déjà
+     la part du prévu vécue. Les jours sans `blocksTracked` (avant la 0.2.0) deviennent
+     des journées sans rien à mesurer : on n'invente pas de fidélité.
 
 ### Déjà livré en 0.2.0 — à ne pas refaire
 
@@ -122,7 +208,7 @@ Parce qu'ils touchent au même code, autant les faire ici :
 
 - ❌ `estimatedMinutes` (`src/types/task.ts:11`) — champ mort, à supprimer ou à
   brancher sur le calcul de capacité.
-- ❌ `WeekScore` — cesse d'être mort en étant branché sur l'écran Bilan (point 3).
+- ✅ `WeekScore` — branché sur l'écran Bilan (point 3).
 - 〽️ `isFlexible` — trancher : lui donner un effet réel (décalage automatique quand
   la journée glisse) ou le retirer. Un réglage qui ne fait rien érode la confiance.
 - 〽️ `initializeDefaults` (`templates/store.ts:181`) — remplacer les index
@@ -152,7 +238,8 @@ support, Sentry, import du backup, build EAS et TestFlight. Plus les semaines ty
 d'onboarding et le résumé du dimanche, qui ont besoin du bilan de la 0.3.0 pour
 avoir un sens.
 
-C'est aussi le bon moment pour reprendre `npm audit` sérieusement.
+L'audit a été fait en amont de la 0.3.0 (voir plus haut). Avant la publication,
+il reste à revérifier les 3 failles résiduelles, en principe réglées par le SDK 58.
 
 ---
 

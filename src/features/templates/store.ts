@@ -29,7 +29,6 @@ interface TemplateState {
   getBlocksForDay: (dayOfWeek: number) => TemplateBlock[];
   getTodayBlocks: () => TemplateBlock[];
   initializeDefaults: (lifeBlockIds: string[]) => void;
-  /** Drops every slot using these life blocks, e.g. blocks declined during onboarding. */
   removeBlocksForLifeBlocks: (lifeBlockIds: string[]) => void;
 }
 

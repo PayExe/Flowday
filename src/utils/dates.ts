@@ -44,10 +44,6 @@ export function shiftWeekDay(day: number, offset: number): number {
   return (day + offset + 7) % 7;
 }
 
-/**
- * Rebuilds a Date from a `YYYY-MM-DD` key using local components. `new Date(key)`
- * would parse it as UTC midnight and land on the previous day west of Greenwich.
- */
 export function parseDateKey(key: string): Date {
   const [year, month, day] = key.split('-').map(Number);
   const date = new Date();
@@ -62,7 +58,6 @@ export function shiftDateKey(key: string, days: number): string {
 
 export type RelativeDay = 'today' | 'tomorrow' | 'yesterday' | null;
 
-/** Returns a translation key for the near days, or null for a plain date. */
 export function relativeDay(key: string, today = dateKey()): RelativeDay {
   const difference = calendarDayDifference(today, key);
   if (difference === 0) return 'today';

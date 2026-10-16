@@ -25,7 +25,6 @@ function Particle({ angle, distance, size, color }: ParticleProps) {
       opacity: progress.value < 0.6 ? 1 : 1 - (progress.value - 0.6) / 0.4,
       transform: [
         { translateX: Math.cos(angle) * travelled },
-        // A touch of gravity once the burst slows down.
         { translateY: Math.sin(angle) * travelled + 18 * progress.value * progress.value },
         { scale: 1 - 0.5 * progress.value },
       ],
@@ -44,21 +43,17 @@ function Particle({ angle, distance, size, color }: ParticleProps) {
 }
 
 interface CelebrationProps {
-  /** Increment to fire a new burst; 0 renders nothing. */
   trigger: number;
   colors: readonly string[];
-  /** How far particles fly from the center, in points. */
   radius: number;
 }
 
-/** A one-shot particle burst from the center of its parent. */
 export function Celebration({ trigger, colors, radius }: CelebrationProps) {
   if (trigger === 0) return null;
 
   return (
     <View pointerEvents="none" style={styles.container}>
       {Array.from({ length: PARTICLES }, (_, i) => {
-        // Spread evenly with a little jitter so the burst does not look mechanical.
         const angle = (i / PARTICLES) * Math.PI * 2 + ((i * 37) % 10) / 25;
         return (
           <Particle

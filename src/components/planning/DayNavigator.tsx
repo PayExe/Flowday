@@ -28,11 +28,8 @@ export function DayNavigator({ date, onChange }: DayNavigatorProps) {
   const isToday = relative === 'today';
   const parsed = parseDateKey(date);
 
-  // Which way the label slides in when the day changes.
   const [movedForward, setMovedForward] = useState(true);
 
-  // The screen header already carries the full date, so this only states where
-  // we are relative to today, plus the way back when we have wandered off.
   const label = relative ? t(RELATIVE_LABELS[relative]) : formatLongDate(parsed, t);
 
   const step = (days: number) => {
@@ -67,7 +64,6 @@ export function DayNavigator({ date, onChange }: DayNavigatorProps) {
         disabled={isToday}
         onPress={() => {
           hapticLight();
-          // Date keys sort chronologically.
           setMovedForward(today > date);
           onChange(today);
         }}

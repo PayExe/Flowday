@@ -69,13 +69,14 @@ Flowday is a personal planning mobile application built with React Native and Ex
 
 Other features include:
 
-- Block validation (done, partial or skipped) and lived time per life block.
+- Block validation (done, partial or skipped), from the planning or straight from the end-of-block notification.
+- Review tab: planned versus lived time per life block, by week or month, with Focus time credited to its area.
 - Tasks with priorities, completion tracking, rescheduling and undo on delete.
-- Daily score and streak tracking.
+- Two-axis score: fidelity to today's plan and weekly balance across life blocks, with streaks.
 - Morning Ritual and Evening Wrap workflows.
 - Focus mode with Pomodoro sessions.
 - First-launch onboarding with starter life blocks.
-- Local notifications for rituals, block starts and the end of a Pomodoro.
+- Local notifications for rituals, block starts and ends, and the end of a Pomodoro.
 - French and English, switchable in the settings.
 - Light and dark themes.
 - Haptic feedback and reusable mobile components.
@@ -145,7 +146,6 @@ Possible future improvements include:
 - improving accessibility and automated UI testing;
 - adding cloud synchronization;
 - adding a restore path for the exported data;
-- showing planned versus lived time per life block over a week and a month;
 - refining the focus and planning workflows;
 - publishing a production build.
 
@@ -155,7 +155,7 @@ Possible future improvements include:
 - The application is a test version and stores data locally on the device.
 - There is no account, cloud synchronization, backend or data recovery flow.
 - Automated coverage focuses on stores and business logic; full device UI and accessibility testing is still limited.
-- `npm audit` currently reports transitive dependency vulnerabilities. Some fixes require breaking upgrades to Expo Router, Vitest or Expo, so they are not applied automatically with `--force`.
+- `npm audit` still reports 3 transitive advisories (node-forge, braces, decode-uri-component), all inside Expo's build tooling or Expo Router, with no compatible upstream fix yet. They are tracked in `docs/RELEASES.md` and re-checked on every Expo SDK upgrade. Never run `npm audit fix --force`: it downgrades Expo and React Native.
 
 ## Learning resources
 

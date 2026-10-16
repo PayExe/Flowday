@@ -14,16 +14,10 @@ const DOT_SIZE = 9;
 const ROW_HEIGHT = 18;
 
 interface NowIndicatorProps {
-  /** Offset from the top of the timeline, in points. */
   top: number;
-  /** Current time as HH:MM. */
   label: string;
 }
 
-/**
- * The Calendar-style "now" line: a time pill in the hour column, a pulsing dot
- * and a rule across the day. It glides to each new position instead of jumping.
- */
 export function NowIndicator({ top, label }: NowIndicatorProps) {
   const { colors, typography } = useTheme();
   const red = colors.system.red;

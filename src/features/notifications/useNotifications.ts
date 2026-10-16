@@ -6,33 +6,38 @@ import { useLifeBlocksStore } from '../lifeBlocks/store';
 import { useRitualStore } from '../rituals/store';
 import { useTemplateStore } from '../templates/store';
 import { BREAK_SECONDS, POMODORO_SECONDS, useFocusStore } from '../focus/store';
+import { useBlockLogStore } from '../blockLogs/store';
+import { waitForHydration } from '../../utils/useStoresHydrated';
 import { useNotificationStore } from './store';
+import { blockEndTarget, blockLogFromResponse } from './blockEnd';
 import {
+  BlockEndInput,
   BlockReminderInput,
   planNotifications,
   planSignature,
 } from './schedule';
 import {
-  addNotificationTapListener,
+  addNotificationResponseListener,
   cancelFocusAlert,
   cancelOwnedNotifications,
   configureNotifications,
   getPermissionGranted,
+  NotificationEvent,
+  registerBlockEndCategory,
   requestPermission,
   scheduleFocusAlert,
   syncPlannedNotifications,
+  takeLaunchResponse,
 } from './service';
 
-/**
- * Owns every local notification of the app: the two ritual reminders, the
- * optional block reminders built from the active weekly template, and the
- * one-shot alert that ends a pomodoro. Mounted once from the root layout.
- */
+function isBlockEndAnswered(data: Record<string, unknown>): boolean {
+  const target = blockEndTarget(data, new Date());
+  return !!target && !!useBlockLogStore.getState().getLog(target.date, target.templateBlockId);
+}
+
 export function useNotifications(): void {
   const router = useRouter();
   const language = useLanguageStore((state) => state.language);
-  // A stable translator: `useTranslation` rebuilds its `t` on every render,
-  // which would make the memoized plan below churn needlessly.
   const t = useCallback(
     (key: string, params?: Record<string, string | number>) => translate(key, language, params),
     [language]
@@ -40,6 +45,7 @@ export function useNotifications(): void {
 
   const ritualsEnabled = useNotificationStore((state) => state.ritualsEnabled);
   const blocksEnabled = useNotificationStore((state) => state.blocksEnabled);
+  const blockEndsEnabled = useNotificationStore((state) => state.blockEndsEnabled);
   const blockLeadMinutes = useNotificationStore((state) => state.blockLeadMinutes);
   const focusEnabled = useNotificationStore((state) => state.focusEnabled);
   const permissionRequested = useNotificationStore((state) => state.permissionRequested);
@@ -59,16 +65,19 @@ export function useNotifications(): void {
   const focusState = useFocusStore((state) => state.focusState);
 
   useEffect(() => {
-    configureNotifications();
+    configureNotifications((data) => !isBlockEndAnswered(data));
   }, []);
 
-  const wantsNotifications = ritualsEnabled || blocksEnabled || focusEnabled;
+  useEffect(() => {
+    void registerBlockEndCategory({
+      done: t('Fait'),
+      partial: t('En partie'),
+      skipped: t('Pas fait'),
+    });
+  }, [t]);
 
-  /**
-   * A cold permission prompt on the very first screen gets refused. We wait
-   * for the first completed ritual: the user has just seen what the reminder
-   * is for. Settings can always ask earlier, on an explicit toggle.
-   */
+  const wantsNotifications = ritualsEnabled || blocksEnabled || blockEndsEnabled || focusEnabled;
+
   const promptIsEarned = ritualLogs.length > 0;
 
   useEffect(() => {
@@ -77,8 +86,6 @@ export function useNotifications(): void {
     let cancelled = false;
 
     const resolve = async () => {
-      // Only the very first launch shows the system prompt; afterwards we just
-      // read the current status so a revoked permission is picked up.
       const granted = permissionRequested
         ? await getPermissionGranted()
         : await requestPermission();
@@ -116,8 +123,30 @@ export function useNotifications(): void {
         },
       ];
     });
-    // `templates` is listed so the plan follows template edits.
   }, [blocksEnabled, blockLeadMinutes, getActiveTemplate, templates, activeTemplateId, lifeBlocks, t]);
+
+  const blockEnds = useMemo<BlockEndInput[]>(() => {
+    if (!blockEndsEnabled) return [];
+    const template = getActiveTemplate();
+    if (!template) return [];
+
+    return template.blocks.flatMap((block) => {
+      const lifeBlock = lifeBlocks.find((candidate) => candidate.id === block.lifeBlockId);
+      if (!lifeBlock || lifeBlock.isArchived) return [];
+      const label = block.title || lifeBlock.name;
+      return [
+        {
+          id: block.id,
+          lifeBlockId: block.lifeBlockId,
+          dayOfWeek: block.dayOfWeek,
+          startTime: block.startTime,
+          endTime: block.endTime,
+          title: `${lifeBlock.emoji} ${label}`.trim(),
+          body: t('blockEndQuestion', { start: block.startTime, end: block.endTime }),
+        },
+      ];
+    });
+  }, [blockEndsEnabled, getActiveTemplate, templates, activeTemplateId, lifeBlocks, t]);
 
   const planned = useMemo(
     () =>
@@ -141,6 +170,7 @@ export function useNotifications(): void {
               }
             : undefined,
         blocks: blockReminders,
+        blockEnds,
         leadMinutes: blockLeadMinutes,
       }),
     [
@@ -150,6 +180,7 @@ export function useNotifications(): void {
       eveningConfig.enabled,
       eveningConfig.time,
       blockReminders,
+      blockEnds,
       blockLeadMinutes,
       t,
     ]
@@ -185,8 +216,6 @@ export function useNotifications(): void {
       return;
     }
 
-    // Read the remaining time at scheduling time rather than through deps, so
-    // the alert is not re-registered on every one-second tick.
     const remaining = useFocusStore.getState().focusState.timeRemaining;
     void scheduleFocusAlert(
       remaining,
@@ -206,6 +235,22 @@ export function useNotifications(): void {
   ]);
 
   useEffect(() => {
-    return addNotificationTapListener((route) => router.push(route));
+    const record = async (event: NotificationEvent) => {
+      const entry = blockLogFromResponse(event.actionIdentifier, event.data, event.firedAt);
+      if (!entry) return false;
+      await waitForHydration(useBlockLogStore);
+      useBlockLogStore.getState().setStatus(entry);
+      return true;
+    };
+
+    const launch = takeLaunchResponse();
+    if (launch) void record(launch);
+
+    return addNotificationResponseListener((event) => {
+      void record(event).then((recorded) => {
+        const route = event.data.route;
+        if (!recorded && event.isDefaultAction && typeof route === 'string') router.push(route);
+      });
+    });
   }, [router]);
 }

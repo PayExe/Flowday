@@ -11,7 +11,6 @@ export const STATUS_META: Record<BlockStatus, { symbol: string; label: string; c
 };
 
 interface BlockStatusIconProps {
-  /** Undefined with `needsReview` shows the "to validate" marker. */
   status?: BlockStatus;
   needsReview?: boolean;
   size: number;

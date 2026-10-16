@@ -2,12 +2,14 @@ export interface FocusSession {
   id: string;
   taskId: string;
   taskTitle: string;
+  lifeBlockId?: string;
   startedAt: string;
   endedAt?: string;
   pomodorosCompleted: number;
   pomodoroCompletedDates?: string[];
   pomodorosAbandoned: number;
   totalFocusMinutes: number;
+  focusSecondsByDate?: Record<string, number>;
 }
 
 export interface FocusState {

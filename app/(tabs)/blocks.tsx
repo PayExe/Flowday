@@ -1,47 +1,41 @@
 import { useState, useCallback, useMemo } from 'react';
 import { Pressable, Text, View, StyleSheet } from 'react-native';
 import Animated, { FadeIn, FadeOut, LayoutAnimationConfig } from 'react-native-reanimated';
+import { useRouter } from 'expo-router';
 import { useLifeBlocksStore } from '../../src/features/lifeBlocks/store';
-import { useTemplateStore } from '../../src/features/templates/store';
-import { useBlockLogStore } from '../../src/features/blockLogs/store';
-import { livedMinutesByBlock } from '../../src/features/blockLogs/lived';
-import { dateKey, shiftDateKey, weekDayIndex } from '../../src/utils/dates';
+import { useDayScoreStore } from '../../src/features/dayScore/store';
+import {
+  averageScore,
+  balancePercent,
+  buildWeekScore,
+  largestGap,
+  periodDays,
+  periodRange,
+  ReviewPeriod,
+} from '../../src/features/review/review';
+import { useReview } from '../../src/features/review/useReview';
+import { dateKey } from '../../src/utils/dates';
 import { LifeBlock, LifeBlockColor } from '../../src/types/lifeBlock';
-import { TemplateBlock } from '../../src/types/template';
 import { LifeBlockCard } from '../../src/components/lifeBlocks/LifeBlockCard';
+import { PeriodNavigator } from '../../src/components/review/PeriodNavigator';
 import { EditBlockModal } from '../../src/components/lifeBlocks/EditBlockModal';
 import { EmptyState } from '../../src/components/shared/EmptyState';
 import { useTheme } from '../../src/theme';
 import { hapticLight, hapticWarning } from '../../src/utils/haptics';
-import { timeToMinutes } from '../../src/utils/time';
+import { formatDuration } from '../../src/utils/time';
 import { PageInfo } from '../../src/components/ui/PageInfo';
 import { Button, IconButton } from '../../src/components/ui/Glass';
-import { IconTile, List, ROW_TRANSITION, Row, SectionFooter, SectionHeader } from '../../src/components/ui/List';
+import { Card, IconTile, List, ROW_TRANSITION, Row, SectionFooter, SectionHeader } from '../../src/components/ui/List';
+import { SegmentedControl } from '../../src/components/ui/SegmentedControl';
 import { Screen } from '../../src/components/ui/Screen';
-import { SymbolNames } from '../../src/components/ui/Symbol';
+import { Symbol, SymbolNames } from '../../src/components/ui/Symbol';
 import { useTranslation } from '../../src/i18n';
-
-
-/** Minutes the weekly template sets aside for a life block: the intention. */
-function getPlannedWeeklyMinutes(
-  blockId: string,
-  getBlocksForDay: (dayOfWeek: number) => TemplateBlock[]
-): number {
-  let total = 0;
-  for (let day = 0; day < 7; day++) {
-    for (const b of getBlocksForDay(day)) {
-      if (b.lifeBlockId === blockId) {
-        total += timeToMinutes(b.endTime) - timeToMinutes(b.startTime);
-      }
-    }
-  }
-  return total;
-}
 
 
 export default function BlocksScreen() {
   const { colors, typography } = useTheme();
   const { t } = useTranslation();
+  const router = useRouter();
   const [modalVisible, setModalVisible] = useState(false);
   const [editingBlock, setEditingBlock] = useState<LifeBlock | null>(null);
 
@@ -53,18 +47,37 @@ export default function BlocksScreen() {
   const reorderBlock = useLifeBlocksStore((state) => state.reorderBlock);
   const getActiveBlocks = useLifeBlocksStore((state) => state.getActiveBlocks);
 
-  const getBlocksForDay = useTemplateStore((state) => state.getBlocksForDay);
-  useTemplateStore((state) => state.templates);
+  const scores = useDayScoreStore((state) => state.scores);
 
-  const blockLogs = useBlockLogStore((state) => state.logs);
-  // The week runs Monday to today: what has been lived so far.
-  const livedThisWeek = useMemo(() => {
-    const today = dateKey();
-    return livedMinutesByBlock(blockLogs, shiftDateKey(today, -weekDayIndex()), today);
-  }, [blockLogs]);
+  const [period, setPeriod] = useState<ReviewPeriod>('week');
+  const [offset, setOffset] = useState(0);
+  const today = dateKey();
+  const range = useMemo(() => periodRange(period, offset, today), [period, offset, today]);
+  const review = useReview(range);
+  const balance = balancePercent(review);
+
+  const fidelitySummary = useMemo(() => {
+    if (period === 'week') {
+      const week = buildWeekScore(scores, range.from);
+      return week && { average: week.averageDayScore, previous: week.previousWeekAverage };
+    }
+    const average = averageScore(scores, range);
+    return average === null ? null : { average, previous: averageScore(scores, periodRange('month', offset - 1, today)) };
+  }, [period, offset, today, range, scores]);
 
   const activeBlocks = getActiveBlocks();
   const archivedBlocks = blocks.filter((b) => b.isArchived);
+  const totals = Object.values(review).reduce(
+    (sum, domain) => ({
+      planned: sum.planned + domain.plannedMinutes,
+      lived: sum.lived + domain.livedMinutes,
+      unrated: sum.unrated + domain.unratedMinutes,
+    }),
+    { planned: 0, lived: 0, unrated: 0 }
+  );
+  const gap = largestGap(review);
+  const gapBlock = gap && activeBlocks.find((block) => block.id === gap.lifeBlockId);
+  const delta = fidelitySummary?.previous != null ? fidelitySummary.average - fidelitySummary.previous : null;
 
   const handleCreate = useCallback(() => {
     setEditingBlock(null);
@@ -116,17 +129,16 @@ export default function BlocksScreen() {
   return (
     <>
       <Screen
-        title={t('Blocs')}
-        subtitle={t('activeBlocksCount', { count: activeBlocks.length })}
+        title={t('Bilan')}
         actions={
           <>
             <PageInfo
-              title={t('Blocs de vie')}
-              description={t('Tes grands domaines de vie (travail, sport, santé…) et leur objectif hebdomadaire.')}
+              title={t('Bilan')}
+              description={t('Ce que tu avais prévu, face à ce que tu as vécu, pour chaque domaine de ta vie.')}
               points={[
-                t('La barre montre ton temps planifié cette semaine par rapport à l’objectif.'),
-                t('Appuie sur un bloc pour le modifier ou l’archiver.'),
-                t('Le bouton ••• permet de réordonner ou d’archiver un bloc.'),
+                t('Le prévu vient de ta semaine type, le vécu de tes blocs validés et de tes sessions Focus.'),
+                t('Un créneau sans réponse est compté à part, comme non renseigné.'),
+                t('Appuie sur un domaine pour le modifier, ou sur ••• pour le réordonner ou l’archiver.'),
               ]}
             />
             <IconButton
@@ -146,43 +158,134 @@ export default function BlocksScreen() {
             action={<Button title={t('Créer un bloc de vie')} onPress={handleCreate} />}
           />
         ) : (
-          <LayoutAnimationConfig skipEntering>
-            <View style={styles.list}>
-              {activeBlocks.map((block, index) => {
-                const planned = getPlannedWeeklyMinutes(block.id, getBlocksForDay);
-                const lived = livedThisWeek[block.id] ?? 0;
-                const target = block.weeklyGoalMinutes > 0 ? block.weeklyGoalMinutes : planned;
-                const progress = target > 0 ? (lived / target) * 100 : 0;
-
-                return (
-                  <Animated.View
-                    key={block.id}
-                    entering={FadeIn.duration(220)}
-                    exiting={FadeOut.duration(160)}
-                    layout={ROW_TRANSITION}
-                  >
-                    <LifeBlockCard
-                      block={block}
-                      progressPercent={progress}
-                      livedMinutes={lived}
-                      plannedMinutes={planned}
-                      onEdit={() => handleEdit(block)}
-                      onMoveUp={() => reorderBlock(block.id, 'up')}
-                      onMoveDown={() => reorderBlock(block.id, 'down')}
-                      onArchive={() => archiveBlock(block.id)}
-                      canMoveUp={index > 0}
-                      canMoveDown={index < activeBlocks.length - 1}
-                    />
-                  </Animated.View>
-                );
-              })}
+          <>
+            <View style={styles.periodPicker}>
+              <SegmentedControl
+                options={[
+                  { value: 'week', label: t('Semaine') },
+                  { value: 'month', label: t('Mois') },
+                ]}
+                value={period}
+                onChange={(next) => {
+                  setPeriod(next);
+                  setOffset(0);
+                }}
+              />
             </View>
-          </LayoutAnimationConfig>
-        )}
-        {activeBlocks.length > 0 && (
-          <SectionFooter>
-            {t('Le temps vécu se remplit quand tu valides tes blocs dans le Planning.')}
-          </SectionFooter>
+            <PeriodNavigator period={period} offset={offset} range={range} onChange={setOffset} />
+
+            <Card padded style={styles.summary}>
+              {totals.planned > 0 || totals.lived > 0 ? (
+                <>
+                  <Text style={[typography.title1, styles.tabular]}>{formatDuration(totals.lived)}</Text>
+                  <Text style={typography.footnote}>
+                    {totals.planned > 0
+                      ? t('livedOfPlannedTotal', { planned: formatDuration(totals.planned) })
+                      : t('Vécu, sans rien de prévu')}
+                  </Text>
+                  {totals.unrated > 0 && (
+                    <Text style={[typography.caption, styles.summaryLine, { color: colors.text.secondary }]}>
+                      {t('unratedDuration', { duration: formatDuration(totals.unrated) })}
+                    </Text>
+                  )}
+                </>
+              ) : (
+                <Text style={typography.footnote}>
+                  {t('Rien de mesuré sur cette période. Valide tes blocs ou lance un Focus : ton vécu apparaîtra ici.')}
+                </Text>
+              )}
+              {(fidelitySummary || balance !== null) && (
+                <View style={[styles.divider, { backgroundColor: colors.separator.hairline }]} />
+              )}
+              {fidelitySummary && (
+                <Text style={typography.body}>
+                  {t('averageFidelity', { score: fidelitySummary.average })}
+                  {delta !== null && (
+                    <Text style={[typography.footnote, { color: colors.text.secondary }]}>
+                      {`  ${t(period === 'week' ? 'vsPreviousWeek' : 'vsPreviousMonth', {
+                        delta: delta > 0 ? `+${delta}` : `${delta}`,
+                      })}`}
+                    </Text>
+                  )}
+                </Text>
+              )}
+              {balance !== null && (
+                <Text style={[typography.body, fidelitySummary && styles.summaryLine]}>
+                  {t('balanceValue', { score: balance })}
+                </Text>
+              )}
+            </Card>
+
+            {gap && gapBlock && (
+              <Card style={styles.insight}>
+                <Pressable
+                  onPress={() => {
+                    hapticLight();
+                    router.push('/week');
+                  }}
+                  accessibilityRole="button"
+                  style={({ pressed }) => [
+                    styles.insightContent,
+                    { backgroundColor: pressed ? colors.bg.hover : 'transparent' },
+                  ]}
+                >
+                  <Text style={typography.body}>
+                    {t('gapInsight', {
+                      name: `${gapBlock.emoji} ${gapBlock.name}`.trim(),
+                      lived: formatDuration(gap.livedMinutes),
+                      planned: formatDuration(gap.plannedMinutes),
+                    })}
+                  </Text>
+                  <View style={styles.insightAction}>
+                    <Text style={[typography.subheadline, { color: colors.accent }]}>
+                      {t('Ajuster la semaine type')}
+                    </Text>
+                    <Symbol name={SymbolNames.chevronRight} size={12} weight="semibold" color={colors.accent} />
+                  </View>
+                </Pressable>
+              </Card>
+            )}
+
+            <SectionHeader title={t('Domaines')} />
+            <LayoutAnimationConfig skipEntering>
+              <View>
+                {activeBlocks.map((block, index) => {
+                  const domain = review[block.id];
+                  const planned = domain?.plannedMinutes ?? 0;
+                  const lived = domain?.livedMinutes ?? 0;
+                  const goal = Math.round((block.weeklyGoalMinutes * periodDays(range)) / 7);
+                  const target = planned > 0 ? planned : goal;
+                  const progress = target > 0 ? (lived / target) * 100 : 0;
+
+                  return (
+                    <Animated.View
+                      key={block.id}
+                      entering={FadeIn.duration(220)}
+                      exiting={FadeOut.duration(160)}
+                      layout={ROW_TRANSITION}
+                    >
+                      <LifeBlockCard
+                        block={block}
+                        progressPercent={progress}
+                        livedMinutes={lived}
+                        plannedMinutes={planned}
+                        unratedMinutes={domain?.unratedMinutes ?? 0}
+                        onEdit={() => handleEdit(block)}
+                        onMoveUp={() => reorderBlock(block.id, 'up')}
+                        onMoveDown={() => reorderBlock(block.id, 'down')}
+                        onArchive={() => archiveBlock(block.id)}
+                        canMoveUp={index > 0}
+                        canMoveDown={index < activeBlocks.length - 1}
+                      />
+                    </Animated.View>
+                  );
+                })}
+              </View>
+            </LayoutAnimationConfig>
+            <SectionFooter>
+              {t('Le temps vécu se remplit quand tu valides tes blocs et avec tes sessions Focus.')}
+            </SectionFooter>
+          </>
         )}
 
         {archivedBlocks.length > 0 && (
@@ -226,7 +329,33 @@ export default function BlocksScreen() {
 }
 
 const styles = StyleSheet.create({
-  list: {
+  periodPicker: {
+    marginHorizontal: 16,
     marginTop: 8,
+  },
+  summary: {
+    marginTop: 12,
+  },
+  summaryLine: {
+    marginTop: 4,
+  },
+  tabular: {
+    fontVariant: ['tabular-nums'],
+  },
+  divider: {
+    height: StyleSheet.hairlineWidth,
+    marginVertical: 12,
+  },
+  insight: {
+    marginTop: 12,
+  },
+  insightContent: {
+    padding: 16,
+    gap: 8,
+  },
+  insightAction: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
   },
 });
